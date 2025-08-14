@@ -4,7 +4,6 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import nl.devpieter.Settings;
-import nl.devpieter.managers.AdvancementService;
 import org.jetbrains.annotations.NotNull;
 
 public class PlayerMoveListener implements EventListener<@NotNull PlayerMoveEvent> {
@@ -20,8 +19,6 @@ public class PlayerMoveListener implements EventListener<@NotNull PlayerMoveEven
         if (player.getPosition().y() > 0) return Result.SUCCESS;
 
         player.teleport(Settings.MAIN_WORLD_SPAWN);
-//        AdvancementService.getInstance().grant(player, "myserver:explore_the_void");
-
         return Result.SUCCESS;
     }
 }

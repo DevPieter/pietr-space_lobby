@@ -11,7 +11,6 @@ import net.minestom.server.extras.MojangAuth;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import nl.devpieter.listeners.*;
-import nl.devpieter.managers.AdvancementService;
 import nl.devpieter.managers.WorldManager;
 import org.slf4j.Logger;
 
@@ -54,7 +53,6 @@ public class Main {
 
                 if (playerPosition.distance(portalPosition) < 1) {
                     player.setInstance(specialWorld, Settings.SPECIAL_WORLD_SPAWN);
-//                    AdvancementService.getInstance().grant(player, "myserver:explore_the_nether");
                 }
             } else if (instance == specialWorld) {
                 Pos playerPosition = player.getPosition();
