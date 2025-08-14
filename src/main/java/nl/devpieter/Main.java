@@ -8,6 +8,7 @@ import net.minestom.server.event.player.PlayerBlockBreakEvent;
 import net.minestom.server.event.player.PlayerBlockPlaceEvent;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.extras.MojangAuth;
+import net.minestom.server.extras.velocity.VelocityProxy;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import nl.devpieter.listeners.*;
@@ -49,96 +50,45 @@ public class Main {
 
             if (instance == mainWorld) {
                 Pos playerPosition = player.getPosition();
-                Pos portalPosition = new Pos(2, 58, -16);
 
-                if (playerPosition.distance(portalPosition) < 1) {
-                    player.setInstance(specialWorld, Settings.SPECIAL_WORLD_SPAWN);
+                Pos portalStart = new Pos(3, 60, -2);
+                Pos portalEnd = new Pos(1, 58, -2);
+
+                if (isBetweenCoordinates(playerPosition, portalStart, portalEnd, 1)) {
+                    player.setInstance(specialWorld, new Pos(2.5, 58, -2.5, -180, 0));
                 }
+
             } else if (instance == specialWorld) {
                 Pos playerPosition = player.getPosition();
-                Pos portalPosition = new Pos(-9, 64, 2);
 
-                if (playerPosition.distance(portalPosition) < 1) {
-                    player.setInstance(mainWorld, Settings.MAIN_WORLD_SPAWN);
+                Pos portalStart = new Pos(3, 60, -2);
+                Pos portalEnd = new Pos(1, 58, -2);
+
+                if (isBetweenCoordinates(playerPosition, portalStart, portalEnd, 1)) {
+                    player.setInstance(mainWorld, new Pos(2.5, 58, -2.5, -180, 0));
                 }
             }
         });
 
+        VelocityProxy.enable(Settings.VELOCITY_PROXY_SECRET);
+        server.start("0.0.0.0", 25565);
 
-//        VelocityProxy.enable(Settings.VELOCITY_PROXY_SECRET);
-//        server.start("0.0.0.0", 25565);
+//        MojangAuth.init();
+//        server.start("127.0.0.1", 25565);
+    }
 
-        MojangAuth.init();
-        server.start("127.0.0.1", 25565);
+    private static boolean isBetweenCoordinates(Pos pos, Pos start, Pos end, double tolerance) {
+        double minX = Math.min(start.x(), end.x());
+        double maxX = Math.max(start.x(), end.x()) + tolerance;
+
+        double minY = Math.min(start.y(), end.y());
+        double maxY = Math.max(start.y(), end.y()) + tolerance;
+
+        double minZ = Math.min(start.z(), end.z());
+        double maxZ = Math.max(start.z(), end.z()) + tolerance;
+
+        return pos.x() >= minX && pos.x() <= maxX &&
+                pos.y() >= minY && pos.y() <= maxY &&
+                pos.z() >= minZ && pos.z() <= maxZ;
     }
 }
-
-//        eventHandler
-//                .addListener(PlayerLoadedEvent.class, event -> {
-//                    var advancementManager = MinecraftServer.getAdvancementManager();
-//
-//                    var mainRoot = new AdvancementRoot(
-//                            Component.text("Pietr Space"),
-//                            Component.text("Welcome to Pietr Space!"),
-//                            Material.BLUE_STAINED_GLASS,
-//                            FrameType.CHALLENGE,
-//                            0, 0,
-//                            "minecraft:gui/advancements/backgrounds/stone"
-//                    );
-//
-//                    mainRoot.setAchieved(true);
-//
-//                    var specialRoot = new AdvancementRoot(
-//                            Component.text("Special"),
-//                            Component.text("Wow, how did you even get this?"),
-//                            Material.DIAMOND_SWORD,
-//                            FrameType.GOAL,
-//                            0, 0,
-//                            "minecraft:gui/advancements/backgrounds/stone"
-//                    );
-//
-//                    specialRoot.setAchieved(true);
-//
-//                    var advancementTab = advancementManager.createTab("pietr_space_lobby:advancement.main.root", mainRoot);
-//
-//                    var joinLobbyAdvancement = new Advancement(
-//                            Component.text("Join the Lobby"),
-//                            Component.text("You have joined the lobby!"),
-//                            Material.NETHER_STAR,
-//                            FrameType.TASK,
-//                            1, 0
-//                    );
-//
-//                    joinLobbyAdvancement.setAchieved(true);
-//
-//                    advancementTab.createAdvancement("pietr_space_lobby:advancement.main.join_lobby", joinLobbyAdvancement, mainRoot);
-//
-//                    advancementTab.createAdvancement(
-//                            "pietr_space_lobby:advancement.main.explore_the_void",
-//                            new Advancement(
-//                                    Component.text("Explore the Void"),
-//                                    Component.text("Its so empty down here, isn't it?"),
-//                                    Material.FEATHER,
-//                                    FrameType.CHALLENGE,
-//                                    2, 1
-//                            ),
-//                            joinLobbyAdvancement
-//                    );
-//
-//                    advancementTab.createAdvancement(
-//                            "pietr_space_lobby:advancement.main.explore_the_nether",
-//                            new Advancement(
-//                                    Component.text("Explore the Nether"),
-//                                    Component.text("A little too hot for my liking."),
-//                                    Material.NETHER_BRICK,
-//                                    FrameType.CHALLENGE,
-//                                    2, -1
-//                            ),
-//                            joinLobbyAdvancement
-//                    );
-//
-//                    var specialItemTab = advancementManager.createTab("pietr_space_lobby:advancement.special.root", specialRoot);
-//
-//                    advancementTab.addViewer(event.getPlayer());
-//                    specialItemTab.addViewer(event.getPlayer());
-//                });

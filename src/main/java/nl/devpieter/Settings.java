@@ -14,6 +14,6 @@ public class Settings {
     public static final int MAIN_WORLD_TIME_RATE = EnvUtils.readInt("WORLD_TIME_RATE", 0);
 
     public static final Pos SPECIAL_WORLD_SPAWN = EnvUtils.readPos("SPECIAL_WORLD_SPAWN", new Pos(0.5, 64, 0.5, -90, 0));
-    public static final int SPECIAL_WORLD_TIME = EnvUtils.readInt("SPECIAL_WORLD_TIME", 0);
-    public static final int SPECIAL_WORLD_TIME_RATE = EnvUtils.readInt("SPECIAL_WORLD_TIME_RATE", 20);
+    public static final int SPECIAL_WORLD_TIME = EnvUtils.readInt("SPECIAL_WORLD_TIME", 13000);
+    public static final int SPECIAL_WORLD_TIME_RATE = EnvUtils.readInt("SPECIAL_WORLD_TIME_RATE", 0);
 }
