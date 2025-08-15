@@ -2,12 +2,14 @@ package nl.devpieter.listeners;
 
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerDisconnectEvent;
+import nl.devpieter.managers.ParkourManager;
 import nl.devpieter.managers.SitManager;
 import org.jetbrains.annotations.NotNull;
 
 public class PlayerDisconnectListener implements EventListener<@NotNull PlayerDisconnectEvent> {
 
     private final SitManager sitManager = SitManager.getInstance();
+    private final ParkourManager parkourManager = ParkourManager.getInstance();
 
     @Override
     public @NotNull Class<PlayerDisconnectEvent> eventType() {
@@ -17,6 +19,8 @@ public class PlayerDisconnectListener implements EventListener<@NotNull PlayerDi
     @Override
     public @NotNull Result run(@NotNull PlayerDisconnectEvent event) {
         this.sitManager.standPlayer(event.getPlayer());
+        this.parkourManager.cancelParkour(event.getPlayer());
+
         return Result.SUCCESS;
     }
 }

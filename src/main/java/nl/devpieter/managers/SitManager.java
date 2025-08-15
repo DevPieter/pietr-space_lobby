@@ -7,6 +7,7 @@ import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.LivingEntity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.instance.block.Block;
+import nl.devpieter.utils.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -15,6 +16,8 @@ import java.util.UUID;
 public class SitManager {
 
     private static SitManager INSTANCE;
+
+    private final ParkourManager parkourManager = ParkourManager.getInstance();
 
     private final HashMap<UUID, Entity> sittingPlayers = new HashMap<>();
 
@@ -28,6 +31,11 @@ public class SitManager {
 
     public void sitPlayer(@NotNull Player player, Block block, BlockVec blockVec) {
         if (this.sittingPlayers.containsKey(player.getUuid())) return;
+
+        if (this.parkourManager.isDoingParkour(player)) {
+            player.sendMessage(TextUtils.miniText("<red>You cannot sit while doing a parkour!"));
+            return;
+        }
 
         Point bounding = block.registry().collisionShape().relativeEnd();
 

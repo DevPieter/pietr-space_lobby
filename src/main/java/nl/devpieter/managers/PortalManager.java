@@ -11,30 +11,32 @@ import java.util.UUID;
 
 public class PortalManager {
 
+    private static final double CHECK_RADIUS = 0.5;
+
     private static PortalManager INSTANCE;
 
-    private final HashMap<UUID, Portal> portals = new HashMap<>();
+    private final HashMap<UUID, List<Portal>> portals = new HashMap<>();
     private final HashMap<UUID, Long> portalCooldowns = new HashMap<>();
 
     private PortalManager() {
         this.portals.put(
-                WorldManager.getInstance().getMainWorld().getUuid(), // current
-                new Portal(
-                        WorldManager.getInstance().getSpecialWorld().getUuid(), // destination
+                WorldManager.getInstance().getMainWorld().getUuid(),
+                List.of(new Portal(
+                        WorldManager.getInstance().getSpecialWorld().getUuid(),
                         new Pos(2.5, 58, -2.5, -180, 0),
                         new Pos(3, 60, -2),
                         new Pos(1, 58, -2)
-                )
+                ))
         );
 
         this.portals.put(
                 WorldManager.getInstance().getSpecialWorld().getUuid(),
-                new Portal(
+                List.of(new Portal(
                         WorldManager.getInstance().getMainWorld().getUuid(),
                         new Pos(2.5, 58, -2.5, -180, 0),
                         new Pos(3, 60, -2),
                         new Pos(1, 58, -2)
-                )
+                ))
         );
     }
 
@@ -45,15 +47,18 @@ public class PortalManager {
 
     public List<Portal> getPortalsInWorld(UUID world) {
         if (!this.portals.containsKey(world)) return List.of();
-        return List.of(this.portals.get(world));
+        return this.portals.get(world);
     }
 
     public @Nullable Portal getIntersectingPortal(@NotNull Pos pos, @NotNull UUID world) {
         List<Portal> portals = this.getPortalsInWorld(world);
 
-        return portals.stream()
-                .filter(portal -> isBetweenCoordinates(pos, portal.start(), portal.end(), 0.6))
-                .findFirst().orElse(null);
+        for (Portal portal : portals) {
+            if (!isBetweenCoordinates(pos, portal.start(), portal.end(), CHECK_RADIUS)) continue;
+            return portal;
+        }
+
+        return null;
     }
 
     public void startPortalCooldown(@NotNull UUID playerUuid) {

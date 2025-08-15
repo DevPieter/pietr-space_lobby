@@ -4,15 +4,20 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
+import net.minestom.server.event.inventory.InventoryPreClickEvent;
 import net.minestom.server.event.player.PlayerBlockBreakEvent;
 import net.minestom.server.event.player.PlayerBlockPlaceEvent;
-import net.minestom.server.event.player.PlayerMoveEvent;
+import net.minestom.server.event.player.PlayerPacketEvent;
+import net.minestom.server.event.player.PlayerUseItemEvent;
 import net.minestom.server.extras.MojangAuth;
-import net.minestom.server.extras.velocity.VelocityProxy;
-import net.minestom.server.instance.Instance;
-import net.minestom.server.instance.InstanceContainer;
+import net.minestom.server.item.ItemStack;
+import net.minestom.server.item.Material;
 import nl.devpieter.listeners.*;
+import nl.devpieter.listeners.parkour.ParkourPlayerMoveListener;
+import nl.devpieter.listeners.portal.PortalPlayerMoveListener;
+import nl.devpieter.managers.ParkourManager;
 import nl.devpieter.managers.WorldManager;
+import nl.devpieter.utils.PacketUtils;
 import org.slf4j.Logger;
 
 public class Main {
@@ -37,38 +42,64 @@ public class Main {
         eventHandler.addListener(new PlayerLoadedListener());
         eventHandler.addListener(new PlayerDisconnectListener());
 
+        eventHandler.addListener(new PortalPlayerMoveListener());
+        eventHandler.addListener(new ParkourPlayerMoveListener());
+
+        MinecraftServer.getGlobalEventHandler().addListener(PlayerUseItemEvent.class, event -> {
+            Player player = event.getPlayer();
+            int slot = player.getHeldSlot();
+
+            if (slot == 0) {
+                Pos checkpoint = ParkourManager.getInstance().getCurrentCheckpoint(player);
+                if (checkpoint != null) player.teleport(checkpoint);
+                else player.teleport(Settings.MAIN_WORLD_SPAWN);
+            }
+
+            if (slot == 4) {
+                ParkourManager.getInstance().cancelParkour(player);
+            }
+        });
+
+        MinecraftServer.getGlobalEventHandler().addListener(PlayerPacketEvent.class, event -> {
+            String name = event.getPacket().getClass().getSimpleName();
+//            if (name.equals("ClientTickEndPacket")) return;
+//            if (name.equals("ClientPlayerPositionPacket")) return;
+//            if (name.equals("ClientPlayerPositionAndRotationPacket")) return;
+//            if (name.equals("ClientPlayerRotationPacket")) return;
+//
+//            System.out.println("Received packet: " + event.getPacket().getClass().getSimpleName());
+//
+//            // ClientClickWindowPacket
+
+            if (
+                    name.equals("ClientClickWindowPacket") ||
+                            name.equals("ClientEntityActionPacket") ||
+                            name.equals("ClientCloseWindowPacket")
+            ) {
+                if (!ParkourManager.getInstance().isDoingParkour(event.getPlayer())) return;
+
+                ItemStack cancelItem = ItemStack.of(Material.BARRIER);
+                PacketUtils.setSlot(event.getPlayer(), 40, cancelItem);
+
+                ItemStack checkpointItem = ItemStack.of(Material.SPRUCE_PRESSURE_PLATE);
+                PacketUtils.setSlot(event.getPlayer(), 36, checkpointItem);
+                event.setCancelled(true);
+            }
+        });
+
+        MinecraftServer.getGlobalEventHandler().addListener(InventoryPreClickEvent.class, event -> {
+            event.setCancelled(true);
+
+            ItemStack cancelItem = ItemStack.of(Material.BARRIER);
+            PacketUtils.setSlot(event.getPlayer(), 40, cancelItem);
+
+            ItemStack checkpointItem = ItemStack.of(Material.SPRUCE_PRESSURE_PLATE);
+            PacketUtils.setSlot(event.getPlayer(), 36, checkpointItem);
+        });
+
         eventHandler
                 .addListener(PlayerBlockBreakEvent.class, event -> event.setCancelled(true))
                 .addListener(PlayerBlockPlaceEvent.class, event -> event.setCancelled(true));
-
-//        MinecraftServer.getGlobalEventHandler().addListener(PlayerMoveEvent.class, event -> {
-//            Player player = event.getPlayer();
-//            Instance instance = player.getInstance();
-//
-//            InstanceContainer mainWorld = worldManager.getMainWorld();
-//            InstanceContainer specialWorld = worldManager.getSpecialWorld();
-//
-//            if (instance == mainWorld.getUuid()) {
-//                Pos playerPosition = player.getPosition();
-//
-//                Pos portalStart = new Pos(3, 60, -2);
-//                Pos portalEnd = new Pos(1, 58, -2);
-//
-//                if (isBetweenCoordinates(playerPosition, portalStart, portalEnd, 1)) {
-//                    player.setInstance(specialWorld, new Pos(2.5, 58, -2.5, -180, 0));
-//                }
-//
-//            } else if (instance == specialWorld) {
-//                Pos playerPosition = player.getPosition();
-//
-//                Pos portalStart = new Pos(3, 60, -2);
-//                Pos portalEnd = new Pos(1, 58, -2);
-//
-//                if (isBetweenCoordinates(playerPosition, portalStart, portalEnd, 1)) {
-//                    player.setInstance(mainWorld, new Pos(2.5, 58, -2.5, -180, 0));
-//                }
-//            }
-//        });
 
 //        VelocityProxy.enable(Settings.VELOCITY_PROXY_SECRET);
 //        server.start("0.0.0.0", 25565);
