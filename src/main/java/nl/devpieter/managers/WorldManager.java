@@ -6,7 +6,11 @@ import net.minestom.server.instance.InstanceManager;
 import net.minestom.server.instance.anvil.AnvilLoader;
 import nl.devpieter.Settings;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
+
+import java.util.HashMap;
+import java.util.UUID;
 
 public class WorldManager {
 
@@ -14,6 +18,8 @@ public class WorldManager {
 
     private final Logger logger = MinecraftServer.LOGGER;
     private final InstanceManager instanceManager = MinecraftServer.getInstanceManager();
+
+    private final HashMap<UUID, InstanceContainer> worlds = new HashMap<>();
 
     private InstanceContainer mainWorld;
     private InstanceContainer specialWorld;
@@ -33,6 +39,11 @@ public class WorldManager {
         this.logger.info("Worlds loaded");
     }
 
+    public @Nullable InstanceContainer getWorld(@Nullable UUID uuid) {
+        if (uuid == null) return null;
+        return this.worlds.get(uuid);
+    }
+
     private void loadMainWorld() {
         this.mainWorld = this.instanceManager.createInstanceContainer();
 
@@ -41,6 +52,7 @@ public class WorldManager {
         this.mainWorld.setChunkLoader(new AnvilLoader(Settings.WORLD_PATH_BASE + "/main"));
 
         this.logger.info("Main world loaded");
+        this.worlds.put(this.mainWorld.getUuid(), this.mainWorld);
     }
 
     private void loadSpecialWorld() {
@@ -51,6 +63,7 @@ public class WorldManager {
         this.specialWorld.setChunkLoader(new AnvilLoader(Settings.WORLD_PATH_BASE + "/special"));
 
         this.logger.info("Special world loaded");
+        this.worlds.put(this.specialWorld.getUuid(), this.specialWorld);
     }
 
     public @NotNull InstanceContainer getMainWorld() {
