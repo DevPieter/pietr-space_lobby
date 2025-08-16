@@ -14,7 +14,7 @@ public class ParkourTry {
     private final long startTime;
     private long endTime;
 
-    private final List<ReachedNode> nodes;
+    private final List<ReachedNode> reachedNodes;
     private final List<FailedNode> failedNodes;
 
     private int lastReachedNode;
@@ -27,7 +27,7 @@ public class ParkourTry {
         this.startTime = System.currentTimeMillis();
         this.endTime = 0;
 
-        this.nodes = new ArrayList<>();
+        this.reachedNodes = new ArrayList<>();
         this.failedNodes = new ArrayList<>();
 
         this.lastReachedNode = -1;
@@ -71,7 +71,7 @@ public class ParkourTry {
     }
 
     public List<ReachedNode> nodes() {
-        return nodes;
+        return reachedNodes;
     }
 
     public List<FailedNode> failedNodes() {
@@ -95,16 +95,16 @@ public class ParkourTry {
         lastReachedNode = -1;
         lastCheckpoint = -1;
 
-        nodes.clear();
+        reachedNodes.clear();
         reached.clear();
     }
 
     public void rollbackToCheckpoint(int checkpointIndex) {
-        if (checkpointIndex < 0 || checkpointIndex >= nodes.size()) {
+        if (checkpointIndex < 0 || checkpointIndex >= reachedNodes.size()) {
             throw new IndexOutOfBoundsException("Checkpoint index out of bounds: " + checkpointIndex);
         }
 
-        for (int i = 0; i < nodes.size(); i++) {
+        for (int i = 0; i < reachedNodes.size(); i++) {
             if (i <= checkpointIndex) reached.set(i);
             else reached.clear(i);
         }

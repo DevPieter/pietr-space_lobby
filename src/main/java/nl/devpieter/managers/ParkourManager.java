@@ -1,7 +1,7 @@
 package nl.devpieter.managers;
 
+import com.google.gson.Gson;
 import net.kyori.adventure.sound.Sound;
-import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
@@ -14,7 +14,7 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
-import nl.devpieter.models.*;
+import nl.devpieter.models.GlowingBlockHolder;
 import nl.devpieter.models.parkour.*;
 import nl.devpieter.utils.PacketUtils;
 import nl.devpieter.utils.PlayerUtils;
@@ -420,8 +420,7 @@ public class ParkourManager {
         Parkour parkour = parkours.get(parkourTry.parkourId());
         if (parkour == null) return;
 
-        BlockVec pos = new BlockVec(player.getPosition());
-        ParkourNode node = parkour.nodeMap().get(pos);
+        ParkourNode node = getNodeAtPosition(player, parkour);
         if (node == null) return;
 
         List<ParkourNode> nodes = parkour.nodes();
@@ -444,10 +443,21 @@ public class ParkourManager {
             for (int skippedIndex = expectedIndex; skippedIndex < i; skippedIndex++) {
                 ParkourNode skippedNode = nodes.get(skippedIndex);
                 parkourTry.nodes().add(new ReachedNode(skippedNode.id(), i, System.currentTimeMillis(), true));
+                System.out.println("Skipped node: " + skippedNode.id() + " at index: " + skippedIndex);
             }
 
             handlePointReached(player, parkourTry, node, i);
         }
+    }
+
+    private ParkourNode getNodeAtPosition(@NotNull Player player, @NotNull Parkour parkour) {
+        for (ParkourNode node : parkour.nodes()) {
+            if (PlayerUtils.isInsideBlock(player, node.position(), 0.3)) {
+                return node;
+            }
+        }
+
+        return null;
     }
 
     public void checkFinish(@NotNull Player player) {
@@ -469,15 +479,7 @@ public class ParkourManager {
         long timeMs = System.currentTimeMillis() - parkourTry.startTime();
         String time = TextUtils.getFormattedTime(timeMs, true, false);
 
-        // TODO - This is for debugging purposes, remove later
-        int nodesSkipped = 0;
-        for (int i = 0; i < parkourTry.nodes().size(); i++) {
-            if (parkourTry.nodes().get(i).skipped()) {
-                nodesSkipped++;
-            }
-        }
-
-        player.sendMessage(TextUtils.miniText("<green>Parkour finished in <b>%s</b> with <b>%d</b> skipped!", time, nodesSkipped));
+        player.sendMessage(TextUtils.miniText("<green>Parkour finished in <b>%s</b>!", time));
         player.playSound(Sound.sound(SoundEvent.ENTITY_PLAYER_LEVELUP, Sound.Source.PLAYER, 1.0f, 1.0f));
 
         PacketUtils.setSlot(player, 40, ItemStack.of(Material.AIR));
@@ -487,6 +489,10 @@ public class ParkourManager {
         if (holder != null) PacketUtils.revertToOriginalBlock(player, holder);
 
         // TODO: queue the parkour try to be saved to the API
+
+        Gson gson = new Gson();
+        String json = gson.toJson(parkourTry);
+        System.out.println(json);
     }
 
     private boolean hasReachedAllCheckpoints(@NotNull Player player) {

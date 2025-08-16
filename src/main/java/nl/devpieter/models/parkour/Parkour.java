@@ -13,24 +13,24 @@ public class Parkour {
     private final UUID worldId;
 
     private final String name;
-    private final Pos start;
-    private final Pos end;
+    private final Pos startPosition;
+    private final Pos endPosition;
 
-    private final Pos leaderboardPos;
+    private final Pos leaderboardPosition;
 
     private final List<ParkourNode> nodes;
-    private final Map<BlockVec, ParkourNode> nodeMap;
+//    private final Map<BlockVec, ParkourNode> nodeMap;
 
-    public Parkour(UUID id, UUID worldId, String name, Pos start, Pos end, Pos leaderboardPos, List<ParkourNode> nodes) {
+    public Parkour(UUID id, UUID worldId, String name, Pos startPosition, Pos endPosition, Pos leaderboardPosition, List<ParkourNode> nodes) {
         this.id = id;
         this.worldId = worldId;
         this.name = name;
-        this.start = start;
-        this.end = end;
-        this.leaderboardPos = leaderboardPos;
+        this.startPosition = startPosition;
+        this.endPosition = endPosition;
+        this.leaderboardPosition = leaderboardPosition;
         this.nodes = nodes;
 
-        this.nodeMap = nodes.stream().collect(Collectors.toMap(parkourNode -> new BlockVec(parkourNode.position()), parkourNode -> parkourNode));
+//        this.nodeMap = nodes.stream().collect(Collectors.toMap(parkourNode -> new BlockVec(parkourNode.position()), parkourNode -> parkourNode));
     }
 
     public UUID id() {
@@ -46,22 +46,22 @@ public class Parkour {
     }
 
     public Pos start() {
-        return start;
+        return startPosition;
     }
 
     public Pos end() {
-        return end;
+        return endPosition;
     }
 
     public Pos leaderboardPos() {
-        return leaderboardPos;
+        return leaderboardPosition;
     }
 
     public List<ParkourNode> nodes() {
         return nodes;
     }
 
-    public Map<BlockVec, ParkourNode> nodeMap() {
-        return nodeMap;
-    }
+//    public Map<BlockVec, ParkourNode> nodeMap() {
+//        return nodeMap;
+//    }
 }
