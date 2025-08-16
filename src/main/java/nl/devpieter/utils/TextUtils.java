@@ -27,7 +27,7 @@ public class TextUtils {
         return CLEAR.append(MiniMessage.miniMessage().deserialize(String.format(minimessageString, args)));
     }
 
-    public static @NotNull String getFormattedTime(long timeMs, boolean includeMilliseconds) {
+    public static @NotNull String getFormattedTime(long timeMs, boolean includeMillis, boolean small) {
         long millis = timeMs % 1000;
         long totalSeconds = timeMs / 1000;
         long minutes = totalSeconds / 60;
@@ -35,21 +35,33 @@ public class TextUtils {
 
         StringBuilder formattedTime = new StringBuilder();
         if (minutes > 0) {
-            formattedTime.append(minutes).append(" minute").append(minutes != 1 ? "s" : "");
+            if (small) formattedTime.append(minutes).append("m");
+            else formattedTime.append(minutes).append(" minute").append(minutes != 1 ? "s" : "");
         }
 
         if (seconds > 0) {
-            if (!formattedTime.isEmpty()) formattedTime.append(" and ");
-            formattedTime.append(seconds).append(" second").append(seconds != 1 ? "s" : "");
+            if (small) {
+                if (!formattedTime.isEmpty()) formattedTime.append(" ");
+                formattedTime.append(seconds).append("s");
+            } else {
+                if (!formattedTime.isEmpty()) formattedTime.append(" and ");
+                formattedTime.append(seconds).append(" second").append(seconds != 1 ? "s" : "");
+            }
         }
 
-        if (includeMilliseconds && millis > 0) {
-            if (!formattedTime.isEmpty()) formattedTime.append(" and ");
-            formattedTime.append(millis).append(" millisecond").append(millis != 1 ? "s" : "");
+        if (includeMillis && millis > 0) {
+            if (small) {
+                if (!formattedTime.isEmpty()) formattedTime.append(" ");
+                formattedTime.append(millis).append("ms");
+            } else {
+                if (!formattedTime.isEmpty()) formattedTime.append(" and ");
+                formattedTime.append(millis).append(" millisecond").append(millis != 1 ? "s" : "");
+            }
         }
 
         if (formattedTime.isEmpty()) {
-            formattedTime.append(includeMilliseconds ? "0 milliseconds" : "0 seconds");
+            if (small) formattedTime.append("0 ms");
+            else formattedTime.append("0 second").append(includeMillis ? "s" : "");
         }
         return formattedTime.toString();
     }

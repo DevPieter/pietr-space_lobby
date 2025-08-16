@@ -10,6 +10,7 @@ import net.minestom.server.event.player.PlayerBlockPlaceEvent;
 import net.minestom.server.event.player.PlayerPacketEvent;
 import net.minestom.server.event.player.PlayerUseItemEvent;
 import net.minestom.server.extras.MojangAuth;
+import net.minestom.server.extras.velocity.VelocityProxy;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import nl.devpieter.listeners.*;

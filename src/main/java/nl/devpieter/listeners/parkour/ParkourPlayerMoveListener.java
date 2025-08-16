@@ -22,13 +22,13 @@ public class ParkourPlayerMoveListener implements EventListener<@NotNull PlayerM
     @Override
     public @NotNull Result run(@NotNull PlayerMoveEvent event) {
         Pos pos = event.getNewPosition();
-        if (event.getPlayer().getPosition().sameBlock(pos)) return Result.SUCCESS;
+//        if (event.getPlayer().getPosition().sameView(pos)) return Result.SUCCESS;
 
         Player player = event.getPlayer();
         Instance instance = player.getInstance();
         if (instance == null) return Result.SUCCESS;
 
-        Block block = instance.getBlock(pos);
+//        Block block = instance.getBlock(pos);
 
 //        if (block == Block.HEAVY_WEIGHTED_PRESSURE_PLATE) {
             Parkour parkour = this.parkourManager.getParkour(instance.getUuid(), pos);

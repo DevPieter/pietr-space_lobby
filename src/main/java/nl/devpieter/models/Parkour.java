@@ -10,6 +10,8 @@ public record Parkour(
         UUID worldUuid,
         Pos start,
         Pos end,
-        List<Pos> checkpoints
+        List<Pos> checkpoints,
+        Pos leaderboardPos,
+        List<PlayerParkourStat> leaderboard
 ) {
 }

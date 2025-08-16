@@ -1,6 +1,7 @@
 package nl.devpieter.utils;
 
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityCreature;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.Player;
@@ -19,7 +20,7 @@ public class PacketUtils {
         Instance instance = player.getInstance();
         Block block = instance.getBlock(pos);
 
-        EntityCreature glowingEntity = new EntityCreature(EntityType.FALLING_BLOCK);
+        Entity glowingEntity = new Entity(EntityType.FALLING_BLOCK);
         glowingEntity.setGlowing(true);
         glowingEntity.setNoGravity(true);
 
