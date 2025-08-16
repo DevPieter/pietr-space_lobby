@@ -474,9 +474,10 @@ public class ParkourManager {
             return;
         }
 
+        parkourTry.setEndTime(System.currentTimeMillis());
         players.remove(player.getUuid());
 
-        long timeMs = System.currentTimeMillis() - parkourTry.startTime();
+        long timeMs = parkourTry.endTime() - parkourTry.startTime();
         String time = TextUtils.getFormattedTime(timeMs, true, false);
 
         player.sendMessage(TextUtils.miniText("<green>Parkour finished in <b>%s</b>!", time));

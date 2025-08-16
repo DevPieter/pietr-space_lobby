@@ -1,12 +1,9 @@
 package nl.devpieter.models.parkour;
 
-import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.coordinate.Pos;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class Parkour {
     private final UUID id;
