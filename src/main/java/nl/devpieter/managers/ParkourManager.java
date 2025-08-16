@@ -1,12 +1,19 @@
 package nl.devpieter.managers;
 
+import net.kyori.adventure.sound.Sound;
 import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.coordinate.Vec;
+import net.minestom.server.entity.Entity;
+import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.Player;
+import net.minestom.server.entity.metadata.display.AbstractDisplayMeta;
+import net.minestom.server.entity.metadata.display.TextDisplayMeta;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
+import net.minestom.server.sound.SoundEvent;
 import nl.devpieter.models.*;
 import nl.devpieter.utils.PacketUtils;
 import nl.devpieter.utils.PlayerUtils;
@@ -21,6 +28,8 @@ import java.util.UUID;
 public class ParkourManager {
 
     private static ParkourManager INSTANCE;
+
+    public static final boolean DEBUG = false;
 
     private final WorldManager worldManager = WorldManager.getInstance();
 
@@ -117,22 +126,106 @@ public class ParkourManager {
                                 true
                         ),
                         new ParkourNode(
-                                UUID.fromString("fcab0eaa-83da-49cc-b3c7-58bb9cbf90fa"),
+                                UUID.fromString("5ac1323a-c581-48e3-949b-2dcfcf242f09"),
                                 12,
+                                new Pos(9.5, 72, 32.5),
+                                false
+                        ),
+                        new ParkourNode(
+                                UUID.fromString("46589a43-f992-4ff5-9f8b-506eb853981e"),
+                                13,
+                                new Pos(4.5, 72, 32.5),
+                                false
+                        ),
+                        new ParkourNode(
+                                UUID.fromString("fcab0eaa-83da-49cc-b3c7-58bb9cbf90fa"),
+                                14,
                                 new Pos(2.5, 71, 36.5, 90, 0),
                                 true
                         ),
                         new ParkourNode(
+                                UUID.fromString("f308ee47-0450-49d8-aa00-904e17516d75"),
+                                15,
+                                new Pos(-1.5, 72, 36.5),
+                                false
+                        ),
+                        new ParkourNode(
+                                UUID.fromString("be0f7998-35da-4daf-ae77-36bf231d1d15"),
+                                16,
+                                new Pos(-4.5, 72, 33.5),
+                                false
+                        ),
+                        new ParkourNode(
+                                UUID.fromString("c71b3cc3-65dd-494e-b2f6-a45d1e23b2f0"),
+                                17,
+                                new Pos(-4.5, 73, 29.5),
+                                false
+                        ),
+                        new ParkourNode(
+                                UUID.fromString("3605e5b6-bbce-44bf-9a31-8c0cf96a0134"),
+                                18,
+                                new Pos(-7.5, 73, 26.5),
+                                false
+                        ),
+                        new ParkourNode(
+                                UUID.fromString("43c8038e-3da2-4516-a776-39cd390ea7f2"),
+                                19,
+                                new Pos(-11.5, 73, 26.5),
+                                false
+                        ),
+                        new ParkourNode(
+                                UUID.fromString("e253956c-e59b-4ef4-8e87-36e4d253cf35"),
+                                20,
+                                new Pos(-12.5, 73, 22.5),
+                                false
+                        ),
+                        new ParkourNode(
+                                UUID.fromString("47128235-2d68-498c-ac1a-41beb1320318"),
+                                21,
+                                new Pos(-16.5, 74, 22.5),
+                                false
+                        ),
+                        new ParkourNode(
                                 UUID.fromString("6e9e9e5b-8fe4-4418-9b2a-a639986e091c"),
-                                13,
+                                22,
                                 new Pos(-18.5, 74, 18.5, 155, 0),
                                 true
                         ),
                         new ParkourNode(
+                                UUID.fromString("6ddb894d-eda1-45e8-b5c7-956758c97869"),
+                                23,
+                                new Pos(-20.5, 74, 14.5),
+                                false
+                        ),
+                        new ParkourNode(
+                                UUID.fromString("36ca5385-972a-4558-9c08-029e420836d6"),
+                                24,
+                                new Pos(-24.5, 75, 14.5),
+                                false
+                        ),
+                        new ParkourNode(
                                 UUID.fromString("864db554-931a-4161-80ac-bf9b2eff8715"),
-                                14,
+                                25,
                                 new Pos(-22.5, 75, 10.5, 170, 0),
                                 true
+                        ),
+                        new ParkourNode(
+                                UUID.fromString("95c94b5d-25ec-44f2-9fa5-c0b5074c7de6"),
+                                26,
+                                new Pos(-23.5, 75, 5.5),
+                                false
+                        ),
+                        new ParkourNode(
+                                UUID.fromString("9f3ef9cd-d42e-40b4-806d-b0fc5c9532f3"),
+                                27,
+                                new Pos(-21.5, 75, 2.5),
+                                false
+                        ),
+                        new ParkourNode(
+                                UUID.fromString("b7e3d1d7-b5af-4f02-99b1-a910df9b0878"),
+                                28,
+                                new Pos(-17.5, 74, 3.5),
+                                false
                         )
                 )
         );
@@ -156,8 +249,23 @@ public class ParkourManager {
             instance.setBlock(parkour.end(), Block.LIGHT_WEIGHTED_PRESSURE_PLATE);
 
             for (ParkourNode node : parkour.nodes()) {
-                if (!node.isCheckpoint()) continue;
-                instance.setBlock(node.position(), Block.SPRUCE_PRESSURE_PLATE);
+                if (node.isCheckpoint()) instance.setBlock(node.position(), Block.SPRUCE_PRESSURE_PLATE);
+
+                if (DEBUG) {
+                    if (!node.isCheckpoint()) instance.setBlock(node.position(), Block.STONE_PRESSURE_PLATE);
+
+                    Entity leaderboardEntity = new Entity(EntityType.TEXT_DISPLAY);
+                    leaderboardEntity.setInstance(instance, node.position().add(0, 0.5, 0));
+
+                    leaderboardEntity.editEntityMeta(TextDisplayMeta.class, textDisplayMeta -> {
+                        textDisplayMeta.setText(TextUtils.miniText("<b><yellow>%s</yellow>", node.index()));
+                        textDisplayMeta.setScale(new Vec(.5, .5, .5));
+
+                        textDisplayMeta.setBillboardRenderConstraints(AbstractDisplayMeta.BillboardConstraints.CENTER);
+                        textDisplayMeta.setAlignment(TextDisplayMeta.Alignment.CENTER);
+                        textDisplayMeta.setHasNoGravity(true);
+                    });
+                }
             }
         }
     }
@@ -208,19 +316,6 @@ public class ParkourManager {
         if (lastReachedNode.isCheckpoint()) return lastReachedNode;
 
         return null;
-    }
-
-    private Pos getCurrentCheckpoint(@NotNull Player player) {
-        ParkourNode currentCheckpointNode = getCurrentCheckpointNode(player);
-        if (currentCheckpointNode != null) return currentCheckpointNode.position();
-
-        ParkourTry parkourTry = players.get(player.getUuid());
-        if (parkourTry == null) return null;
-
-        Parkour parkour = parkours.get(parkourTry.parkourId());
-        if (parkour == null) return null;
-
-        return parkour.start();
     }
 
     private Pos getNextCheckpoint(@NotNull Player player) {
@@ -297,52 +392,24 @@ public class ParkourManager {
         Parkour parkour = parkours.get(parkourTry.parkourId());
         if (parkour == null) return;
 
-        Pos checkpoint = getCurrentCheckpoint(player);
-        if (checkpoint == null) return;
-
-//        int lastReachedIndex = parkourTry.nodes().isEmpty() ? -1 : parkourTry.nodes().getLast().reachedAtIndex();
         int lastReachedIndex = parkourTry.lastReachedNode();
-        ParkourNode lastParkourNode = parkour.nodes().get(lastReachedIndex);
-
-        parkourTry.failedNodes().add(new FailedNode(
-                lastParkourNode.id(),
-                System.currentTimeMillis()
-        ));
-
         ParkourNode currentCheckpointNode = getCurrentCheckpointNode(player);
-        if (currentCheckpointNode != null) {
-            int currentCheckpointIndex = currentCheckpointNode.index();
 
-            for (int i = parkourTry.nodes().size() - 1; i >= 0; i--) {
-                ReachedNode node = parkourTry.nodes().get(i);
-
-                if (node.reachedAtIndex() > currentCheckpointIndex) {
-                    parkourTry.setReached(node.reachedAtIndex(), false);
-                    parkourTry.nodes().remove(i);
-                }
-            }
-
-            parkourTry.setLastReachedNode(currentCheckpointIndex);
-            parkourTry.setLastCheckpoint(currentCheckpointIndex);
+        if (currentCheckpointNode == null) {
+            parkourTry.resetProgress();
+            player.teleport(parkour.start());
         } else {
-            parkourTry.setLastReachedNode(-1);
-            parkourTry.setLastCheckpoint(-1);
-
-            for (ParkourNode node : parkour.nodes()) {
-                parkourTry.setReached(node.index(), false);
-            }
-
-            parkourTry.nodes().clear();
+            parkourTry.rollbackToCheckpoint(currentCheckpointNode.index());
+            player.teleport(currentCheckpointNode.position());
         }
 
-        // TODO - This is for debugging purposes, remove later
-        int failCountTotal = parkourTry.failedNodes().size();
-        int failCountCurrent = (int) parkourTry.failedNodes().stream().filter(node -> node.nodeId().equals(lastParkourNode.id())).count();
-        player.sendMessage(TextUtils.miniText("<hover:show_text:'<red>Total: %d\nCurrent: %d'><red>You failed the jump!",
-                failCountTotal, failCountCurrent
-        ));
+        player.sendMessage(TextUtils.miniText("<red>You failed the jump!"));
+        player.playSound(Sound.sound(SoundEvent.ENTITY_VILLAGER_NO, Sound.Source.PLAYER, 1.0f, 1.0f));
 
-        player.teleport(checkpoint);
+        if (lastReachedIndex < 0 || lastReachedIndex >= parkour.nodes().size()) return;
+
+        ParkourNode lastReachedNode = parkour.nodes().get(lastReachedIndex);
+        parkourTry.failedNodes().add(new FailedNode(lastReachedNode.id(), System.currentTimeMillis()));
     }
 
     public void checkNode(@NotNull Player player) {
@@ -352,12 +419,12 @@ public class ParkourManager {
         Parkour parkour = parkours.get(parkourTry.parkourId());
         if (parkour == null) return;
 
-        List<ParkourNode> nodes = parkour.nodes();
-        int expectedIndex = parkourTry.lastReachedNode() + 1;
-
         BlockVec pos = new BlockVec(player.getPosition());
         ParkourNode node = parkour.nodeMap().get(pos);
         if (node == null) return;
+
+        List<ParkourNode> nodes = parkour.nodes();
+        int expectedIndex = parkourTry.lastReachedNode() + 1;
 
         int i = node.index();
         if (parkourTry.isReached(i)) return;
@@ -410,6 +477,7 @@ public class ParkourManager {
         }
 
         player.sendMessage(TextUtils.miniText("<green>Parkour finished in <b>%s</b> with <b>%d</b> skipped!", time, nodesSkipped));
+        player.playSound(Sound.sound(SoundEvent.ENTITY_PLAYER_LEVELUP, Sound.Source.PLAYER, 1.0f, 1.0f));
 
         PacketUtils.setSlot(player, 40, ItemStack.of(Material.AIR));
         PacketUtils.setSlot(player, 36, ItemStack.of(Material.AIR));
@@ -424,16 +492,13 @@ public class ParkourManager {
         ParkourTry parkourTry = players.get(player.getUuid());
         if (parkourTry == null) return false;
 
-        Parkour parkour = parkours.get(parkourTry.parkourId());
+        Parkour parkour = getParkour(parkourTry.parkourId());
         if (parkour == null) return false;
 
-        List<ReachedNode> reachedNodes = parkourTry.nodes();
-
         for (ParkourNode node : parkour.nodes()) {
-            if (!node.isCheckpoint()) continue;
-
-            boolean reached = reachedNodes.stream().anyMatch(r -> r.reachedAtIndex() == node.index());
-            if (!reached) return false;
+            if (node.isCheckpoint() && !parkourTry.isReached(node.index())) {
+                return false;
+            }
         }
 
         return true;
@@ -448,13 +513,14 @@ public class ParkourManager {
         if (node.isCheckpoint()) {
             parkourTry.setLastCheckpoint(i);
             handleCheckpointReached(player);
-        } else {
-            player.sendMessage(TextUtils.miniText("<green>Node reached!"));
+        } else if (DEBUG) {
+            player.sendActionBar(TextUtils.miniText("<dark_gray>Node <green>%d</green> reached!", i));
         }
     }
 
     private void handleCheckpointReached(@NotNull Player player) {
         player.sendMessage(TextUtils.miniText("<yellow>Checkpoint reached!"));
+        player.playSound(Sound.sound(SoundEvent.ENTITY_EXPERIENCE_ORB_PICKUP, Sound.Source.PLAYER, 1.0f, 0.8f));
 
         GlowingBlockHolder holder = glowingHolders.remove(player.getUuid());
         if (holder != null) PacketUtils.revertToOriginalBlock(player, holder);

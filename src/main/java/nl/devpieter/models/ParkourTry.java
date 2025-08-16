@@ -90,4 +90,26 @@ public class ParkourTry {
         if (value) reached.set(nodeIndex);
         else reached.clear(nodeIndex);
     }
+
+    public void resetProgress() {
+        lastReachedNode = -1;
+        lastCheckpoint = -1;
+
+        nodes.clear();
+        reached.clear();
+    }
+
+    public void rollbackToCheckpoint(int checkpointIndex) {
+        if (checkpointIndex < 0 || checkpointIndex >= nodes.size()) {
+            throw new IndexOutOfBoundsException("Checkpoint index out of bounds: " + checkpointIndex);
+        }
+
+        for (int i = 0; i < nodes.size(); i++) {
+            if (i <= checkpointIndex) reached.set(i);
+            else reached.clear(i);
+        }
+
+        lastReachedNode = checkpointIndex;
+        lastCheckpoint = checkpointIndex;
+    }
 }
