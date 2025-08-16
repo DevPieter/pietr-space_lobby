@@ -1,6 +1,5 @@
 package nl.devpieter.listeners;
 
-import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerMoveEvent;
@@ -23,12 +22,8 @@ public class PlayerMoveListener implements EventListener<@NotNull PlayerMoveEven
         if (player.getPosition().y() > 40) return Result.SUCCESS;
 
         if (this.parkourManager.isDoingParkour(player)) {
-            Pos checkpoint = this.parkourManager.getCurrentCheckpoint(player);
-
-            if (checkpoint != null) {
-                player.teleport(checkpoint);
-                return Result.SUCCESS;
-            }
+            this.parkourManager.returnToCheckpoint(player);
+            return Result.SUCCESS;
         }
 
         player.teleport(Settings.MAIN_WORLD_SPAWN);

@@ -2,7 +2,6 @@ package nl.devpieter.utils;
 
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
-import net.minestom.server.entity.EntityCreature;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.Player;
 import net.minestom.server.instance.Instance;
@@ -12,11 +11,12 @@ import net.minestom.server.network.packet.server.play.BlockChangePacket;
 import net.minestom.server.network.packet.server.play.DestroyEntitiesPacket;
 import net.minestom.server.network.packet.server.play.SetSlotPacket;
 import net.minestom.server.network.packet.server.play.SpawnEntityPacket;
+import nl.devpieter.models.GlowingBlockHolder;
 import org.jetbrains.annotations.NotNull;
 
 public class PacketUtils {
 
-    public static int replaceWithGlowing(@NotNull Player player, @NotNull Pos pos) {
+    public static GlowingBlockHolder replaceWithGlowing(@NotNull Player player, @NotNull Pos pos) {
         Instance instance = player.getInstance();
         Block block = instance.getBlock(pos);
 
@@ -39,7 +39,11 @@ public class PacketUtils {
         player.sendPacket(glowingEntity.getMetadataPacket());
         player.sendPacket(new BlockChangePacket(pos, Block.AIR));
 
-        return glowingEntity.getEntityId();
+        return new GlowingBlockHolder(glowingEntity.getEntityId(), pos);
+    }
+
+    public static void revertToOriginalBlock(@NotNull Player player, @NotNull GlowingBlockHolder holder) {
+        revertToOriginalBlock(player, holder.entityPos(), holder.entityId());
     }
 
     public static void revertToOriginalBlock(@NotNull Player player, @NotNull Pos pos, int entityId) {

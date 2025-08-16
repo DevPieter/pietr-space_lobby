@@ -1,7 +1,6 @@
 package nl.devpieter;
 
 import net.minestom.server.MinecraftServer;
-import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.inventory.InventoryPreClickEvent;
@@ -10,7 +9,6 @@ import net.minestom.server.event.player.PlayerBlockPlaceEvent;
 import net.minestom.server.event.player.PlayerPacketEvent;
 import net.minestom.server.event.player.PlayerUseItemEvent;
 import net.minestom.server.extras.MojangAuth;
-import net.minestom.server.extras.velocity.VelocityProxy;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import nl.devpieter.listeners.*;
@@ -50,15 +48,8 @@ public class Main {
             Player player = event.getPlayer();
             int slot = player.getHeldSlot();
 
-            if (slot == 0) {
-                Pos checkpoint = ParkourManager.getInstance().getCurrentCheckpoint(player);
-                if (checkpoint != null) player.teleport(checkpoint);
-                else player.teleport(Settings.MAIN_WORLD_SPAWN);
-            }
-
-            if (slot == 4) {
-                ParkourManager.getInstance().cancelParkour(player);
-            }
+            if (slot == 0) ParkourManager.getInstance().returnToCheckpoint(player);
+            else if (slot == 4) ParkourManager.getInstance().cancelParkour(player);
         });
 
         MinecraftServer.getGlobalEventHandler().addListener(PlayerPacketEvent.class, event -> {
