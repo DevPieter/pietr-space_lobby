@@ -1,4 +1,4 @@
-package nl.devpieter.models;
+package nl.devpieter.models.parkour;
 
 import java.util.ArrayList;
 import java.util.BitSet;

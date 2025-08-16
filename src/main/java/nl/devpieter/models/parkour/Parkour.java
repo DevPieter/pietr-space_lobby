@@ -1,4 +1,4 @@
-package nl.devpieter.models;
+package nl.devpieter.models.parkour;
 
 import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.coordinate.Pos;
@@ -8,21 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class Parkour
-//        (
-//        UUID id,
-//        UUID worldId,
-//
-//        String name,
-//        Pos start,
-//        Pos end,
-//
-//        Pos leaderboardPos,
-//
-//        List<ParkourNode> nodes,
-//        Map<BlockVec, ParkourNode> nodeMap
-//)
-{
+public class Parkour {
     private final UUID id;
     private final UUID worldId;
 

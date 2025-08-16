@@ -1,4 +1,4 @@
-package nl.devpieter.models;
+package nl.devpieter.models.parkour;
 
 import net.minestom.server.coordinate.Pos;
 

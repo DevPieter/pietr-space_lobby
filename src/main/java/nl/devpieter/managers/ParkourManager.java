@@ -15,6 +15,7 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
 import nl.devpieter.models.*;
+import nl.devpieter.models.parkour.*;
 import nl.devpieter.utils.PacketUtils;
 import nl.devpieter.utils.PlayerUtils;
 import nl.devpieter.utils.TextUtils;

@@ -1,12 +1,11 @@
 package nl.devpieter.listeners.parkour;
 
-import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.instance.Instance;
 import nl.devpieter.managers.ParkourManager;
-import nl.devpieter.models.Parkour;
+import nl.devpieter.models.parkour.Parkour;
 import org.jetbrains.annotations.NotNull;
 
 public class ParkourPlayerMoveListener implements EventListener<@NotNull PlayerMoveEvent> {
