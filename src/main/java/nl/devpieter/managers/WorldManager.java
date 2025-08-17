@@ -1,6 +1,7 @@
 package nl.devpieter.managers;
 
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
 import net.minestom.server.instance.anvil.AnvilLoader;
@@ -44,6 +45,18 @@ public class WorldManager {
         return this.worlds.get(uuid);
     }
 
+    public @Nullable UUID getWorldUUID(@Nullable Instance world) {
+        if (world == null) return null;
+
+        for (UUID uuid : this.worlds.keySet()) {
+            if (this.worlds.get(uuid).equals(world)) {
+                return uuid;
+            }
+        }
+
+        return null;
+    }
+
     private void loadMainWorld() {
         this.mainWorld = this.instanceManager.createInstanceContainer();
 
@@ -52,7 +65,7 @@ public class WorldManager {
         this.mainWorld.setChunkLoader(new AnvilLoader(Settings.WORLD_PATH_BASE + "/main"));
 
         this.logger.info("Main world loaded");
-        this.worlds.put(this.mainWorld.getUuid(), this.mainWorld);
+        this.worlds.put(UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"), this.mainWorld);
     }
 
     private void loadSpecialWorld() {
@@ -63,7 +76,7 @@ public class WorldManager {
         this.specialWorld.setChunkLoader(new AnvilLoader(Settings.WORLD_PATH_BASE + "/special"));
 
         this.logger.info("Special world loaded");
-        this.worlds.put(this.specialWorld.getUuid(), this.specialWorld);
+        this.worlds.put(UUID.fromString("aba23b3b-0cae-42dd-92a0-7aaf63f4fe54"), this.specialWorld);
     }
 
     public @NotNull InstanceContainer getMainWorld() {

@@ -11,6 +11,7 @@ import net.minestom.server.event.player.PlayerUseItemEvent;
 import net.minestom.server.extras.MojangAuth;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
+import nl.devpieter.enums.ParkourCancelReason;
 import nl.devpieter.listeners.*;
 import nl.devpieter.listeners.parkour.ParkourPlayerMoveListener;
 import nl.devpieter.listeners.portal.PortalPlayerMoveListener;
@@ -18,11 +19,10 @@ import nl.devpieter.managers.ParkourManager;
 import nl.devpieter.managers.ParkourTryManager;
 import nl.devpieter.managers.WorldManager;
 import nl.devpieter.utils.PacketUtils;
-import org.slf4j.Logger;
 
 public class Main {
 
-    private static final Logger logger = MinecraftServer.LOGGER;
+    public static final boolean DEBUG = true;
 
     public static void main(String[] args) {
 
@@ -50,7 +50,7 @@ public class Main {
             int slot = player.getHeldSlot();
 
             if (slot == 0) ParkourManager.getInstance().returnToCheckpoint(player);
-            else if (slot == 4) ParkourManager.getInstance().cancelParkour(player);
+            else if (slot == 4) ParkourManager.getInstance().cancelParkour(player, ParkourCancelReason.PlayerRequest);
         });
 
         MinecraftServer.getGlobalEventHandler().addListener(PlayerPacketEvent.class, event -> {

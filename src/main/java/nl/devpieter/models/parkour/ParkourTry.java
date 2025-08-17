@@ -1,5 +1,7 @@
 package nl.devpieter.models.parkour;
 
+import nl.devpieter.enums.ParkourCancelReason;
+
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
@@ -13,6 +15,9 @@ public class ParkourTry {
 
     private final long startTime;
     private long endTime;
+
+    private boolean isCancelled;
+    private ParkourCancelReason cancelReason = ParkourCancelReason.Unknown;
 
     private final List<ReachedNode> reachedNodes;
     private final List<FailedNode> failedNodes;
@@ -32,63 +37,6 @@ public class ParkourTry {
 
         this.lastReachedNode = -1;
         this.lastCheckpoint = -1;
-    }
-
-    public UUID parkourId() {
-        return parkourId;
-    }
-
-    public UUID playerUuid() {
-        return playerUuid;
-    }
-
-    public long startTime() {
-        return startTime;
-    }
-
-    public long endTime() {
-        return endTime;
-    }
-
-    public void setEndTime(long endTime) {
-        this.endTime = endTime;
-    }
-
-    public int lastReachedNode() {
-        return lastReachedNode;
-    }
-
-    public void setLastReachedNode(int lastReachedNode) {
-        this.lastReachedNode = lastReachedNode;
-    }
-
-    public int lastCheckpoint() {
-        return lastCheckpoint;
-    }
-
-    public void setLastCheckpoint(int lastCheckpoint) {
-        this.lastCheckpoint = lastCheckpoint;
-    }
-
-    public List<ReachedNode> nodes() {
-        return reachedNodes;
-    }
-
-    public List<FailedNode> failedNodes() {
-        return failedNodes;
-    }
-
-    public BitSet reached() {
-        return reached;
-    }
-
-    public boolean isReached(int nodeIndex) {
-        return reached.get(nodeIndex);
-    }
-
-    public void setReached(int nodeIndex, boolean value) {
-        if (value) reached.set(nodeIndex);
-        else reached.clear(nodeIndex);
     }
 
     public void resetProgress() {
@@ -111,5 +59,79 @@ public class ParkourTry {
 
         lastReachedNode = checkpointIndex;
         lastCheckpoint = checkpointIndex;
+    }
+
+    public void finish() {
+        if (isCancelled) return;
+
+        this.endTime = System.currentTimeMillis();
+        this.cancelReason = ParkourCancelReason.None;
+    }
+
+    public void cancel(ParkourCancelReason reason) {
+        if (isCancelled) return;
+
+        this.endTime = System.currentTimeMillis();
+        this.isCancelled = true;
+        this.cancelReason = reason;
+    }
+
+    public UUID parkourId() {
+        return parkourId;
+    }
+
+    public UUID playerUuid() {
+        return playerUuid;
+    }
+
+    public long startTime() {
+        return startTime;
+    }
+
+    public long endTime() {
+        return endTime;
+    }
+
+    public boolean isCancelled() {
+        return isCancelled;
+    }
+
+    public ParkourCancelReason cancelReason() {
+        return cancelReason;
+    }
+
+    public int lastReachedNode() {
+        return lastReachedNode;
+    }
+
+//    public void setLastReachedNode(int lastReachedNode) {
+//        this.lastReachedNode = lastReachedNode;
+//    }
+
+    public int lastCheckpoint() {
+        return lastCheckpoint;
+    }
+
+//    public void setLastCheckpoint(int lastCheckpoint) {
+//        this.lastCheckpoint = lastCheckpoint;
+//    }
+
+    public List<ReachedNode> reachedNodes() {
+        return reachedNodes;
+    }
+
+    public List<FailedNode> failedNodes() {
+        return failedNodes;
+    }
+
+    public boolean isReached(int nodeIndex) {
+        return reached.get(nodeIndex);
+    }
+
+    public void setReached(int nodeIndex, boolean isCheckpoint) {
+        reached.set(nodeIndex);
+
+        lastReachedNode = nodeIndex;
+        if (isCheckpoint) lastCheckpoint = nodeIndex;
     }
 }

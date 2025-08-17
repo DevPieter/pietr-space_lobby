@@ -5,6 +5,7 @@ import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
+import nl.devpieter.enums.ParkourCancelReason;
 import nl.devpieter.managers.ParkourManager;
 import nl.devpieter.managers.PortalManager;
 import nl.devpieter.managers.WorldManager;
@@ -39,7 +40,7 @@ public class PortalPlayerMoveListener implements EventListener<@NotNull PlayerMo
         InstanceContainer destination = this.worldManager.getWorld(portal.destinationWorld());
         if (destination == null) return Result.SUCCESS;
 
-        this.parkourManager.cancelParkour(player);
+        this.parkourManager.cancelParkour(player, ParkourCancelReason.PortalUsed);
 
         this.portalManager.startPortalCooldown(player.getUuid());
         player.setInstance(destination, portal.destinationPos());

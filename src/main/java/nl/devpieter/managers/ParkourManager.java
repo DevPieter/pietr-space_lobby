@@ -13,6 +13,8 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
+import nl.devpieter.Main;
+import nl.devpieter.enums.ParkourCancelReason;
 import nl.devpieter.models.GlowingBlockHolder;
 import nl.devpieter.models.parkour.*;
 import nl.devpieter.utils.PacketUtils;
@@ -29,9 +31,8 @@ public class ParkourManager {
 
     private static ParkourManager INSTANCE;
 
-    public static final boolean DEBUG = false;
-
     private final WorldManager worldManager = WorldManager.getInstance();
+    private final ParkourTryManager parkourTryManager = ParkourTryManager.getInstance();
 
     private final HashMap<UUID, Parkour> parkours = new HashMap<>();
     private final HashMap<UUID, HashMap<Pos, Parkour>> worldParkourLookup = new HashMap<>();
@@ -40,11 +41,9 @@ public class ParkourManager {
     private final HashMap<UUID, GlowingBlockHolder> glowingHolders = new HashMap<>();
 
     private ParkourManager() {
-        UUID worldId = worldManager.getMainWorld().getUuid();
-
         Parkour mainWorldParkour = new Parkour(
-                UUID.fromString("ebe258c5-e6ae-41fc-80e0-04509d4f3338"),
-                worldId,
+                UUID.fromString("0198b79d-7424-76e9-8aec-d329e60d4814"),
+                UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"),
 
                 "Main World Parkour",
                 new Pos(10.5, 65, 11.5, 0, 0),
@@ -231,7 +230,7 @@ public class ParkourManager {
         );
 
         parkours.put(mainWorldParkour.id(), mainWorldParkour);
-        worldParkourLookup.computeIfAbsent(worldId, k -> new HashMap<>()).put(mainWorldParkour.start(), mainWorldParkour);
+        worldParkourLookup.computeIfAbsent(UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"), k -> new HashMap<>()).put(mainWorldParkour.start(), mainWorldParkour);
         init();
     }
 
@@ -251,7 +250,7 @@ public class ParkourManager {
             for (ParkourNode node : parkour.nodes()) {
                 if (node.isCheckpoint()) instance.setBlock(node.position(), Block.SPRUCE_PRESSURE_PLATE);
 
-                if (DEBUG) {
+                if (Main.DEBUG) {
                     if (!node.isCheckpoint()) instance.setBlock(node.position(), Block.STONE_PRESSURE_PLATE);
 
                     Entity leaderboardEntity = new Entity(EntityType.TEXT_DISPLAY);
@@ -365,15 +364,15 @@ public class ParkourManager {
         ));
     }
 
-    public void cancelParkour(@NotNull Player player) {
+    public void cancelParkour(@NotNull Player player, ParkourCancelReason reason) {
         ParkourTry parkourTry = players.get(player.getUuid());
         if (parkourTry == null) return;
 
         Parkour parkour = parkours.get(parkourTry.parkourId());
         if (parkour == null) return;
 
-        parkourTry.setEndTime(System.currentTimeMillis());
-        // TODO: queue the parkour try to be saved to the API
+        parkourTry.cancel(reason);
+        parkourTryManager.queueParkourTry(parkourTry);
 
         players.remove(player.getUuid());
         player.sendMessage(TextUtils.miniText("<red>Parkour cancelled!"));
@@ -441,7 +440,7 @@ public class ParkourManager {
 
             for (int skippedIndex = expectedIndex; skippedIndex < i; skippedIndex++) {
                 ParkourNode skippedNode = nodes.get(skippedIndex);
-                parkourTry.nodes().add(new ReachedNode(skippedNode.id(), i, System.currentTimeMillis(), true));
+                parkourTry.reachedNodes().add(new ReachedNode(skippedNode.id(), i, System.currentTimeMillis(), true));
                 System.out.println("Skipped node: " + skippedNode.id() + " at index: " + skippedIndex);
             }
 
@@ -473,7 +472,9 @@ public class ParkourManager {
             return;
         }
 
-        parkourTry.setEndTime(System.currentTimeMillis());
+        parkourTry.finish();
+        parkourTryManager.queueParkourTry(parkourTry);
+
         players.remove(player.getUuid());
 
         long timeMs = parkourTry.endTime() - parkourTry.startTime();
@@ -487,13 +488,6 @@ public class ParkourManager {
 
         GlowingBlockHolder holder = glowingHolders.remove(player.getUuid());
         if (holder != null) PacketUtils.revertToOriginalBlock(player, holder);
-
-        // TODO: queue the parkour try to be saved to the API
-        ParkourTryManager.getInstance().queueParkourTry(parkourTry);
-
-//        Gson gson = new Gson();
-//        String json = gson.toJson(parkourTry);
-//        System.out.println(json);
     }
 
     private boolean hasReachedAllCheckpoints(@NotNull Player player) {
@@ -513,15 +507,13 @@ public class ParkourManager {
     }
 
     private void handlePointReached(@NotNull Player player, @NotNull ParkourTry parkourTry, @NotNull ParkourNode node, int i) {
-        parkourTry.nodes().add(new ReachedNode(node.id(), i, System.currentTimeMillis(), false));
+        parkourTry.reachedNodes().add(new ReachedNode(node.id(), i, System.currentTimeMillis(), false));
+        boolean isCheckpoint = node.isCheckpoint();
 
-        parkourTry.setReached(i, true);
-        parkourTry.setLastReachedNode(i);
+        parkourTry.setReached(i, isCheckpoint);
+        if (isCheckpoint) handleCheckpointReached(player);
 
-        if (node.isCheckpoint()) {
-            parkourTry.setLastCheckpoint(i);
-            handleCheckpointReached(player);
-        } else if (DEBUG) {
+        if (Main.DEBUG) {
             player.sendActionBar(TextUtils.miniText("<dark_gray>Node <green>%d</green> reached!", i));
         }
     }
