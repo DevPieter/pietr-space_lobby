@@ -12,6 +12,8 @@ import nl.devpieter.managers.WorldManager;
 import nl.devpieter.models.Portal;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.UUID;
+
 public class PortalPlayerMoveListener implements EventListener<@NotNull PlayerMoveEvent> {
 
     private final WorldManager worldManager = WorldManager.getInstance();
@@ -34,7 +36,10 @@ public class PortalPlayerMoveListener implements EventListener<@NotNull PlayerMo
             return Result.SUCCESS;
         }
 
-        Portal portal = this.portalManager.getIntersectingPortal(player.getPosition(), currentWorld.getUuid());
+        UUID worldUUID = this.worldManager.getWorldUUID(currentWorld);
+        if (worldUUID == null) return Result.SUCCESS;
+
+        Portal portal = this.portalManager.getIntersectingPortal(player.getPosition(), worldUUID);
         if (portal == null) return Result.SUCCESS;
 
         InstanceContainer destination = this.worldManager.getWorld(portal.destinationWorld());

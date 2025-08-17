@@ -20,9 +20,9 @@ public class PortalManager {
 
     private PortalManager() {
         this.portals.put(
-                WorldManager.getInstance().getMainWorld().getUuid(),
+                UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"),
                 List.of(new Portal(
-                        WorldManager.getInstance().getSpecialWorld().getUuid(),
+                        UUID.fromString("aba23b3b-0cae-42dd-92a0-7aaf63f4fe54"),
                         new Pos(2.5, 58, -2.5, -180, 0),
                         new Pos(3, 60, -2),
                         new Pos(1, 58, -2)
@@ -30,9 +30,9 @@ public class PortalManager {
         );
 
         this.portals.put(
-                WorldManager.getInstance().getSpecialWorld().getUuid(),
+                UUID.fromString("aba23b3b-0cae-42dd-92a0-7aaf63f4fe54"),
                 List.of(new Portal(
-                        WorldManager.getInstance().getMainWorld().getUuid(),
+                        UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"),
                         new Pos(2.5, 58, -2.5, -180, 0),
                         new Pos(3, 60, -2),
                         new Pos(1, 58, -2)
