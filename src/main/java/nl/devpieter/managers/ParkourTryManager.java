@@ -6,6 +6,7 @@ import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.Main;
+import nl.devpieter.Settings;
 import nl.devpieter.api.request.AsyncRequest;
 import nl.devpieter.models.parkour.ParkourTry;
 import nl.devpieter.models.requests.CreateParkourTryRequest;
@@ -22,6 +23,9 @@ import java.util.concurrent.CompletableFuture;
 public class ParkourTryManager {
 
     private static ParkourTryManager INSTANCE;
+
+    private final URI uri = URI.create(Settings.API_BASE_URL + "/api/mc/lobby/parkour/try");
+    private final Gson gson = new Gson();
 
     private final Logger logger = MinecraftServer.LOGGER;
     private final Scheduler scheduler = MinecraftServer.getSchedulerManager();
@@ -60,7 +64,7 @@ public class ParkourTryManager {
             }
 
             if (debug) logger.info("Done processing ParkourTries");
-        }, TaskSchedule.seconds(5), TaskSchedule.seconds(10));
+        }, TaskSchedule.seconds(5), TaskSchedule.seconds(15));
     }
 
     public void stop() {
@@ -74,9 +78,6 @@ public class ParkourTryManager {
         queuedParkourTries.add(parkourTry);
         if (Main.DEBUG) logger.info("Queued ParkourTry for player: {}", parkourTry.playerUuid());
     }
-
-    private final URI uri = URI.create("http://localhost:5193/api/mc/lobby/parkour/try");
-    private final Gson gson = new Gson();
 
     private CompletableFuture<Void> postParkourTry(CreateParkourTryRequest parkourTry) {
 

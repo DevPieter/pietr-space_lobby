@@ -104,17 +104,9 @@ public class ParkourTry {
         return lastReachedNode;
     }
 
-//    public void setLastReachedNode(int lastReachedNode) {
-//        this.lastReachedNode = lastReachedNode;
-//    }
-
     public int lastCheckpoint() {
         return lastCheckpoint;
     }
-
-//    public void setLastCheckpoint(int lastCheckpoint) {
-//        this.lastCheckpoint = lastCheckpoint;
-//    }
 
     public List<ReachedNode> reachedNodes() {
         return reachedNodes;

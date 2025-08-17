@@ -8,7 +8,7 @@ import net.minestom.server.event.player.PlayerBlockBreakEvent;
 import net.minestom.server.event.player.PlayerBlockPlaceEvent;
 import net.minestom.server.event.player.PlayerPacketEvent;
 import net.minestom.server.event.player.PlayerUseItemEvent;
-import net.minestom.server.extras.MojangAuth;
+import net.minestom.server.extras.velocity.VelocityProxy;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import nl.devpieter.enums.ParkourCancelReason;
@@ -22,7 +22,7 @@ import nl.devpieter.utils.PacketUtils;
 
 public class Main {
 
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
 
     public static void main(String[] args) {
 
@@ -96,10 +96,10 @@ public class Main {
 
         ParkourTryManager.getInstance().start();
 
-//        VelocityProxy.enable(Settings.VELOCITY_PROXY_SECRET);
-//        server.start("0.0.0.0", 25565);
+        VelocityProxy.enable(Settings.VELOCITY_PROXY_SECRET);
+        server.start("0.0.0.0", 25565);
 
-        MojangAuth.init();
-        server.start("127.0.0.1", 25565);
+//        MojangAuth.init();
+//        server.start("127.0.0.1", 25565);
     }
 }
