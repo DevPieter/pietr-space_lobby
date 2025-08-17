@@ -1,6 +1,5 @@
 package nl.devpieter.managers;
 
-import com.google.gson.Gson;
 import net.kyori.adventure.sound.Sound;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
@@ -490,10 +489,11 @@ public class ParkourManager {
         if (holder != null) PacketUtils.revertToOriginalBlock(player, holder);
 
         // TODO: queue the parkour try to be saved to the API
+        ParkourTryManager.getInstance().queueParkourTry(parkourTry);
 
-        Gson gson = new Gson();
-        String json = gson.toJson(parkourTry);
-        System.out.println(json);
+//        Gson gson = new Gson();
+//        String json = gson.toJson(parkourTry);
+//        System.out.println(json);
     }
 
     private boolean hasReachedAllCheckpoints(@NotNull Player player) {

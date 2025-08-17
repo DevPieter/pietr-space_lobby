@@ -15,6 +15,7 @@ import nl.devpieter.listeners.*;
 import nl.devpieter.listeners.parkour.ParkourPlayerMoveListener;
 import nl.devpieter.listeners.portal.PortalPlayerMoveListener;
 import nl.devpieter.managers.ParkourManager;
+import nl.devpieter.managers.ParkourTryManager;
 import nl.devpieter.managers.WorldManager;
 import nl.devpieter.utils.PacketUtils;
 import org.slf4j.Logger;
@@ -92,6 +93,8 @@ public class Main {
         eventHandler
                 .addListener(PlayerBlockBreakEvent.class, event -> event.setCancelled(true))
                 .addListener(PlayerBlockPlaceEvent.class, event -> event.setCancelled(true));
+
+        ParkourTryManager.getInstance().start();
 
 //        VelocityProxy.enable(Settings.VELOCITY_PROXY_SECRET);
 //        server.start("0.0.0.0", 25565);
