@@ -15,6 +15,7 @@ import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
 import nl.devpieter.Settings;
 import nl.devpieter.enums.ParkourCancelReason;
+import nl.devpieter.enums.ParkourFailReason;
 import nl.devpieter.models.GlowingBlockHolder;
 import nl.devpieter.models.parkour.*;
 import nl.devpieter.utils.PacketUtils;
@@ -380,7 +381,7 @@ public class ParkourManager {
 
             if (parkourTry.lastReachedNode() >= 0 && parkourTry.lastReachedNode() < parkour.nodes().size()) {
                 ParkourNode lastReachedNode = parkour.nodes().get(parkourTry.lastReachedNode());
-                parkourTry.failedNodes().add(new FailedNode(lastReachedNode.id(), System.currentTimeMillis()));
+                parkourTry.failedNodes().add(FailedNode.create(lastReachedNode.id(), ParkourFailReason.Cancelled));
             }
         } else {
             player.sendMessage(TextUtils.miniText("<red>Parkour cancelled, please don't do that!"));
@@ -390,7 +391,7 @@ public class ParkourManager {
         handleCleanup(player, parkourTry);
     }
 
-    public void returnToCheckpoint(@NotNull Player player) {
+    public void returnToCheckpoint(@NotNull Player player, ParkourFailReason reason) {
         ParkourTry parkourTry = players.get(player.getUuid());
         if (parkourTry == null) return;
 
@@ -414,7 +415,7 @@ public class ParkourManager {
         if (lastReachedIndex < 0 || lastReachedIndex >= parkour.nodes().size()) return;
 
         ParkourNode lastReachedNode = parkour.nodes().get(lastReachedIndex);
-        parkourTry.failedNodes().add(new FailedNode(lastReachedNode.id(), System.currentTimeMillis()));
+        parkourTry.failedNodes().add(FailedNode.create(lastReachedNode.id(), reason));
     }
 
     public void checkNode(@NotNull Player player) {

@@ -13,6 +13,7 @@ import net.minestom.server.extras.velocity.VelocityProxy;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import nl.devpieter.enums.ParkourCancelReason;
+import nl.devpieter.enums.ParkourFailReason;
 import nl.devpieter.listeners.*;
 import nl.devpieter.listeners.parkour.ParkourPlayerMoveListener;
 import nl.devpieter.listeners.portal.PortalPlayerMoveListener;
@@ -53,7 +54,7 @@ public class Main {
             Player player = event.getPlayer();
             int slot = player.getHeldSlot();
 
-            if (slot == 0) ParkourManager.getInstance().returnToCheckpoint(player);
+            if (slot == 0) ParkourManager.getInstance().returnToCheckpoint(player, ParkourFailReason.PlayerRequest);
             else if (slot == 4) ParkourManager.getInstance().cancelParkour(player, ParkourCancelReason.PlayerRequest);
         });
 
