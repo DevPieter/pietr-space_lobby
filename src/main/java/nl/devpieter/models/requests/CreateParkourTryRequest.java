@@ -1,6 +1,5 @@
 package nl.devpieter.models.requests;
 
-import nl.devpieter.models.parkour.FailedNode;
 import nl.devpieter.models.parkour.ParkourTry;
 import nl.devpieter.models.parkour.ReachedNode;
 import org.jetbrains.annotations.NotNull;
@@ -19,10 +18,14 @@ public record CreateParkourTryRequest(
         int cancelReason,
 
         List<ReachedNode> reachedNodes,
-        List<FailedNode> failedNodes
+        List<CreateFailedNodeRequest> failedNodes
 ) {
 
     public static @NotNull CreateParkourTryRequest of(@NotNull ParkourTry parkourTry) {
+        List<CreateFailedNodeRequest> failedNodes = parkourTry.failedNodes().stream()
+                .map(CreateFailedNodeRequest::of)
+                .toList();
+
         return new CreateParkourTryRequest(
                 parkourTry.parkourId(),
                 parkourTry.playerUuid(),
@@ -31,7 +34,7 @@ public record CreateParkourTryRequest(
                 parkourTry.isCancelled(),
                 parkourTry.cancelReason().getValue(),
                 parkourTry.reachedNodes(),
-                parkourTry.failedNodes()
+                failedNodes
         );
     }
 }
