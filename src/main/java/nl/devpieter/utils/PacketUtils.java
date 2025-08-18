@@ -7,12 +7,12 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
-import net.minestom.server.network.packet.server.play.BlockChangePacket;
-import net.minestom.server.network.packet.server.play.DestroyEntitiesPacket;
-import net.minestom.server.network.packet.server.play.SetSlotPacket;
-import net.minestom.server.network.packet.server.play.SpawnEntityPacket;
+import net.minestom.server.network.packet.server.play.*;
+import net.minestom.server.utils.Either;
 import nl.devpieter.models.GlowingBlockHolder;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.UUID;
 
 public class PacketUtils {
 
@@ -52,6 +52,39 @@ public class PacketUtils {
 
         player.sendPacket(new BlockChangePacket(pos, block));
         player.sendPacket(new DestroyEntitiesPacket(entityId));
+    }
+
+    public static void setWaypoint(@NotNull Player player, UUID waypointId, @NotNull Pos pos) {
+        player.sendPacket(new TrackedWaypointPacket(
+                TrackedWaypointPacket.Operation.TRACK,
+                new TrackedWaypointPacket.Waypoint(
+                        Either.left(waypointId),
+                        TrackedWaypointPacket.Icon.DEFAULT,
+                        new TrackedWaypointPacket.Target.Vec3i(pos)
+                )
+        ));
+    }
+
+    public static void updateWaypoint(@NotNull Player player, UUID waypointId, @NotNull Pos pos) {
+        player.sendPacket(new TrackedWaypointPacket(
+                TrackedWaypointPacket.Operation.UPDATE,
+                new TrackedWaypointPacket.Waypoint(
+                        Either.left(waypointId),
+                        TrackedWaypointPacket.Icon.DEFAULT,
+                        new TrackedWaypointPacket.Target.Vec3i(pos)
+                )
+        ));
+    }
+
+    public static void removeWaypoint(@NotNull Player player, UUID waypointId) {
+        player.sendPacket(new TrackedWaypointPacket(
+                TrackedWaypointPacket.Operation.UNTRACK,
+                new TrackedWaypointPacket.Waypoint(
+                        Either.left(waypointId),
+                        TrackedWaypointPacket.Icon.DEFAULT,
+                        new TrackedWaypointPacket.Target.Vec3i(new Pos(0, 0, 0))
+                )
+        ));
     }
 
     public static void setSlot(@NotNull Player player, int slot, @NotNull ItemStack item) {

@@ -19,6 +19,17 @@ public class EnvUtils {
         return value == null ? fallback : Float.parseFloat(value);
     }
 
+    public static boolean readBoolean(String key, boolean fallback) {
+        String value = System.getenv(key);
+        if (value == null) return fallback;
+
+        return switch (value.toLowerCase()) {
+            case "true", "1", "yes" -> true;
+            case "false", "0", "no" -> false;
+            default -> fallback;
+        };
+    }
+
     public static Pos readPos(String key, Pos fallback) {
         String value = System.getenv(key);
         if (value == null) return fallback;

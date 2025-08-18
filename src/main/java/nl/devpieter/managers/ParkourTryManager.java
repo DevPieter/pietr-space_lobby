@@ -5,7 +5,6 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
-import nl.devpieter.Main;
 import nl.devpieter.Settings;
 import nl.devpieter.api.request.AsyncRequest;
 import nl.devpieter.models.parkour.ParkourTry;
@@ -47,7 +46,7 @@ public class ParkourTryManager {
         task = scheduler.scheduleTask(() -> {
             if (queuedParkourTries.isEmpty()) return;
 
-            boolean debug = Main.DEBUG;
+            boolean debug = Settings.DEBUG;
             if (debug) logger.info("Processing queued ParkourTries, count: {}", queuedParkourTries.size());
 
             List<ParkourTry> parkourTries = new ArrayList<>(queuedParkourTries);
@@ -76,7 +75,7 @@ public class ParkourTryManager {
 
     public void queueParkourTry(ParkourTry parkourTry) {
         queuedParkourTries.add(parkourTry);
-        if (Main.DEBUG) logger.info("Queued ParkourTry for player: {}", parkourTry.playerUuid());
+        if (Settings.DEBUG) logger.info("Queued ParkourTry for player: {}", parkourTry.playerUuid());
     }
 
     private CompletableFuture<Void> postParkourTry(CreateParkourTryRequest parkourTry) {
@@ -93,7 +92,7 @@ public class ParkourTryManager {
                     throw new Exception("API returned " + response.statusCode() + ", expected 201");
                 }
 
-                if (Main.DEBUG) {
+                if (Settings.DEBUG) {
                     logger.info("Successfully posted ParkourTry for player: {}", parkourTry.playerUuid());
                 }
 

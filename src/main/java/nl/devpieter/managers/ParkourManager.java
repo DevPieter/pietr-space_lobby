@@ -13,7 +13,7 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
-import nl.devpieter.Main;
+import nl.devpieter.Settings;
 import nl.devpieter.enums.ParkourCancelReason;
 import nl.devpieter.models.GlowingBlockHolder;
 import nl.devpieter.models.parkour.*;
@@ -250,7 +250,7 @@ public class ParkourManager {
             for (ParkourNode node : parkour.nodes()) {
                 if (node.isCheckpoint()) instance.setBlock(node.position(), Block.SPRUCE_PRESSURE_PLATE);
 
-                if (Main.DEBUG) {
+                if (Settings.DEBUG) {
                     if (!node.isCheckpoint()) instance.setBlock(node.position(), Block.STONE_PRESSURE_PLATE);
 
                     Entity leaderboardEntity = new Entity(EntityType.TEXT_DISPLAY);
@@ -353,6 +353,8 @@ public class ParkourManager {
         Pos nextCheckpoint = getFirstCheckpoint(parkour);
         glowingHolders.put(player.getUuid(), PacketUtils.replaceWithGlowing(player, nextCheckpoint));
 
+        PacketUtils.setWaypoint(player, parkourUuid, nextCheckpoint);
+
         ItemStack cancelItem = ItemStack.of(Material.BARRIER);
         PacketUtils.setSlot(player, 40, cancelItem);
 
@@ -385,14 +387,7 @@ public class ParkourManager {
         }
 
         parkourTry.cancel(reason);
-        parkourTryManager.queueParkourTry(parkourTry);
-        players.remove(player.getUuid());
-
-        PacketUtils.setSlot(player, 40, ItemStack.of(Material.AIR));
-        PacketUtils.setSlot(player, 36, ItemStack.of(Material.AIR));
-
-        GlowingBlockHolder holder = glowingHolders.remove(player.getUuid());
-        if (holder != null) PacketUtils.revertToOriginalBlock(player, holder);
+        handleCleanup(player, parkourTry);
     }
 
     public void returnToCheckpoint(@NotNull Player player) {
@@ -452,7 +447,6 @@ public class ParkourManager {
             for (int skippedIndex = expectedIndex; skippedIndex < i; skippedIndex++) {
                 ParkourNode skippedNode = nodes.get(skippedIndex);
                 parkourTry.reachedNodes().add(new ReachedNode(skippedNode.id(), i, System.currentTimeMillis(), true));
-                System.out.println("Skipped node: " + skippedNode.id() + " at index: " + skippedIndex);
             }
 
             handlePointReached(player, parkourTry, node, i);
@@ -484,21 +478,13 @@ public class ParkourManager {
         }
 
         parkourTry.finish();
-        parkourTryManager.queueParkourTry(parkourTry);
-
-        players.remove(player.getUuid());
+        handleCleanup(player, parkourTry);
 
         long timeMs = parkourTry.endTime() - parkourTry.startTime();
         String time = TextUtils.getFormattedTime(timeMs, true, false);
 
         player.sendMessage(TextUtils.miniText("<green>Parkour finished in <b>%s</b>!", time));
         player.playSound(Sound.sound(SoundEvent.ENTITY_PLAYER_LEVELUP, Sound.Source.MASTER, 1.0f, 1.0f));
-
-        PacketUtils.setSlot(player, 40, ItemStack.of(Material.AIR));
-        PacketUtils.setSlot(player, 36, ItemStack.of(Material.AIR));
-
-        GlowingBlockHolder holder = glowingHolders.remove(player.getUuid());
-        if (holder != null) PacketUtils.revertToOriginalBlock(player, holder);
     }
 
     private boolean hasReachedAllCheckpoints(@NotNull Player player) {
@@ -522,14 +508,14 @@ public class ParkourManager {
         boolean isCheckpoint = node.isCheckpoint();
 
         parkourTry.setReached(i, isCheckpoint);
-        if (isCheckpoint) handleCheckpointReached(player);
+        if (isCheckpoint) handleCheckpointReached(player, parkourTry.parkourId());
 
-        if (Main.DEBUG) {
+        if (Settings.DEBUG) {
             player.sendActionBar(TextUtils.miniText("<dark_gray>Node <green>%d</green> reached!", i));
         }
     }
 
-    private void handleCheckpointReached(@NotNull Player player) {
+    private void handleCheckpointReached(@NotNull Player player, @NotNull UUID parkourId) {
         player.sendMessage(TextUtils.miniText("<yellow>Checkpoint reached!"));
         player.playSound(Sound.sound(SoundEvent.ENTITY_EXPERIENCE_ORB_PICKUP, Sound.Source.MASTER, 1.0f, 0.8f));
 
@@ -541,5 +527,20 @@ public class ParkourManager {
 
         GlowingBlockHolder newHolder = PacketUtils.replaceWithGlowing(player, nextCheckpoint);
         glowingHolders.put(player.getUuid(), newHolder);
+
+        PacketUtils.updateWaypoint(player, parkourId, nextCheckpoint);
+    }
+
+    private void handleCleanup(@NotNull Player player, @NotNull ParkourTry parkourTry) {
+        parkourTryManager.queueParkourTry(parkourTry);
+        players.remove(player.getUuid());
+
+        PacketUtils.setSlot(player, 40, ItemStack.of(Material.AIR));
+        PacketUtils.setSlot(player, 36, ItemStack.of(Material.AIR));
+
+        GlowingBlockHolder holder = glowingHolders.remove(player.getUuid());
+        if (holder != null) PacketUtils.revertToOriginalBlock(player, holder);
+
+        PacketUtils.removeWaypoint(player, parkourTry.parkourId());
     }
 }

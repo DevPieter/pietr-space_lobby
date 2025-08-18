@@ -8,6 +8,7 @@ import net.minestom.server.event.player.PlayerBlockBreakEvent;
 import net.minestom.server.event.player.PlayerBlockPlaceEvent;
 import net.minestom.server.event.player.PlayerPacketEvent;
 import net.minestom.server.event.player.PlayerUseItemEvent;
+import net.minestom.server.extras.MojangAuth;
 import net.minestom.server.extras.velocity.VelocityProxy;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
@@ -19,14 +20,17 @@ import nl.devpieter.managers.ParkourManager;
 import nl.devpieter.managers.ParkourTryManager;
 import nl.devpieter.managers.WorldManager;
 import nl.devpieter.utils.PacketUtils;
+import org.slf4j.Logger;
 
 public class Main {
 
-    public static final boolean DEBUG = false;
-
     public static void main(String[] args) {
 
+        Logger logger = MinecraftServer.LOGGER;
+        if (Settings.DEBUG) logger.warn("Debug mode is enabled");
+
         MinecraftServer server = MinecraftServer.init();
+        MinecraftServer.setBrandName("Pieter Space Lobby");
 
         WorldManager worldManager = WorldManager.getInstance();
         worldManager.loadWorlds();
@@ -96,10 +100,14 @@ public class Main {
 
         ParkourTryManager.getInstance().start();
 
-        VelocityProxy.enable(Settings.VELOCITY_PROXY_SECRET);
-        server.start("0.0.0.0", 25565);
+        if (Settings.USE_VELOCITY_PROXY) {
+            VelocityProxy.enable(Settings.VELOCITY_PROXY_SECRET);
+            logger.info("Using Velocity Proxy");
+        } else {
+            MojangAuth.init();
+            logger.info("Using Mojang Auth");
+        }
 
-//        MojangAuth.init();
-//        server.start("127.0.0.1", 25565);
+        server.start("0.0.0.0", 25565);
     }
 }
