@@ -23,7 +23,7 @@ public class BerryBlockHandler implements BlockHandler {
 
         instance.setBlock(interaction.getBlockPosition(), block.withProperty("age", "1"));
 
-        Sound sound = Sound.sound(Key.key("block.sweet_berry_bush.pick_berries"), Sound.Source.BLOCK, 1f, 1f);
+        Sound sound = Sound.sound(Key.key("block.sweet_berry_bush.pick_berries"), Sound.Source.BLOCK, 0.8f, 0.8f);
         instance.playSound(sound, interaction.getBlockPosition());
 
         return true;
