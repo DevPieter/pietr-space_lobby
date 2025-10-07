@@ -8,15 +8,17 @@ version = "1.1.0"
 
 repositories {
     mavenCentral()
+    maven(url = "https://central.sonatype.com/repository/maven-snapshots/") {
+        content {
+            includeModule("net.minestom", "minestom")
+        }
+    }
 }
 
 dependencies {
-//    implementation("net.minestom:minestom-snapshots:1_21_4-046d18702d")
-//    implementation("net.minestom:minestom-snapshots:1_21_4-6490538291")
+    implementation("net.minestom:minestom:2025.10.05-1.21.8")
+//    implementation("net.minestom:minestom:1_21_9-SNAPSHOT")
 
-    implementation("net.minestom:minestom:2025.08.12-1.21.8")
-
-//    implementation("net.kyori:adventure-api:4.24.0")
     implementation("net.kyori:adventure-text-minimessage:4.24.0")
 
     implementation("org.slf4j:slf4j-simple:2.0.16")

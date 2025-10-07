@@ -1,5 +1,6 @@
 package nl.devpieter;
 
+import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
@@ -8,8 +9,6 @@ import net.minestom.server.event.player.PlayerBlockBreakEvent;
 import net.minestom.server.event.player.PlayerBlockPlaceEvent;
 import net.minestom.server.event.player.PlayerPacketEvent;
 import net.minestom.server.event.player.PlayerUseItemEvent;
-import net.minestom.server.extras.MojangAuth;
-import net.minestom.server.extras.velocity.VelocityProxy;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import nl.devpieter.enums.ParkourCancelReason;
@@ -30,7 +29,13 @@ public class Main {
         Logger logger = MinecraftServer.LOGGER;
         if (Settings.DEBUG) logger.warn("Debug mode is enabled");
 
-        MinecraftServer server = MinecraftServer.init();
+        boolean useVelocity = Settings.USE_VELOCITY_PROXY;
+        String velocitySecret = Settings.VELOCITY_PROXY_SECRET;
+
+        Auth auth = useVelocity ? new Auth.Velocity(velocitySecret) : new Auth.Online();
+        logger.info("Using authentication: {}", useVelocity ? "Velocity" : "Online");
+
+        MinecraftServer server = MinecraftServer.init(auth);
         MinecraftServer.setBrandName("Pieter Space Lobby");
 
         WorldManager worldManager = WorldManager.getInstance();
@@ -100,15 +105,6 @@ public class Main {
                 .addListener(PlayerBlockPlaceEvent.class, event -> event.setCancelled(true));
 
         ParkourTryManager.getInstance().start();
-
-        if (Settings.USE_VELOCITY_PROXY) {
-            VelocityProxy.enable(Settings.VELOCITY_PROXY_SECRET);
-            logger.info("Using Velocity Proxy");
-        } else {
-            MojangAuth.init();
-            logger.info("Using Mojang Auth");
-        }
-
         server.start("0.0.0.0", 25565);
     }
 }
