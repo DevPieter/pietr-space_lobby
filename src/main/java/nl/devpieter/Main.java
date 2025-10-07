@@ -13,6 +13,7 @@ import net.minestom.server.event.player.PlayerUseItemEvent;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import nl.devpieter.commands.GamemodeCommand;
+import nl.devpieter.commands.TestCommand;
 import nl.devpieter.commands.fun.LaunchCommand;
 import nl.devpieter.enums.ParkourCancelReason;
 import nl.devpieter.enums.ParkourFailReason;
@@ -110,6 +111,7 @@ public class Main {
         CommandManager commandManager = MinecraftServer.getCommandManager();
         commandManager.register(new LaunchCommand());
         commandManager.register(new GamemodeCommand());
+        commandManager.register(new TestCommand());
 
         ParkourTryManager.getInstance().start();
         server.start("0.0.0.0", 25565);
