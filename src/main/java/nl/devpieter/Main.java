@@ -2,6 +2,7 @@ package nl.devpieter;
 
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.command.CommandManager;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.inventory.InventoryPreClickEvent;
@@ -11,6 +12,8 @@ import net.minestom.server.event.player.PlayerPacketEvent;
 import net.minestom.server.event.player.PlayerUseItemEvent;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
+import nl.devpieter.commands.GamemodeCommand;
+import nl.devpieter.commands.fun.LaunchCommand;
 import nl.devpieter.enums.ParkourCancelReason;
 import nl.devpieter.enums.ParkourFailReason;
 import nl.devpieter.listeners.*;
@@ -103,6 +106,10 @@ public class Main {
         eventHandler
                 .addListener(PlayerBlockBreakEvent.class, event -> event.setCancelled(true))
                 .addListener(PlayerBlockPlaceEvent.class, event -> event.setCancelled(true));
+
+        CommandManager commandManager = MinecraftServer.getCommandManager();
+        commandManager.register(new LaunchCommand());
+        commandManager.register(new GamemodeCommand());
 
         ParkourTryManager.getInstance().start();
         server.start("0.0.0.0", 25565);
