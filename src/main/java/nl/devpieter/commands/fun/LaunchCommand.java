@@ -6,7 +6,10 @@ import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.command.builder.arguments.minecraft.ArgumentEntity;
 import net.minestom.server.command.builder.arguments.number.ArgumentDouble;
 import net.minestom.server.coordinate.Vec;
+import net.minestom.server.entity.Player;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.UUID;
 
 public class LaunchCommand extends Command {
 
@@ -15,6 +18,11 @@ public class LaunchCommand extends Command {
 
         setDefaultExecutor((sender, context) -> {
             sender.sendMessage("Usage: /launch <player> <direction> <strength>");
+        });
+
+        setCondition((sender, commandString) -> {
+            if (!(sender instanceof Player player)) return false;
+            return player.getUuid().equals(UUID.fromString("c292f4e0-f990-4592-a067-f5f77c15d408"));
         });
 
         ArgumentEntity playerArgument = ArgumentType.Entity("player").onlyPlayers(true);
