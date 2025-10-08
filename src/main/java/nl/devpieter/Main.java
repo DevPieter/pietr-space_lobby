@@ -10,8 +10,12 @@ import net.minestom.server.event.player.PlayerBlockBreakEvent;
 import net.minestom.server.event.player.PlayerBlockPlaceEvent;
 import net.minestom.server.event.player.PlayerPacketEvent;
 import net.minestom.server.event.player.PlayerUseItemEvent;
+import net.minestom.server.instance.Instance;
+import net.minestom.server.instance.block.Block;
+import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
+import nl.devpieter.blockHandlers.FarmWheatCropHandler;
 import nl.devpieter.commands.GamemodeCommand;
 import nl.devpieter.commands.TestCommand;
 import nl.devpieter.commands.fun.LaunchCommand;
@@ -50,6 +54,7 @@ public class Main {
         eventHandler.addListener(new PlayerConfigurationListener());
         eventHandler.addListener(new PlayerMoveListener());
 
+        eventHandler.addListener(new PlayerBlockBreakListener());
         eventHandler.addListener(new PlayerBlockInteractListener());
         eventHandler.addListener(new PlayerStartSneakingListener());
 
@@ -104,9 +109,7 @@ public class Main {
             PacketUtils.setSlot(event.getPlayer(), 36, checkpointItem);
         });
 
-        eventHandler
-                .addListener(PlayerBlockBreakEvent.class, event -> event.setCancelled(true))
-                .addListener(PlayerBlockPlaceEvent.class, event -> event.setCancelled(true));
+        eventHandler.addListener(PlayerBlockPlaceEvent.class, event -> event.setCancelled(true));
 
         CommandManager commandManager = MinecraftServer.getCommandManager();
         commandManager.register(new LaunchCommand());
