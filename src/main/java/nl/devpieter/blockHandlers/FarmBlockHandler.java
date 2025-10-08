@@ -4,6 +4,7 @@ import net.minestom.server.coordinate.Point;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
@@ -51,7 +52,7 @@ public abstract class FarmBlockHandler implements BlockHandler {
         return true;
     }
 
-    public void replant(Instance instance, Block block, Point position) {
+    public void replant(@NotNull Instance instance, @NotNull Block block, Point position) {
         instance.setBlock(position, block.withProperty("age", "0"));
 
         nextGrowInterval = -1;

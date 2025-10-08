@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 public class FarmBerryCropHandler extends FarmBlockHandler {
 
     public FarmBerryCropHandler() {
-        super(5_000, 12_000, 3);
+        super(5_000, 8_000, 3);
     }
 
     @Override

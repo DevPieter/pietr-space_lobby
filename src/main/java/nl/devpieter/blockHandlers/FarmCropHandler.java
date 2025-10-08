@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 public class FarmCropHandler extends FarmBlockHandler {
 
     public FarmCropHandler() {
-        super(2_000, 6_000, 7);
+        super(2_000, 4_000, 7);
     }
 
     @Override
