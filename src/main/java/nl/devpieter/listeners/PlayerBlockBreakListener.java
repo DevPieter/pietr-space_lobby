@@ -1,16 +1,11 @@
 package nl.devpieter.listeners;
 
-import net.minestom.server.coordinate.BlockVec;
-import net.minestom.server.entity.Player;
-import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerBlockBreakEvent;
-import net.minestom.server.event.player.PlayerBlockInteractEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
-import nl.devpieter.blockHandlers.FarmWheatCropHandler;
-import nl.devpieter.managers.SitManager;
+import nl.devpieter.blockHandlers.FarmCropHandler;
 import org.jetbrains.annotations.NotNull;
 
 public class PlayerBlockBreakListener implements EventListener<@NotNull PlayerBlockBreakEvent> {
@@ -27,7 +22,7 @@ public class PlayerBlockBreakListener implements EventListener<@NotNull PlayerBl
         BlockHandler handler = event.getBlock().handler();
         if (handler == null) return Result.SUCCESS;
 
-        if (handler instanceof FarmWheatCropHandler) {
+        if (handler instanceof FarmCropHandler cropHandler) {
             Block block = event.getBlock();
             Instance instance = event.getInstance();
 
@@ -37,7 +32,7 @@ public class PlayerBlockBreakListener implements EventListener<@NotNull PlayerBl
             int age = Integer.parseInt(ageProperty);
             if (age < 7) return Result.SUCCESS;
 
-            instance.setBlock(event.getBlockPosition(), block.withProperty("age", "0"));
+            cropHandler.replant(instance, block, event.getBlockPosition());
         }
 
         return Result.SUCCESS;
