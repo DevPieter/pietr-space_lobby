@@ -6,8 +6,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class FarmCropHandler extends FarmBlockHandler {
 
-    public FarmCropHandler() {
-        super(2_000, 4_000, 7);
+    public FarmCropHandler(int maxAge) {
+        super(2_000, 4_000, maxAge);
 
         setReplantSound(Sound.sound(Key.key("item.crop.plant"), Sound.Source.BLOCK, 0.45f, 0.96f));
     }

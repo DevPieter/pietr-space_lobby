@@ -19,6 +19,7 @@ import nl.devpieter.enums.ParkourFailReason;
 import nl.devpieter.listeners.*;
 import nl.devpieter.listeners.parkour.ParkourPlayerMoveListener;
 import nl.devpieter.listeners.portal.PortalPlayerMoveListener;
+import nl.devpieter.managers.FarmManager;
 import nl.devpieter.managers.ParkourManager;
 import nl.devpieter.managers.ParkourTryManager;
 import nl.devpieter.managers.WorldManager;
@@ -43,6 +44,12 @@ public class Main {
 
         WorldManager worldManager = WorldManager.getInstance();
         worldManager.loadWorlds();
+
+        ParkourManager parkourManager = ParkourManager.getInstance();
+        parkourManager.init();
+
+        FarmManager farmManager = FarmManager.getInstance();
+        farmManager.init();
 
         GlobalEventHandler eventHandler = MinecraftServer.getGlobalEventHandler();
 

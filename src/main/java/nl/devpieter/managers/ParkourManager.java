@@ -232,7 +232,6 @@ public class ParkourManager {
 
         parkours.put(mainWorldParkour.id(), mainWorldParkour);
         worldParkourLookup.computeIfAbsent(UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"), k -> new HashMap<>()).put(mainWorldParkour.start(), mainWorldParkour);
-        init();
     }
 
     public static ParkourManager getInstance() {
@@ -240,7 +239,7 @@ public class ParkourManager {
         return INSTANCE;
     }
 
-    private void init() {
+    public void init() {
         for (Parkour parkour : parkours.values()) {
             InstanceContainer instance = worldManager.getWorld(parkour.worldId());
             if (instance == null) continue;

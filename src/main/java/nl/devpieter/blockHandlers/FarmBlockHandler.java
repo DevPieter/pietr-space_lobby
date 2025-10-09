@@ -69,6 +69,10 @@ public abstract class FarmBlockHandler implements BlockHandler {
         lastGrowTime = System.currentTimeMillis();
     }
 
+    public int maxAge() {
+        return maxAge;
+    }
+
     protected void onGrow(Instance instance, Block block, Point position) {
         playSound(instance, position, growSound);
     }
