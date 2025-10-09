@@ -10,6 +10,8 @@ public class FarmBerryCropHandler extends FarmBlockHandler {
 
     public FarmBerryCropHandler() {
         super(5_000, 8_000, 3);
+
+        setReplantSound(Sound.sound(Key.key("block.sweet_berry_bush.pick_berries"), Sound.Source.BLOCK, 0.8f, 0.8f));
     }
 
     @Override
@@ -23,11 +25,7 @@ public class FarmBerryCropHandler extends FarmBlockHandler {
         int age = Integer.parseInt(ageProperty);
         if (age < 3) return false;
 
-        replant(instance, block, interaction.getBlockPosition());
-
-        Sound sound = Sound.sound(Key.key("block.sweet_berry_bush.pick_berries"), Sound.Source.BLOCK, 0.8f, 0.8f);
-        instance.playSound(sound, interaction.getBlockPosition());
-
+        replant(instance, block, interaction.getBlockPosition(), interaction.getPlayer());
         return true;
     }
 

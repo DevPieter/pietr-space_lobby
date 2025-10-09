@@ -32,7 +32,7 @@ public class PlayerBlockBreakListener implements EventListener<@NotNull PlayerBl
             int age = Integer.parseInt(ageProperty);
             if (age < 7) return Result.SUCCESS;
 
-            cropHandler.replant(instance, block, event.getBlockPosition());
+            cropHandler.replant(instance, block, event.getBlockPosition(), event.getPlayer());
         }
 
         return Result.SUCCESS;
