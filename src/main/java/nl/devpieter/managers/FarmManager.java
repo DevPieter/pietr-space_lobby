@@ -57,6 +57,9 @@ public class FarmManager {
         for (Pos pos : farmLocations) {
             Block crop = getRandomCrop();
             instance.setBlock(pos, crop);
+
+            Block blockBelow = getBlockBelow(crop);
+            instance.setBlock(pos.withY(pos.y() - 1), blockBelow);
         }
     }
 
@@ -69,5 +72,15 @@ public class FarmManager {
         );
 
         return crops.get((int) (Math.random() * crops.size()));
+    }
+
+    private Block getBlockBelow(Block cropBlock) {
+        if (cropBlock.compare(Block.WHEAT) || cropBlock.compare(Block.CARROTS) || cropBlock.compare(Block.POTATOES)) {
+            return Block.FARMLAND.withProperty("moisture", "7");
+        } else if (cropBlock.compare(Block.SWEET_BERRY_BUSH)) {
+            return Block.GRASS_BLOCK;
+        }
+
+        return Block.AIR;
     }
 }
