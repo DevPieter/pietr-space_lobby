@@ -9,6 +9,7 @@ import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerUseItemEvent;
 import net.minestom.server.item.Material;
 import net.minestom.server.utils.MathUtils;
+import nl.devpieter.FishingBobber;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -16,7 +17,7 @@ import java.util.UUID;
 
 public class PlayerUseItemListener implements EventListener<@NotNull PlayerUseItemEvent> {
 
-    private final HashMap<UUID, EntityCreature> bobbers = new HashMap<>();
+    private final HashMap<UUID, FishingBobber> bobbers = new HashMap<>();
 
     @Override
     public @NotNull Class<PlayerUseItemEvent> eventType() {
@@ -37,36 +38,15 @@ public class PlayerUseItemListener implements EventListener<@NotNull PlayerUseIt
     }
 
     private void castFishingRod(Player player) {
-        EntityCreature bobber = new EntityCreature(EntityType.FISHING_BOBBER);
-        FishingHookMeta meta = (FishingHookMeta) bobber.getEntityMeta();
-        meta.setOwnerEntity(player);
+        Pos eye = player.getPosition().withY(player.getPosition().y() + player.getEyeHeight());
+        Vec dir = player.getPosition().direction();
 
+        FishingBobber bobber = new FishingBobber(player, player.getInstance(), eye, dir.mul(5));
         bobbers.put(player.getUuid(), bobber);
-
-        Pos playerPos = player.getPosition();
-        float playerPitch = playerPos.pitch();
-        float playerYaw = playerPos.yaw();
-
-        float zDir = (float) Math.cos(Math.toRadians(-playerYaw) - Math.PI);
-        float xDir = (float) Math.sin(Math.toRadians(-playerYaw) - Math.PI);
-
-        double x = playerPos.x() - (double) xDir * 0.3D;
-        double y = playerPos.y() + player.getEyeHeight();
-        double z = playerPos.z() - (double) zDir * 0.3D;
-
-        bobber.setInstance(player.getInstance(), new Pos(x, y, z));
-
-        Vec velocity = new Vec(
-                -xDir,
-                MathUtils.clamp(-((float) Math.sin(Math.toRadians(-playerPitch)) / (float) -Math.cos(Math.toRadians(-playerPitch))), -5.0F, 5.0F),
-                -zDir
-        );
-
-        bobber.setVelocity(velocity.mul(ServerFlag.SERVER_TICKS_PER_SECOND * 0.75));
     }
 
     private void reelInFishingRod(Player player) {
-        EntityCreature bobber = bobbers.remove(player.getUuid());
+        FishingBobber bobber = bobbers.remove(player.getUuid());
         if (bobber != null) bobber.remove();
     }
 }
