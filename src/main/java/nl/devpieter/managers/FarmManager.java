@@ -68,7 +68,7 @@ public class FarmManager {
                 Block.WHEAT.withProperty("age", "7").withHandler(new FarmCropHandler(7)),
                 Block.CARROTS.withProperty("age", "7").withHandler(new FarmCropHandler(7)),
                 Block.POTATOES.withProperty("age", "7").withHandler(new FarmCropHandler(7)),
-                Block.BEETROOTS.withProperty("age", "3").withHandler(new FarmCropHandler(3))
+                Block.BEETROOTS.withProperty("age", "3").withHandler(new FarmCropHandler(5_000, 8_000, 3))
         );
 
         return crops.get((int) (Math.random() * crops.size()));
