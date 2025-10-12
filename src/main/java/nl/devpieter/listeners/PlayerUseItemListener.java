@@ -1,14 +1,10 @@
 package nl.devpieter.listeners;
 
-import net.minestom.server.ServerFlag;
-import net.minestom.server.coordinate.Pos;
-import net.minestom.server.coordinate.Vec;
-import net.minestom.server.entity.*;
-import net.minestom.server.entity.metadata.other.FishingHookMeta;
+import net.minestom.server.entity.Player;
+import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerUseItemEvent;
 import net.minestom.server.item.Material;
-import net.minestom.server.utils.MathUtils;
 import nl.devpieter.FishingBobber;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,10 +34,9 @@ public class PlayerUseItemListener implements EventListener<@NotNull PlayerUseIt
     }
 
     private void castFishingRod(Player player) {
-        Pos eye = player.getPosition().withY(player.getPosition().y() + player.getEyeHeight());
-        Vec dir = player.getPosition().direction();
+        FishingBobber bobber = new FishingBobber(player, player.getInstance());
+        bobber.setInstance(player.getInstance());
 
-        FishingBobber bobber = new FishingBobber(player, player.getInstance(), eye, dir.mul(5));
         bobbers.put(player.getUuid(), bobber);
     }
 
@@ -49,4 +44,5 @@ public class PlayerUseItemListener implements EventListener<@NotNull PlayerUseIt
         FishingBobber bobber = bobbers.remove(player.getUuid());
         if (bobber != null) bobber.remove();
     }
+
 }

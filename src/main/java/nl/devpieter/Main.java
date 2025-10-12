@@ -59,6 +59,7 @@ public class Main {
         eventHandler.addListener(new PlayerBlockBreakListener());
         eventHandler.addListener(new PlayerBlockInteractListener());
         eventHandler.addListener(new PlayerStartSneakingListener());
+        eventHandler.addListener(new PlayerUseItemListener());
 
         eventHandler.addListener(new PlayerLoadedListener());
         eventHandler.addListener(new PlayerDisconnectListener());
