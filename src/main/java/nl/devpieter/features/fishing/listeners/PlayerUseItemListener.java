@@ -1,5 +1,7 @@
 package nl.devpieter.features.fishing.listeners;
 
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.event.EventListener;
@@ -11,6 +13,7 @@ import nl.devpieter.features.fishing.rod.DefaultRod;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.Random;
 import java.util.UUID;
 
 public class PlayerUseItemListener implements EventListener<@NotNull PlayerUseItemEvent> {
@@ -43,6 +46,12 @@ public class PlayerUseItemListener implements EventListener<@NotNull PlayerUseIt
         IBobber bobber = defaultRod.castBobber(player);
 
         bobbers.put(player.getUuid(), bobber);
+
+        player.getInstance().playSound(Sound.sound(
+                Key.key("entity.fishing_bobber.throw"),
+                Sound.Source.NEUTRAL,
+                0.5f, 0.4f / (new Random().nextFloat() * 0.4f + 0.8f)
+        ), player.getPosition());
     }
 
     private void reelInFishingRod(Player player) {
@@ -51,5 +60,11 @@ public class PlayerUseItemListener implements EventListener<@NotNull PlayerUseIt
 
         bobber.reelIn();
         bobbers.remove(player.getUuid());
+
+        player.getInstance().playSound(Sound.sound(
+                Key.key("entity.fishing_bobber.retrieve"),
+                Sound.Source.NEUTRAL,
+                1.0f, 0.4f / (new Random().nextFloat() * 0.4f + 0.8f)
+        ), player.getPosition());
     }
 }
