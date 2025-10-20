@@ -3,7 +3,6 @@ package nl.devpieter.commands;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentEnum;
 import net.minestom.server.command.builder.arguments.ArgumentType;
-import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.instance.Weather;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +26,7 @@ public class WeatherCommand extends Command {
         ArgumentEnum<@NotNull WeatherMode> weatherArgument = ArgumentType.Enum("weather", WeatherMode.class).setFormat(ArgumentEnum.Format.LOWER_CASED);
 
         addSyntax((sender, context) -> {
-            final WeatherMode weatherMode = context.get(weatherArgument);
+            WeatherMode weatherMode = context.get(weatherArgument);
             if (!(sender instanceof Player player)) return;
 
             Weather weather;

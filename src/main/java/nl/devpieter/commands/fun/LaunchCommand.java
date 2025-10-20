@@ -30,7 +30,7 @@ public class LaunchCommand extends Command {
         ArgumentDouble strengthArgument = ArgumentType.Double("strength");
 
         addSyntax((sender, context) -> {
-            final var target = context.get(playerArgument).findFirstPlayer(sender);
+            Player target = context.get(playerArgument).findFirstPlayer(sender);
             if (target == null) {
                 sender.sendMessage("Player not found");
                 return;

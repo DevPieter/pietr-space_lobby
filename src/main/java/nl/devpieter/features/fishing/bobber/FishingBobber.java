@@ -1,5 +1,7 @@
 package nl.devpieter.features.fishing.bobber;
 
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.collision.PhysicsResult;
 import net.minestom.server.collision.PhysicsUtils;
@@ -238,9 +240,17 @@ public class FishingBobber extends EntityCreature implements IBobber {
                     ));
                 }
             } else {
-                luring = false;
+                currentCatchable.onBite(thrower, rod, this);
+                hookBiteTimer = rng.nextInt(settings.minBiteTime(), settings.maxBiteTime());
 
-//            playSound(SoundEvents.ENTITY_FISHING_BOBBER_SPLASH, 0.25f, 1.0f + (random.nextFloat() - random.nextFloat()) * 0.4f);
+                luring = false;
+                caught = true;
+
+                instance.playSound(Sound.sound(
+                        Key.key("entity.fishing_bobber.splash"),
+                        Sound.Source.NEUTRAL,
+                        0.25f, 1.0f + (rng.nextFloat() - rng.nextFloat()) * 0.4f
+                ), getPosition());
 
                 Pos particlePos = new Pos(getPosition().x(), getPosition().y() + 0.5, getPosition().z());
                 Pos particleOffset = new Pos(getBoundingBox().width(), 0.0, getBoundingBox().width());
@@ -259,11 +269,6 @@ public class FishingBobber extends EntityCreature implements IBobber {
                         0.2f,
                         (int) (1.0f + getBoundingBox().width() * 20.0f)
                 ));
-
-                hookBiteTimer = rng.nextInt(settings.minBiteTime(), settings.maxBiteTime());
-
-                caught = true;
-                currentCatchable.onBite(thrower, rod, this);
 
                 setVelocity(new Vec(getVelocity().x(), -0.4f * rng.nextFloat(0.6f, 1.0f), getVelocity().z()));
             }

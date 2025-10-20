@@ -26,7 +26,7 @@ public class GamemodeCommand extends Command {
         ArgumentEnum<@NotNull GameMode> modeArgument = ArgumentType.Enum("mode", GameMode.class).setFormat(ArgumentEnum.Format.LOWER_CASED);
 
         addSyntax((sender, context) -> {
-            final GameMode mode = context.get(modeArgument);
+            GameMode mode = context.get(modeArgument);
             if (!(sender instanceof Player player)) return;
 
             player.setGameMode(mode);
