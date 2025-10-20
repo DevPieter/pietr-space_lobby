@@ -7,6 +7,7 @@ import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.LivingEntity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.instance.block.Block;
+import nl.devpieter.features.parkour.ParkourManager;
 import nl.devpieter.utils.TextUtils;
 import org.jetbrains.annotations.NotNull;
 

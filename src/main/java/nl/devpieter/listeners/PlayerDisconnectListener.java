@@ -2,8 +2,8 @@ package nl.devpieter.listeners;
 
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerDisconnectEvent;
-import nl.devpieter.enums.ParkourCancelReason;
-import nl.devpieter.managers.ParkourManager;
+import nl.devpieter.features.parkour.enums.ParkourCancelReason;
+import nl.devpieter.features.parkour.ParkourManager;
 import nl.devpieter.managers.SitManager;
 import org.jetbrains.annotations.NotNull;
 

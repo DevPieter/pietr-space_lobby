@@ -6,10 +6,8 @@ import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerUseItemEvent;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
-import nl.devpieter.entities.FishingBobber;
-import nl.devpieter.entities.IBobber;
-import nl.devpieter.managers.FishingManager;
-import nl.devpieter.models.fishing.rod.DefaultRod;
+import nl.devpieter.features.fishing.bobber.IBobber;
+import nl.devpieter.features.fishing.rod.DefaultRod;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;

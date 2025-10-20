@@ -5,7 +5,7 @@ import net.minestom.server.event.player.PlayerBlockBreakEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
-import nl.devpieter.blockHandlers.FarmCropHandler;
+import nl.devpieter.features.farming.blockHandlers.FarmCropHandler;
 import org.jetbrains.annotations.NotNull;
 
 public class PlayerBlockBreakListener implements EventListener<@NotNull PlayerBlockBreakEvent> {
