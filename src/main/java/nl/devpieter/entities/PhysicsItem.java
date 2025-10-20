@@ -2,19 +2,16 @@ package nl.devpieter.entities;
 
 import net.minestom.server.collision.PhysicsResult;
 import net.minestom.server.collision.PhysicsUtils;
-import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.ItemEntity;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.utils.chunk.ChunkCache;
 
-public class FishingItem extends ItemEntity {
+public class PhysicsItem extends ItemEntity {
 
     private PhysicsResult previousPhysicsResult = null;
 
-    private boolean previousOnGround = false;
-
-    public FishingItem(ItemStack itemStack) {
+    public PhysicsItem(ItemStack itemStack) {
         super(itemStack);
     }
 

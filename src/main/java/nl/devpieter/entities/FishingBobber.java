@@ -15,7 +15,9 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.network.packet.server.play.ParticlePacket;
 import net.minestom.server.particle.Particle;
 import net.minestom.server.utils.chunk.ChunkCache;
+import nl.devpieter.enums.BobberState;
 import nl.devpieter.models.fishing.ICatchable;
+import nl.devpieter.utils.MathUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
@@ -31,7 +33,7 @@ public class FishingBobber extends EntityCreature {
     // int waitTimeReductionTicks = (int)(EnchantmentHelper.getFishingTimeReduction(serverWorld, itemStack, user) * 20.0f);
     private final int idleTimeReductionTicks = 0;
 
-    private State state = State.FLYING;
+    private BobberState state = BobberState.FLYING;
     private PhysicsResult previousPhysicsResult = null;
 
     private boolean luring;
@@ -42,13 +44,9 @@ public class FishingBobber extends EntityCreature {
     private int fishSwimTimer;
     private float fishSwimAngle;
 
-    enum State {
-        FLYING,
-        BOBBING;
-    }
-
     public FishingBobber(@NotNull Player thrower, @NotNull ItemStack rod, @NotNull ICatchable catchable) {
         super(EntityType.FISHING_BOBBER);
+
         this.instance = thrower.getInstance();
         this.thrower = thrower;
         this.rod = rod;
@@ -77,9 +75,9 @@ public class FishingBobber extends EntityCreature {
         double length = vec.length();
 
         vec = vec.mul(
-                0.5 / length + nextTriangular(0.5, 0.0103365),
-                0.5 / length + nextTriangular(0.5, 0.0103365),
-                0.5 / length + nextTriangular(0.5, 0.0103365)
+                0.5 / length + MathUtils.nextTriangular(0.5, 0.0103365),
+                0.5 / length + MathUtils.nextTriangular(0.5, 0.0103365),
+                0.5 / length + MathUtils.nextTriangular(0.5, 0.0103365)
         );
 
         setVelocity(vec);
@@ -91,19 +89,7 @@ public class FishingBobber extends EntityCreature {
     }
 
     public void reelIn() {
-
-        if (caught) {
-            catchable.onCatch(thrower, rod);
-
-            FishingItem itemEntity = new FishingItem(catchable.getItem());
-            double x = thrower.getPosition().x() - getPosition().x();
-            double y = thrower.getPosition().y() - getPosition().y();
-            double z = thrower.getPosition().z() - getPosition().z();
-
-            itemEntity.setInstance(thrower.getInstance(), getPosition());
-            itemEntity.setVelocity(new Vec(x * 0.1, y * 0.1 + Math.sqrt(Math.sqrt(x * x + y * y + z * z)) * 0.08, z * 0.1));
-        }
-
+        if (caught) catchable.onCatch(thrower, rod, this);
         remove();
     }
 
@@ -115,18 +101,18 @@ public class FishingBobber extends EntityCreature {
         Pos pos = getPosition();
         Vec vel = getVelocity();
 
-        if (collidesWithWater()) {
+        if (collidesWithWater(getPosition(), getBoundingBox())) {
             f = 0.5f;
         }
 
-        if (state == State.FLYING) {
+        if (state == BobberState.FLYING) {
 
-            if (collidesWithWater()) {
+            if (collidesWithWater(getPosition(), getBoundingBox())) {
                 setVelocity(getVelocity().mul(0.3, 0.2, 0.3));
-                state = State.BOBBING;
+                state = BobberState.BOBBING;
             }
         } else {
-            if (state == State.BOBBING) {
+            if (state == BobberState.BOBBING) {
                 double d = getPosition().y() + vel.y() - pos.y() - f;
                 if (Math.abs(d) < 0.01) d += Math.signum(d) * 0.1;
 
@@ -136,7 +122,7 @@ public class FishingBobber extends EntityCreature {
                         vel.z() * 0.9
                 ));
 
-                if (collidesWithWater()) {
+                if (collidesWithWater(getPosition(), getBoundingBox())) {
 
                     if (caught) {
                         setVelocity(getVelocity().add(0.0, -0.1 * random.nextFloat() * random.nextFloat(), 0.0));
@@ -146,12 +132,12 @@ public class FishingBobber extends EntityCreature {
                 }
             }
 
-            if (!collidesWithWater()) {
+            if (!collidesWithWater(getPosition(), getBoundingBox())) {
                 setVelocity(getVelocity().add(0.0, -0.03, 0.0));
             }
         }
 
-        if (state == State.FLYING && isOnGround()) {
+        if (state == BobberState.FLYING && isOnGround()) {
             setVelocity(Vec.ZERO);
         }
 
@@ -192,7 +178,7 @@ public class FishingBobber extends EntityCreature {
 
 //            getDataTracker().set(CAUGHT_FISH, false);
                 caught = false;
-                catchable.onFail(thrower, rod);
+                catchable.onFail(thrower, rod, this);
 
                 System.out.println("Ready to catch fish!");
             }
@@ -201,10 +187,10 @@ public class FishingBobber extends EntityCreature {
 
             if (fishSwimTimer > 0) {
 
-                if (!luring) catchable.onLure(thrower, rod);
+                if (!luring) catchable.onLure(thrower, rod, this);
                 luring = true;
 
-                fishSwimAngle += (float) nextTriangular(0.0, 9.188);
+                fishSwimAngle += (float) MathUtils.nextTriangular(0.0, 9.188);
 
                 float fishSwimAngleRad = (float) (fishSwimAngle * (Math.PI / 180));
                 float sinAngle = (float) Math.sin(fishSwimAngleRad);
@@ -271,7 +257,7 @@ public class FishingBobber extends EntityCreature {
 //            getDataTracker().set(CAUGHT_FISH, true);
 
                 caught = true;
-                catchable.onBite(thrower, rod);
+                catchable.onBite(thrower, rod, this);
 
                 setVelocity(new Vec(getVelocity().x(), -0.4f * rng.nextFloat(0.6f, 1.0f), getVelocity().z()));
 
@@ -316,11 +302,10 @@ public class FishingBobber extends EntityCreature {
         }
     }
 
-    private boolean collidesWithWater() {
-        BoundingBox bb = getBoundingBox();
-
-        Pos min = getPosition().add(bb.minX(), bb.minY(), bb.minZ());
-        Pos max = getPosition().add(bb.maxX(), bb.maxY(), bb.maxZ());
+    // TODO - Optimize
+    private boolean collidesWithWater(@NotNull Pos pos, @NotNull BoundingBox box) {
+        Pos min = pos.add(box.minX(), box.minY(), box.minZ());
+        Pos max = pos.add(box.maxX(), box.maxY(), box.maxZ());
 
         int minX = (int) Math.floor(min.x());
         int minY = (int) Math.floor(min.y());
@@ -346,10 +331,5 @@ public class FishingBobber extends EntityCreature {
         }
 
         return false;
-    }
-
-    private double nextTriangular(double mode, double deviation) {
-        Random random = new Random();
-        return mode + deviation * (random.nextDouble() - random.nextDouble());
     }
 }
