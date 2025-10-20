@@ -1,4 +1,4 @@
-package nl.devpieter.commands;
+package nl.devpieter.commands.player;
 
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentEnum;
@@ -15,7 +15,7 @@ public class GamemodeCommand extends Command {
         super("gamemode", "gm");
 
         setDefaultExecutor((sender, context) -> {
-            sender.sendMessage("Usage: /gamemode <mode>");
+            sender.sendMessage("Usage: /gamemode <survival|creative|adventure|spectator>");
         });
 
         setCondition((sender, commandString) -> {

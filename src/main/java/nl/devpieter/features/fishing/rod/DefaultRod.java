@@ -19,18 +19,18 @@ public class DefaultRod implements IRod {
 
     @Override
     public BobberSettings getBobberSettings() {
-//        return new BobberSettings(
-//                20, 40,
-//                20, 80,
-//                100, 600
-//        );
+        return new BobberSettings(
+                20, 40,
+                20, 80,
+                100, 600
+        );
 
         // TODO - For testing purposes only
-        return new BobberSettings(
-                40, 80,
-                20, 40,
-                20, 40
-        );
+//        return new BobberSettings(
+//                40, 80,
+//                20, 40,
+//                20, 40
+//        );
     }
 
     @Override

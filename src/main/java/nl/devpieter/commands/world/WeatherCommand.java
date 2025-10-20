@@ -1,4 +1,4 @@
-package nl.devpieter.commands;
+package nl.devpieter.commands.world;
 
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentEnum;
@@ -15,7 +15,7 @@ public class WeatherCommand extends Command {
         super("weather");
 
         setDefaultExecutor((sender, context) -> {
-            sender.sendMessage("Usage: /weather <mode>");
+            sender.sendMessage("Usage: /weather <clear|rain|thunder>");
         });
 
         setCondition((sender, commandString) -> {

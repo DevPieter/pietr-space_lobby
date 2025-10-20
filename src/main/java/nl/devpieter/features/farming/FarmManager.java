@@ -34,23 +34,33 @@ public class FarmManager {
     }
 
     public void init() {
+        scanFarms();
+        shuffleFarms();
+    }
+
+    public int scanFarms() {
+        farmLocations.clear();
+
         InstanceContainer instance = worldManager.getWorld(UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"));
         if (instance == null) throw new IllegalStateException("Farm world not found");
 
         ComponentLogger logger = MinecraftServer.LOGGER;
-        logger.info("Initializing farms...");
+        logger.info("Scanning for farm locations, this may take a while...");
 
-        if (farmLocations.isEmpty()) {
-            logger.info("Searching for farm locations, this may take a while...");
-            List<Point> newLocations = findBlocks(instance, new Vec(0, 64, 0), 24, Block.OXIDIZED_COPPER);
-            if (newLocations.isEmpty()) {
-                logger.warn("No farm locations found!");
-                return;
-            }
-
-            logger.info("Found {} farm locations", newLocations.size());
-            farmLocations.addAll(newLocations);
+        List<Point> newLocations = findBlocks(instance, new Vec(0, 64, 0), 24, Block.OXIDIZED_COPPER);
+        if (newLocations.isEmpty()) {
+            logger.warn("No farm locations found!");
+            return 0;
         }
+
+        logger.info("Found {} farm locations", newLocations.size());
+        farmLocations.addAll(newLocations);
+        return newLocations.size();
+    }
+
+    public void shuffleFarms() {
+        InstanceContainer instance = worldManager.getWorld(UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"));
+        if (instance == null) throw new IllegalStateException("Farm world not found");
 
         for (Point point : farmLocations) {
             point = point.add(0, 1, 0);
@@ -60,6 +70,17 @@ public class FarmManager {
 
             Block blockBelow = getBlockBelow(crop);
             instance.setBlock(point.withY(point.y() - 1), blockBelow);
+        }
+    }
+
+    public void clearFarms() {
+        InstanceContainer instance = worldManager.getWorld(UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"));
+        if (instance == null) throw new IllegalStateException("Farm world not found");
+
+        for (Point point : farmLocations) {
+            point = point.add(0, 1, 0);
+            instance.setBlock(point, Block.AIR);
+            instance.setBlock(point.withY(point.y() - 1), Block.OXIDIZED_COPPER);
         }
     }
 

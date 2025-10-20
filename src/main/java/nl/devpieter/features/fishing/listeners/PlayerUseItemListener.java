@@ -18,7 +18,7 @@ import java.util.UUID;
 
 public class PlayerUseItemListener implements EventListener<@NotNull PlayerUseItemEvent> {
 
-    private final HashMap<UUID, IBobber> bobbers = new HashMap<>();
+    public static final HashMap<UUID, IBobber> bobbers = new HashMap<>();
 
     @Override
     public @NotNull Class<PlayerUseItemEvent> eventType() {
@@ -41,7 +41,7 @@ public class PlayerUseItemListener implements EventListener<@NotNull PlayerUseIt
         return Result.SUCCESS;
     }
 
-    private void castFishingRod(Player player, ItemStack rod) {
+    public static void castFishingRod(Player player, ItemStack rod) {
         DefaultRod defaultRod = new DefaultRod();
         IBobber bobber = defaultRod.castBobber(player);
 
@@ -51,10 +51,10 @@ public class PlayerUseItemListener implements EventListener<@NotNull PlayerUseIt
                 Key.key("entity.fishing_bobber.throw"),
                 Sound.Source.NEUTRAL,
                 0.5f, 0.4f / (new Random().nextFloat() * 0.4f + 0.8f)
-        ), player.getPosition());
+        ), player.getPosition().add(0.5f, 1.0f, 0.5f));
     }
 
-    private void reelInFishingRod(Player player) {
+    public static void reelInFishingRod(Player player) {
         IBobber bobber = bobbers.remove(player.getUuid());
         if (bobber == null) return;
 
@@ -65,6 +65,6 @@ public class PlayerUseItemListener implements EventListener<@NotNull PlayerUseIt
                 Key.key("entity.fishing_bobber.retrieve"),
                 Sound.Source.NEUTRAL,
                 1.0f, 0.4f / (new Random().nextFloat() * 0.4f + 0.8f)
-        ), player.getPosition());
+        ), player.getPosition().add(0.5f, 1.0f, 0.5f));
     }
 }

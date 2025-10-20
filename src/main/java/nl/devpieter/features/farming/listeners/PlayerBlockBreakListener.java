@@ -17,11 +17,11 @@ public class PlayerBlockBreakListener implements EventListener<@NotNull PlayerBl
 
     @Override
     public @NotNull Result run(@NotNull PlayerBlockBreakEvent event) {
-        event.setCancelled(true);
-
         BlockHandler handler = event.getBlock().handler();
         if (handler == null) return Result.SUCCESS;
+
         if (!(handler instanceof FarmCropHandler cropHandler)) return Result.SUCCESS;
+        event.setCancelled(true);
 
         Block block = event.getBlock();
         Instance instance = event.getInstance();
