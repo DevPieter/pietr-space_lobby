@@ -3,10 +3,17 @@ package nl.devpieter.utils;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
+import net.minestom.server.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public class PlayerUtils {
+
+    public static void teleport(@NotNull Player player, Pos pos) {
+        player.teleport(pos);
+        player.setVelocity(new Vec(0));
+    }
 
     public static boolean isInsideBlock(@NotNull Entity player, @NotNull Point blockPos) {
         return isInsideBlock(player, blockPos, 1.0, 1.0, 1.0);

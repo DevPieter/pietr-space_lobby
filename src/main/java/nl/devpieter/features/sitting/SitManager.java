@@ -8,6 +8,7 @@ import net.minestom.server.entity.LivingEntity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.instance.block.Block;
 import nl.devpieter.features.parkour.ParkourManager;
+import nl.devpieter.utils.PlayerUtils;
 import nl.devpieter.utils.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -61,7 +62,11 @@ public class SitManager {
         entity.removePassenger(player);
         entity.remove();
 
-        player.teleport(player.getPosition().add(0, 1, 0));
+        PlayerUtils.teleport(player, player.getPosition().add(0, 1, 0));
         this.sittingPlayers.remove(player.getUuid());
+    }
+
+    public boolean isSitting(@NotNull Player player) {
+        return this.sittingPlayers.containsKey(player.getUuid());
     }
 }

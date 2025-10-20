@@ -6,6 +6,7 @@ import net.minestom.server.event.player.PlayerMoveEvent;
 import nl.devpieter.Settings;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.ParkourManager;
+import nl.devpieter.utils.PlayerUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class PlayerMoveListener implements EventListener<@NotNull PlayerMoveEvent> {
@@ -27,7 +28,7 @@ public class PlayerMoveListener implements EventListener<@NotNull PlayerMoveEven
             return Result.SUCCESS;
         }
 
-        player.teleport(Settings.MAIN_WORLD_SPAWN);
+        PlayerUtils.teleport(player, Settings.MAIN_WORLD_SPAWN);
         return Result.SUCCESS;
     }
 }

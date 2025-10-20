@@ -18,6 +18,7 @@ import nl.devpieter.features.fishing.enums.BobberState;
 import nl.devpieter.features.fishing.models.BobberSettings;
 import nl.devpieter.features.fishing.catchable.ICatchable;
 import nl.devpieter.features.fishing.rod.IRod;
+import nl.devpieter.features.sitting.SitManager;
 import nl.devpieter.utils.MathUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,14 +27,12 @@ import java.util.Random;
 
 public class FishingBobber extends EntityCreature implements IBobber {
 
-    public final Instance instance;
+    private final SitManager sitManager = SitManager.getInstance();
 
+    public final Instance instance;
     private final IRod rod;
     private final Player thrower;
     private final ICatchable catchable;
-
-    // int waitTimeReductionTicks = (int)(EnchantmentHelper.getFishingTimeReduction(serverWorld, itemStack, user) * 20.0f);
-    private final int idleTimeReductionTicks = 0;
 
     private BobberState state = BobberState.FLYING;
     private PhysicsResult previousPhysicsResult = null;
@@ -167,6 +166,10 @@ public class FishingBobber extends EntityCreature implements IBobber {
         // TODO - Adjust step based on world events, such as rain
         int tickStep = 1;
 
+        if (rng.nextFloat() < 0.25f && sitManager.isSitting(thrower)) {
+            tickStep += 1;
+        }
+
         if (hookBiteTimer > 0) {
             --hookBiteTimer;
 
@@ -286,7 +289,6 @@ public class FishingBobber extends EntityCreature implements IBobber {
             }
         } else {
             idleTimer = rng.nextInt(settings.minIdleTime(), settings.maxIdleTime());
-            idleTimer -= idleTimeReductionTicks;
         }
     }
 
