@@ -1,7 +1,7 @@
-package nl.devpieter.managers;
+package nl.devpieter.features.portals;
 
 import net.minestom.server.coordinate.Pos;
-import nl.devpieter.models.Portal;
+import nl.devpieter.features.portals.models.Portal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

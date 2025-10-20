@@ -1,4 +1,4 @@
-package nl.devpieter.listeners;
+package nl.devpieter.features.farming.listeners;
 
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerBlockBreakEvent;
@@ -21,20 +21,18 @@ public class PlayerBlockBreakListener implements EventListener<@NotNull PlayerBl
 
         BlockHandler handler = event.getBlock().handler();
         if (handler == null) return Result.SUCCESS;
+        if (!(handler instanceof FarmCropHandler cropHandler)) return Result.SUCCESS;
 
-        if (handler instanceof FarmCropHandler cropHandler) {
-            Block block = event.getBlock();
-            Instance instance = event.getInstance();
+        Block block = event.getBlock();
+        Instance instance = event.getInstance();
 
-            String ageProperty = block.getProperty("age");
-            if (ageProperty == null) return Result.SUCCESS;
+        String ageProperty = block.getProperty("age");
+        if (ageProperty == null) return Result.SUCCESS;
 
-            int age = Integer.parseInt(ageProperty);
-            if (age < cropHandler.maxAge()) return Result.SUCCESS;
+        int age = Integer.parseInt(ageProperty);
+        if (age < cropHandler.maxAge()) return Result.SUCCESS;
 
-            cropHandler.replant(instance, block, event.getBlockPosition(), event.getPlayer());
-        }
-
+        cropHandler.replant(instance, block, event.getBlockPosition(), event.getPlayer());
         return Result.SUCCESS;
     }
 }

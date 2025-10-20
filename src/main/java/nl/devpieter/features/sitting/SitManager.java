@@ -1,4 +1,4 @@
-package nl.devpieter.managers;
+package nl.devpieter.features.sitting;
 
 import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.coordinate.Point;

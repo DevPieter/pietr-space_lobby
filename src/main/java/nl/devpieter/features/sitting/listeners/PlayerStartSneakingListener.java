@@ -1,8 +1,8 @@
-package nl.devpieter.listeners;
+package nl.devpieter.features.sitting.listeners;
 
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerStartSneakingEvent;
-import nl.devpieter.managers.SitManager;
+import nl.devpieter.features.sitting.SitManager;
 import org.jetbrains.annotations.NotNull;
 
 public class PlayerStartSneakingListener implements EventListener<@NotNull PlayerStartSneakingEvent> {

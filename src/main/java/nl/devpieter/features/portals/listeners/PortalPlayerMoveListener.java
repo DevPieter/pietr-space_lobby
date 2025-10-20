@@ -1,4 +1,4 @@
-package nl.devpieter.listeners.portal;
+package nl.devpieter.features.portals.listeners;
 
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.EventListener;
@@ -7,9 +7,9 @@ import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.ParkourManager;
-import nl.devpieter.managers.PortalManager;
+import nl.devpieter.features.portals.PortalManager;
 import nl.devpieter.managers.WorldManager;
-import nl.devpieter.models.Portal;
+import nl.devpieter.features.portals.models.Portal;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;

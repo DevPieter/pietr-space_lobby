@@ -1,4 +1,4 @@
-package nl.devpieter.listeners;
+package nl.devpieter.features.fishing.listeners;
 
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerHand;

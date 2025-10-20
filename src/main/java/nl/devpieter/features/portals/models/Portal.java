@@ -1,4 +1,4 @@
-package nl.devpieter.models;
+package nl.devpieter.features.portals.models;
 
 import net.minestom.server.coordinate.Pos;
 
