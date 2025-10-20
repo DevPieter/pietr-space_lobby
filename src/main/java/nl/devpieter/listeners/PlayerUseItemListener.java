@@ -4,8 +4,10 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerUseItemEvent;
+import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
-import nl.devpieter.FishingBobber;
+import nl.devpieter.entities.FishingBobber;
+import nl.devpieter.managers.FishingManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -27,14 +29,17 @@ public class PlayerUseItemListener implements EventListener<@NotNull PlayerUseIt
 
         if (event.getItemStack().material() == Material.FISHING_ROD) {
             if (bobbers.containsKey(player.getUuid())) reelInFishingRod(player);
-            else castFishingRod(player);
+            else {
+                ItemStack rod = event.getItemStack();
+                castFishingRod(player, rod);
+            }
         }
 
         return Result.SUCCESS;
     }
 
-    private void castFishingRod(Player player) {
-        FishingBobber bobber = new FishingBobber(player, player.getInstance());
+    private void castFishingRod(Player player, ItemStack rod) {
+        FishingBobber bobber = new FishingBobber(player, rod, FishingManager.getInstance().getRandomCatchable(player, rod));
         bobber.setInstance(player.getInstance());
 
         bobbers.put(player.getUuid(), bobber);
