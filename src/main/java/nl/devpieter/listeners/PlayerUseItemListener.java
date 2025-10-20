@@ -42,7 +42,9 @@ public class PlayerUseItemListener implements EventListener<@NotNull PlayerUseIt
 
     private void reelInFishingRod(Player player) {
         FishingBobber bobber = bobbers.remove(player.getUuid());
-        if (bobber != null) bobber.remove();
-    }
+        if (bobber == null) return;
 
+        bobber.reelIn();
+        bobbers.remove(player.getUuid());
+    }
 }
