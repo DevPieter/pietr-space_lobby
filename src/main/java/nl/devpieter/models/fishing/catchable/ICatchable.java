@@ -1,4 +1,4 @@
-package nl.devpieter.models.fishing;
+package nl.devpieter.models.fishing.catchable;
 
 import net.kyori.adventure.text.Component;
 import net.minestom.server.coordinate.Pos;
@@ -7,6 +7,7 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.item.ItemStack;
 import nl.devpieter.entities.FishingBobber;
 import nl.devpieter.entities.PhysicsItem;
+import nl.devpieter.models.fishing.rod.IRod;
 import org.jetbrains.annotations.NotNull;
 
 public interface ICatchable {
@@ -15,15 +16,15 @@ public interface ICatchable {
 
     ItemStack getItem();
 
-    double getCatchChance(Player player, ItemStack rod);
+    double getPickChance(Player player, IRod rod);
 
-    void onLure(Player player, ItemStack rod, FishingBobber bobber);
+    void onLure(Player player, IRod rod, FishingBobber bobber);
 
-    void onBite(Player player, ItemStack rod, FishingBobber bobber);
+    void onBite(Player player, IRod rod, FishingBobber bobber);
 
-    void onCatch(Player player, ItemStack rod, FishingBobber bobber);
+    void onCatch(Player player, IRod rod, FishingBobber bobber);
 
-    void onFail(Player player, ItemStack rod, FishingBobber bobber);
+    void onFail(Player player, IRod rod, FishingBobber bobber);
 
     default void reelInItem(@NotNull Player player, @NotNull FishingBobber bobber) {
         PhysicsItem itemEntity = new PhysicsItem(getItem());

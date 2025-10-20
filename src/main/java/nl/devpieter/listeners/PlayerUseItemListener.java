@@ -7,7 +7,9 @@ import net.minestom.server.event.player.PlayerUseItemEvent;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import nl.devpieter.entities.FishingBobber;
+import nl.devpieter.entities.IBobber;
 import nl.devpieter.managers.FishingManager;
+import nl.devpieter.models.fishing.rod.DefaultRod;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -15,7 +17,7 @@ import java.util.UUID;
 
 public class PlayerUseItemListener implements EventListener<@NotNull PlayerUseItemEvent> {
 
-    private final HashMap<UUID, FishingBobber> bobbers = new HashMap<>();
+    private final HashMap<UUID, IBobber> bobbers = new HashMap<>();
 
     @Override
     public @NotNull Class<PlayerUseItemEvent> eventType() {
@@ -39,14 +41,14 @@ public class PlayerUseItemListener implements EventListener<@NotNull PlayerUseIt
     }
 
     private void castFishingRod(Player player, ItemStack rod) {
-        FishingBobber bobber = new FishingBobber(player, rod, FishingManager.getInstance().getRandomCatchable(player, rod));
-        bobber.setInstance(player.getInstance());
+        DefaultRod defaultRod = new DefaultRod();
+        IBobber bobber = defaultRod.castBobber(player);
 
         bobbers.put(player.getUuid(), bobber);
     }
 
     private void reelInFishingRod(Player player) {
-        FishingBobber bobber = bobbers.remove(player.getUuid());
+        IBobber bobber = bobbers.remove(player.getUuid());
         if (bobber == null) return;
 
         bobber.reelIn();

@@ -11,22 +11,24 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.entity.metadata.other.FishingHookMeta;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
-import net.minestom.server.item.ItemStack;
 import net.minestom.server.network.packet.server.play.ParticlePacket;
 import net.minestom.server.particle.Particle;
 import net.minestom.server.utils.chunk.ChunkCache;
 import nl.devpieter.enums.BobberState;
-import nl.devpieter.models.fishing.ICatchable;
+import nl.devpieter.models.fishing.BobberSettings;
+import nl.devpieter.models.fishing.catchable.ICatchable;
+import nl.devpieter.models.fishing.rod.IRod;
 import nl.devpieter.utils.MathUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
 
-public class FishingBobber extends EntityCreature {
+public class FishingBobber extends EntityCreature implements IBobber {
 
     public final Instance instance;
 
-    private final ItemStack rod;
+    private final IRod rod;
     private final Player thrower;
     private final ICatchable catchable;
 
@@ -44,7 +46,7 @@ public class FishingBobber extends EntityCreature {
     private int fishSwimTimer;
     private float fishSwimAngle;
 
-    public FishingBobber(@NotNull Player thrower, @NotNull ItemStack rod, @NotNull ICatchable catchable) {
+    public FishingBobber(@NotNull Player thrower, @NotNull IRod rod, @Nullable ICatchable catchable) {
         super(EntityType.FISHING_BOBBER);
 
         this.instance = thrower.getInstance();
@@ -54,43 +56,36 @@ public class FishingBobber extends EntityCreature {
 
         FishingHookMeta meta = (FishingHookMeta) getEntityMeta();
         meta.setOwnerEntity(thrower);
-
-        Pos loc = thrower.getPosition();
-        float pitch = loc.pitch();
-        float yaw = loc.yaw();
-
-        double yawCos = Math.cos(-yaw * (Math.PI / 180) - Math.PI);
-        double yawSin = Math.sin(-yaw * (Math.PI / 180) - Math.PI);
-
-        double pitchCos = -Math.cos(-pitch * (Math.PI / 180));
-        double pitchSin = Math.sin(-pitch * (Math.PI / 180));
-
-        double x = loc.x() - yawSin * 0.3;
-        double y = loc.y() + thrower.getEyeHeight();
-        double z = loc.z() - yawCos * 0.3;
-
-        setPositionInternal(new Pos(x, y, z, yaw, pitch), 0);
-
-        Vec vec = new Vec(-yawSin, Math.clamp(-(pitchSin / pitchCos), -5.0f, 5.0f), -yawCos);
-        double length = vec.length();
-
-        vec = vec.mul(
-                0.5 / length + MathUtils.nextTriangular(0.5, 0.0103365),
-                0.5 / length + MathUtils.nextTriangular(0.5, 0.0103365),
-                0.5 / length + MathUtils.nextTriangular(0.5, 0.0103365)
-        );
-
-        setVelocity(vec);
-
-        setView(
-                (float) (Math.atan2(vec.x(), vec.z()) * (Math.PI / 180)),
-                (float) (Math.atan2(vec.y(), vec.length()) * (Math.PI / 180))
-        );
     }
 
+    @Override
+    public EntityCreature getEntity() {
+        return this;
+    }
+
+    @Override
+    public Player getThrower() {
+        return thrower;
+    }
+
+    @Override
+    public @Nullable ICatchable getCatchable() {
+        return catchable;
+    }
+
+    @Override
+    public IRod getRod() {
+        return rod;
+    }
+
+    @Override
     public void reelIn() {
-        if (caught) catchable.onCatch(thrower, rod, this);
+        if (caught && catchable != null) catchable.onCatch(thrower, rod, this);
         remove();
+    }
+
+    public void setPosInternal(Pos newPosition, float headRotation) {
+        setPositionInternal(newPosition, headRotation);
     }
 
     @Override
@@ -167,6 +162,9 @@ public class FishingBobber extends EntityCreature {
 
     private void tickFishingLogic() {
         Random rng = new Random();
+        BobberSettings settings = rod.getBobberSettings();
+
+        // TODO - Adjust step based on world events, such as rain
         int tickStep = 1;
 
         if (hookBiteTimer > 0) {
@@ -176,18 +174,14 @@ public class FishingBobber extends EntityCreature {
                 idleTimer = 0;
                 fishSwimTimer = 0;
 
-//            getDataTracker().set(CAUGHT_FISH, false);
                 caught = false;
-                catchable.onFail(thrower, rod, this);
-
-                System.out.println("Ready to catch fish!");
+                if (catchable != null) catchable.onFail(thrower, rod, this);
             }
         } else if (fishSwimTimer > 0) {
             fishSwimTimer -= tickStep;
 
             if (fishSwimTimer > 0) {
-
-                if (!luring) catchable.onLure(thrower, rod, this);
+                if (!luring && catchable != null) catchable.onLure(thrower, rod, this);
                 luring = true;
 
                 fishSwimAngle += (float) MathUtils.nextTriangular(0.0, 9.188);
@@ -202,31 +196,28 @@ public class FishingBobber extends EntityCreature {
 
 //            if (blockState.isOf(Blocks.WATER)) {
                 {
-                    if (rng.nextFloat() < 0.15f) {
-                        sendPacketToViewersAndSelf(new ParticlePacket(
-                                Particle.BUBBLE,
-                                new Pos(particleX, particleY - 0.1f, particleZ),
-                                new Pos(sinAngle, 0.1, cosAngle),
-                                0,
-                                1
-                        ));
-                    }
+                    if (rng.nextFloat() < 0.15f) sendPacketToViewersAndSelf(new ParticlePacket(
+                            Particle.BUBBLE,
+                            new Pos(particleX, particleY - 0.1f, particleZ),
+                            new Pos(sinAngle, 0.1f, cosAngle),
+                            0,
+                            1
+                    ));
 
                     float offsetX = cosAngle * 0.04f;
-                    float offsetY = 0.01f;
                     float offsetZ = sinAngle * 0.04f;
 
                     sendPacketToViewersAndSelf(new ParticlePacket(
                             Particle.FISHING,
                             new Pos(particleX, particleY, particleZ),
-                            new Pos(offsetX, offsetY, -offsetZ),
+                            new Pos(offsetX, 0.01f, -offsetZ),
                             1.0f,
                             0
                     ));
                     sendPacketToViewersAndSelf(new ParticlePacket(
                             Particle.FISHING,
                             new Pos(particleX, particleY, particleZ),
-                            new Pos(-offsetX, offsetY, offsetZ),
+                            new Pos(-offsetX, 0.01f, offsetZ),
                             1.0f,
                             0
                     ));
@@ -236,32 +227,30 @@ public class FishingBobber extends EntityCreature {
 
 //            playSound(SoundEvents.ENTITY_FISHING_BOBBER_SPLASH, 0.25f, 1.0f + (random.nextFloat() - random.nextFloat()) * 0.4f);
 
+                Pos particlePos = new Pos(getPosition().x(), getPosition().y() + 0.5, getPosition().z());
+                Pos particleOffset = new Pos(getBoundingBox().width(), 0.0, getBoundingBox().width());
+
                 sendPacketToViewersAndSelf(new ParticlePacket(
                         Particle.BUBBLE,
-                        new Pos(getPosition().x(), getPosition().y() + 0.5, getPosition().z()),
-                        new Pos(getBoundingBox().width(), 0.0, getBoundingBox().width()),
+                        particlePos,
+                        particleOffset,
                         0.2f,
                         (int) (1.0f + getBoundingBox().width() * 20.0f)
                 ));
                 sendPacketToViewersAndSelf(new ParticlePacket(
-//                        Particle.FISHING,
-                        Particle.HEART,
-                        new Pos(getPosition().x(), getPosition().y() + 0.5, getPosition().z()),
-                        new Pos(getBoundingBox().width(), 0.0, getBoundingBox().width()),
+                        Particle.FISHING,
+                        particlePos,
+                        particleOffset,
                         0.2f,
                         (int) (1.0f + getBoundingBox().width() * 20.0f)
                 ));
 
-                hookBiteTimer = rng.nextInt(20, 40);
-
-//            getDataTracker().set(CAUGHT_FISH, true);
+                hookBiteTimer = rng.nextInt(settings.minBiteTime(), settings.maxBiteTime());
 
                 caught = true;
-                catchable.onBite(thrower, rod, this);
+                if (catchable != null) catchable.onBite(thrower, rod, this);
 
                 setVelocity(new Vec(getVelocity().x(), -0.4f * rng.nextFloat(0.6f, 1.0f), getVelocity().z()));
-
-                System.out.println("Fish is biting! Hook countdown: " + hookBiteTimer);
             }
         } else if (idleTimer > 0) {
             idleTimer -= tickStep;
@@ -293,11 +282,10 @@ public class FishingBobber extends EntityCreature {
 
             if (idleTimer <= 0) {
                 fishSwimAngle = rng.nextFloat(0.0f, 360.0f);
-                fishSwimTimer = rng.nextInt(20, 80);
+                fishSwimTimer = rng.nextInt(settings.minLureTime(), settings.maxLureTime());
             }
         } else {
-//            idleTimer = rng.nextInt(100, 600);
-            idleTimer = rng.nextInt(20 * 2, 20 * 5);
+            idleTimer = rng.nextInt(settings.minIdleTime(), settings.maxIdleTime());
             idleTimer -= idleTimeReductionTicks;
         }
     }
