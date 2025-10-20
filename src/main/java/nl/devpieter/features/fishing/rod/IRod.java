@@ -27,8 +27,7 @@ public interface IRod {
     }
 
     default FishingBobber castDefaultBobber(Player player) {
-        ICatchable catchable = FishingManager.getInstance().getRandomCatchable(player, this);
-        FishingBobber bobber = new FishingBobber(player, this, catchable);
+        FishingBobber bobber = new FishingBobber(player, this);
 
         Pos loc = player.getPosition();
         float pitch = loc.pitch();

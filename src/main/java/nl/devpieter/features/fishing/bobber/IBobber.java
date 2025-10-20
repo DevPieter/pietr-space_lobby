@@ -10,7 +10,7 @@ public interface IBobber {
 
     IRod getRod();
 
-    @Nullable ICatchable getCatchable();
+    @Nullable ICatchable getCurrentCatchable();
 
     Player getThrower();
 

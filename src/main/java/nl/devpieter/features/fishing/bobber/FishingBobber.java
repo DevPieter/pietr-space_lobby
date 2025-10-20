@@ -14,6 +14,7 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.network.packet.server.play.ParticlePacket;
 import net.minestom.server.particle.Particle;
 import net.minestom.server.utils.chunk.ChunkCache;
+import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.enums.BobberState;
 import nl.devpieter.features.fishing.models.BobberSettings;
 import nl.devpieter.features.fishing.catchable.ICatchable;
@@ -27,16 +28,17 @@ import java.util.Random;
 
 public class FishingBobber extends EntityCreature implements IBobber {
 
+    private final FishingManager fishingManager = FishingManager.getInstance();
     private final SitManager sitManager = SitManager.getInstance();
 
     public final Instance instance;
     private final IRod rod;
     private final Player thrower;
-    private final ICatchable catchable;
 
     private BobberState state = BobberState.FLYING;
     private PhysicsResult previousPhysicsResult = null;
 
+    private ICatchable currentCatchable;
     private boolean luring;
     private boolean caught;
 
@@ -45,13 +47,12 @@ public class FishingBobber extends EntityCreature implements IBobber {
     private int fishSwimTimer;
     private float fishSwimAngle;
 
-    public FishingBobber(@NotNull Player thrower, @NotNull IRod rod, @Nullable ICatchable catchable) {
+    public FishingBobber(@NotNull Player thrower, @NotNull IRod rod) {
         super(EntityType.FISHING_BOBBER);
 
         this.instance = thrower.getInstance();
         this.thrower = thrower;
         this.rod = rod;
-        this.catchable = catchable;
 
         FishingHookMeta meta = (FishingHookMeta) getEntityMeta();
         meta.setOwnerEntity(thrower);
@@ -68,8 +69,8 @@ public class FishingBobber extends EntityCreature implements IBobber {
     }
 
     @Override
-    public @Nullable ICatchable getCatchable() {
-        return catchable;
+    public @Nullable ICatchable getCurrentCatchable() {
+        return currentCatchable;
     }
 
     @Override
@@ -79,7 +80,11 @@ public class FishingBobber extends EntityCreature implements IBobber {
 
     @Override
     public void reelIn() {
-        if (caught && catchable != null) catchable.onCatch(thrower, rod, this);
+        if (caught) {
+            currentCatchable.onCatch(thrower, rod, this);
+            currentCatchable = null;
+        }
+
         remove();
     }
 
@@ -163,9 +168,14 @@ public class FishingBobber extends EntityCreature implements IBobber {
         Random rng = new Random();
         BobberSettings settings = rod.getBobberSettings();
 
-        // TODO - Adjust step based on world events, such as rain
+        // TODO - Check if this is the correct place
+        if (currentCatchable == null) {
+            currentCatchable = fishingManager.getRandomCatchable(thrower, rod);
+        }
+
         int tickStep = 1;
 
+        // Sitting players fish a bit faster
         if (rng.nextFloat() < 0.25f && sitManager.isSitting(thrower)) {
             tickStep += 1;
         }
@@ -178,13 +188,15 @@ public class FishingBobber extends EntityCreature implements IBobber {
                 fishSwimTimer = 0;
 
                 caught = false;
-                if (catchable != null) catchable.onFail(thrower, rod, this);
+
+                currentCatchable.onFail(thrower, rod, this);
+                currentCatchable = null;
             }
         } else if (fishSwimTimer > 0) {
             fishSwimTimer -= tickStep;
 
             if (fishSwimTimer > 0) {
-                if (!luring && catchable != null) catchable.onLure(thrower, rod, this);
+                if (!luring) currentCatchable.onLure(thrower, rod, this);
                 luring = true;
 
                 fishSwimAngle += (float) MathUtils.nextTriangular(0.0, 9.188);
@@ -251,7 +263,7 @@ public class FishingBobber extends EntityCreature implements IBobber {
                 hookBiteTimer = rng.nextInt(settings.minBiteTime(), settings.maxBiteTime());
 
                 caught = true;
-                if (catchable != null) catchable.onBite(thrower, rod, this);
+                currentCatchable.onBite(thrower, rod, this);
 
                 setVelocity(new Vec(getVelocity().x(), -0.4f * rng.nextFloat(0.6f, 1.0f), getVelocity().z()));
             }
