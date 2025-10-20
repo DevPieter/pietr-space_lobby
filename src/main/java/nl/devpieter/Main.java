@@ -13,6 +13,7 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import nl.devpieter.commands.GamemodeCommand;
 import nl.devpieter.commands.TestCommand;
+import nl.devpieter.commands.WeatherCommand;
 import nl.devpieter.commands.fun.LaunchCommand;
 import nl.devpieter.features.farming.listeners.PlayerBlockBreakListener;
 import nl.devpieter.features.fishing.listeners.PlayerUseItemListener;
@@ -122,6 +123,7 @@ public class Main {
         commandManager.register(new LaunchCommand());
         commandManager.register(new GamemodeCommand());
         commandManager.register(new TestCommand());
+        commandManager.register(new WeatherCommand());
 
         ParkourTryManager.getInstance().start();
         server.start("0.0.0.0", 25565);
