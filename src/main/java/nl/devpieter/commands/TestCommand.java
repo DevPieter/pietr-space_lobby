@@ -12,6 +12,7 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import nl.devpieter.entities.CuteCat;
+import nl.devpieter.features.mobs.TestMob;
 import nl.devpieter.utils.WorldUtils;
 
 import java.util.List;
@@ -34,6 +35,11 @@ public class TestCommand extends Command {
         addSyntax((sender, context) -> {
             if (!(sender instanceof Player player)) return;
             Instance instance = player.getInstance();
+
+            TestMob mob = new TestMob();
+            mob.printInfo();
+            mob.testDecoding();
+            mob.printInfo();
 
             WorldUtils.findBlocks(instance, new Vec(0, 64, 0), 24, Block.OAK_SIGN).forEach(position -> {
                 check(instance, position);
