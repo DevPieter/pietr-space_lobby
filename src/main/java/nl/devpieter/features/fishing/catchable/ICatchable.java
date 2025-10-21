@@ -5,8 +5,8 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Player;
 import net.minestom.server.item.ItemStack;
-import nl.devpieter.features.fishing.bobber.FishingBobber;
 import nl.devpieter.entities.PhysicsItem;
+import nl.devpieter.features.fishing.bobber.FishingBobber;
 import nl.devpieter.features.fishing.rod.IRod;
 import org.jetbrains.annotations.NotNull;
 

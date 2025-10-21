@@ -5,8 +5,8 @@ import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.instance.Instance;
 import nl.devpieter.features.parkour.ParkourManager;
-import nl.devpieter.managers.WorldManager;
 import nl.devpieter.features.parkour.models.Parkour;
+import nl.devpieter.managers.WorldManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;

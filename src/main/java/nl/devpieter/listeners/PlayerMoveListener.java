@@ -4,8 +4,8 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import nl.devpieter.Settings;
-import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.ParkourManager;
+import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.utils.PlayerUtils;
 import org.jetbrains.annotations.NotNull;
 

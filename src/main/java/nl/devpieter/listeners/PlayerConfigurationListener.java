@@ -5,8 +5,6 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.instance.InstanceContainer;
-import net.minestom.server.item.ItemStack;
-import net.minestom.server.item.Material;
 import nl.devpieter.Settings;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.rod.IRod;

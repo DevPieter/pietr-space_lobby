@@ -1,16 +1,20 @@
 package nl.devpieter.features.farming;
 
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
+import net.minestom.server.entity.Entity;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.block.Block;
+import nl.devpieter.Settings;
 import nl.devpieter.features.farming.blockHandlers.FarmBerryCropHandler;
 import nl.devpieter.features.farming.blockHandlers.FarmCropHandler;
 import nl.devpieter.managers.WorldManager;
+import nl.devpieter.utils.WorldUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -24,6 +28,7 @@ public class FarmManager {
 
     private final WorldManager worldManager = WorldManager.getInstance();
     private final List<Point> farmLocations = new ArrayList<>();
+    private final List<Entity> debugMarkers = new ArrayList<>();
 
     private FarmManager() {
     }
@@ -39,10 +44,10 @@ public class FarmManager {
     }
 
     public int scanFarms() {
-        farmLocations.clear();
-
         InstanceContainer instance = worldManager.getWorld(UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"));
         if (instance == null) throw new IllegalStateException("Farm world not found");
+
+        clearFarms();
 
         ComponentLogger logger = MinecraftServer.LOGGER;
         logger.info("Scanning for farm locations, this may take a while...");
@@ -53,9 +58,33 @@ public class FarmManager {
             return 0;
         }
 
+        if (Settings.DEBUG) {
+            for (Point point : newLocations) {
+                debugMarkers.add(WorldUtils.placeMarker(instance, point.add(0.5, 2, 0.5), Component.text("Farmable")));
+            }
+        }
+
         logger.info("Found {} farm locations", newLocations.size());
         farmLocations.addAll(newLocations);
         return newLocations.size();
+    }
+
+    public void clearFarms() {
+        InstanceContainer instance = worldManager.getWorld(UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"));
+        if (instance == null) throw new IllegalStateException("Farm world not found");
+
+        for (Point point : farmLocations) {
+            point = point.add(0, 1, 0);
+            instance.setBlock(point, Block.AIR);
+            instance.setBlock(point.withY(point.y() - 1), Block.OXIDIZED_COPPER);
+        }
+
+        for (Entity marker : debugMarkers) {
+            marker.remove();
+        }
+
+        farmLocations.clear();
+        debugMarkers.clear();
     }
 
     public void shuffleFarms() {
@@ -70,17 +99,6 @@ public class FarmManager {
 
             Block blockBelow = getBlockBelow(crop);
             instance.setBlock(point.withY(point.y() - 1), blockBelow);
-        }
-    }
-
-    public void clearFarms() {
-        InstanceContainer instance = worldManager.getWorld(UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"));
-        if (instance == null) throw new IllegalStateException("Farm world not found");
-
-        for (Point point : farmLocations) {
-            point = point.add(0, 1, 0);
-            instance.setBlock(point, Block.AIR);
-            instance.setBlock(point.withY(point.y() - 1), Block.OXIDIZED_COPPER);
         }
     }
 

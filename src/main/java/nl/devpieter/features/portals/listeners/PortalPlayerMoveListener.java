@@ -5,11 +5,11 @@ import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
-import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.ParkourManager;
+import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.portals.PortalManager;
-import nl.devpieter.managers.WorldManager;
 import nl.devpieter.features.portals.models.Portal;
+import nl.devpieter.managers.WorldManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;

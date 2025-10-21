@@ -2,6 +2,7 @@ package nl.devpieter.utils;
 
 import net.kyori.adventure.text.Component;
 import net.minestom.server.collision.BoundingBox;
+import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
@@ -35,9 +36,9 @@ public class WorldUtils {
         });
     }
 
-    public static void placeMarker(@NotNull InstanceContainer instance, @NotNull Pos pos, @NotNull Component text) {
+    public static Entity placeMarker(@NotNull InstanceContainer instance, @NotNull Point point, @NotNull Component text) {
         Entity entity = new Entity(EntityType.TEXT_DISPLAY);
-        entity.setInstance(instance, pos);
+        entity.setInstance(instance, point);
 
         entity.editEntityMeta(TextDisplayMeta.class, textDisplayMeta -> {
             textDisplayMeta.setText(text);
@@ -47,5 +48,7 @@ public class WorldUtils {
             textDisplayMeta.setAlignment(TextDisplayMeta.Alignment.CENTER);
             textDisplayMeta.setHasNoGravity(true);
         });
+
+        return entity;
     }
 }

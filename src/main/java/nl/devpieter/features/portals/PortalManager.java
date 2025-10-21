@@ -3,7 +3,6 @@ package nl.devpieter.features.portals;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
-import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import nl.devpieter.Settings;
 import nl.devpieter.features.portals.models.Portal;
