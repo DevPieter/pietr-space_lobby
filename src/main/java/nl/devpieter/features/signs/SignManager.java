@@ -44,7 +44,6 @@ public class SignManager {
     }
 
     public void init() {
-        clearDebugMarkers();
         revertSigns();
 
         worldManager.getWorlds().forEach(this::scanSigns);
@@ -90,7 +89,9 @@ public class SignManager {
         logger.info("Found {} marked signs in instance {}.", signHolders.size(), uuid);
     }
 
-    private void revertSigns() {
+    public void revertSigns() {
+        clearDebugMarkers();
+
         if (signHolders.isEmpty() && signHolderMap.isEmpty()) return;
         logger.info("Reverting {} signs to their original state.", signHolders.size());
 
@@ -100,11 +101,14 @@ public class SignManager {
                     signHolder.block().block()
             );
         }
+
         signHolders.clear();
         signHolderMap.clear();
     }
 
-    private void placeDebugMarkers() {
+    public void placeDebugMarkers() {
+        clearDebugMarkers();
+
         for (SignHolder signHolder : signHolders) {
             BlockHolder block = signHolder.block();
 
@@ -119,7 +123,7 @@ public class SignManager {
         }
     }
 
-    private void clearDebugMarkers() {
+    public void clearDebugMarkers() {
         for (Entity marker : debugMarkers) marker.remove();
         debugMarkers.clear();
     }

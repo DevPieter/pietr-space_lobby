@@ -2,6 +2,7 @@ package nl.devpieter.features.creatures;
 
 import net.minestom.server.entity.Entity;
 import nl.devpieter.features.creatures.entities.cuteCat.CuteCatSpawnable;
+import nl.devpieter.features.creatures.entities.cuteFox.CuteFoxSpawnable;
 import nl.devpieter.features.signs.SignDecoder;
 import nl.devpieter.features.signs.SignManager;
 import nl.devpieter.features.signs.models.SignHolder;
@@ -25,7 +26,10 @@ public class CreatureManager {
     private final List<Entity> loadedEntities = new ArrayList<>();
 
     private CreatureManager() {
-        signSpawnables.add(new CuteCatSpawnable());
+        signSpawnables.addAll(List.of(
+                new CuteCatSpawnable(),
+                new CuteFoxSpawnable()
+        ));
     }
 
     public static CreatureManager getInstance() {

@@ -19,6 +19,7 @@ import nl.devpieter.commands.ServerCommand;
 import nl.devpieter.commands.TestCommand;
 import nl.devpieter.commands.player.GamemodeCommand;
 import nl.devpieter.commands.world.FarmCommand;
+import nl.devpieter.commands.world.SignCommand;
 import nl.devpieter.commands.world.TimeCommand;
 import nl.devpieter.commands.world.WeatherCommand;
 import nl.devpieter.features.creatures.CreatureManager;
@@ -156,6 +157,7 @@ public class Main {
         commandManager.register(new GamemodeCommand());
 
         // World
+        commandManager.register(new SignCommand());
         commandManager.register(new FarmCommand());
         commandManager.register(new TimeCommand());
         commandManager.register(new WeatherCommand());
