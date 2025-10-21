@@ -1,5 +1,6 @@
 package nl.devpieter;
 
+import net.kyori.adventure.key.Key;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandManager;
@@ -13,6 +14,7 @@ import net.minestom.server.event.player.PlayerPacketEvent;
 import net.minestom.server.event.player.PlayerUseItemEvent;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
+import nl.devpieter.blockHandler.SignBlockHandler;
 import nl.devpieter.commands.ServerCommand;
 import nl.devpieter.commands.TestCommand;
 import nl.devpieter.commands.player.GamemodeCommand;
@@ -54,6 +56,8 @@ public class Main {
 
         MinecraftServer server = MinecraftServer.init(auth);
         MinecraftServer.setBrandName("Pieter Space Lobby");
+
+        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:sign"), SignBlockHandler::new);
 
         WorldManager worldManager = WorldManager.getInstance();
         worldManager.loadWorlds();

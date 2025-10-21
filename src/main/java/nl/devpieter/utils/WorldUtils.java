@@ -10,9 +10,15 @@ import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.metadata.display.AbstractDisplayMeta;
 import net.minestom.server.entity.metadata.display.BlockDisplayMeta;
 import net.minestom.server.entity.metadata.display.TextDisplayMeta;
+import net.minestom.server.instance.Chunk;
+import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.block.Block;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class WorldUtils {
 
@@ -50,5 +56,40 @@ public class WorldUtils {
         });
 
         return entity;
+    }
+
+    public static @NotNull List<Point> findBlocks(Instance instance, Point center, int radius, Block targetBlock) {
+        List<Point> found = new ArrayList<>();
+
+        int minX = center.blockX() - radius;
+        int maxX = center.blockX() + radius;
+
+        int minY = Math.max(center.blockY() - radius, -64);
+        int maxY = Math.min(center.blockY() + radius, 320);
+
+        int minZ = center.blockZ() - radius;
+        int maxZ = center.blockZ() + radius;
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    if (center.distance(x, y, z) > radius) continue;
+
+                    Point pos = new Vec(x, y, z);
+
+                    if (!instance.isChunkLoaded(pos)) {
+                        CompletableFuture<Chunk> future = instance.loadChunk(pos);
+                        future.join();
+                    }
+
+                    Block block = instance.getBlock(pos);
+                    if (!block.compare(targetBlock)) continue;
+
+                    found.add(pos);
+                }
+            }
+        }
+
+        return found;
     }
 }

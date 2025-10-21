@@ -6,8 +6,6 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
-import net.minestom.server.instance.Chunk;
-import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.block.Block;
 import nl.devpieter.Settings;
@@ -15,12 +13,10 @@ import nl.devpieter.features.farming.blockHandlers.FarmBerryCropHandler;
 import nl.devpieter.features.farming.blockHandlers.FarmCropHandler;
 import nl.devpieter.managers.WorldManager;
 import nl.devpieter.utils.WorldUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class FarmManager {
 
@@ -52,7 +48,7 @@ public class FarmManager {
         ComponentLogger logger = MinecraftServer.LOGGER;
         logger.info("Scanning for farm locations, this may take a while...");
 
-        List<Point> newLocations = findBlocks(instance, new Vec(0, 64, 0), 24, Block.OXIDIZED_COPPER);
+        List<Point> newLocations = WorldUtils.findBlocks(instance, new Vec(0, 64, 0), 24, Block.OXIDIZED_COPPER);
         if (newLocations.isEmpty()) {
             logger.warn("No farm locations found!");
             return 0;
@@ -122,40 +118,5 @@ public class FarmManager {
         }
 
         return Block.AIR;
-    }
-
-    private @NotNull List<Point> findBlocks(Instance instance, Point center, int radius, Block targetBlock) {
-        List<Point> found = new ArrayList<>();
-
-        int minX = center.blockX() - radius;
-        int maxX = center.blockX() + radius;
-
-        int minY = Math.max(center.blockY() - radius, -64);
-        int maxY = Math.min(center.blockY() + radius, 320);
-
-        int minZ = center.blockZ() - radius;
-        int maxZ = center.blockZ() + radius;
-
-        for (int x = minX; x <= maxX; x++) {
-            for (int y = minY; y <= maxY; y++) {
-                for (int z = minZ; z <= maxZ; z++) {
-                    if (center.distance(x, y, z) > radius) continue;
-
-                    Point pos = new Vec(x, y, z);
-
-                    if (!instance.isChunkLoaded(pos)) {
-                        CompletableFuture<Chunk> future = instance.loadChunk(pos);
-                        future.join();
-                    }
-
-                    Block block = instance.getBlock(pos);
-                    if (!block.compare(targetBlock)) continue;
-
-                    found.add(pos);
-                }
-            }
-        }
-
-        return found;
     }
 }
