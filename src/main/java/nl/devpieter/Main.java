@@ -27,6 +27,7 @@ import nl.devpieter.features.parkour.ParkourTryManager;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerMoveListener;
+import nl.devpieter.features.portals.PortalManager;
 import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
@@ -59,6 +60,9 @@ public class Main {
 
         ParkourManager parkourManager = ParkourManager.getInstance();
         parkourManager.init();
+
+        PortalManager portalManager = PortalManager.getInstance();
+        portalManager.init();
 
         FarmManager farmManager = FarmManager.getInstance();
         farmManager.init();

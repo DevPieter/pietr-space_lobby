@@ -10,7 +10,6 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.bobber.IBobber;
-import nl.devpieter.features.fishing.rod.DefaultRod;
 import nl.devpieter.features.fishing.rod.IRod;
 import org.jetbrains.annotations.NotNull;
 

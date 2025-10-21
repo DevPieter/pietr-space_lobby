@@ -6,9 +6,10 @@ import net.minestom.server.tag.Tag;
 import nl.devpieter.features.fishing.catchable.CodCatchable;
 import nl.devpieter.features.fishing.catchable.ICatchable;
 import nl.devpieter.features.fishing.catchable.SalmonCatchable;
-import nl.devpieter.features.fishing.rod.DefaultRod;
+import nl.devpieter.features.fishing.rods.DefaultRod;
 import nl.devpieter.features.fishing.rod.IRod;
-import nl.devpieter.features.fishing.rod.ProRod;
+import nl.devpieter.features.fishing.rods.ProRod;
+import nl.devpieter.features.fishing.rods.VanillaRod;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ public class FishingManager {
 
     private FishingManager() {
         rods.addAll(List.of(
+                new VanillaRod(),
                 new DefaultRod(),
                 new ProRod()
         ));

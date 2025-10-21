@@ -8,6 +8,7 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.tag.Tag;
+import nl.devpieter.Settings;
 import nl.devpieter.features.fishing.bobber.FishingBobber;
 import nl.devpieter.features.fishing.bobber.IBobber;
 import nl.devpieter.features.fishing.models.BobberSettings;
@@ -15,19 +16,31 @@ import nl.devpieter.utils.MathUtils;
 import nl.devpieter.utils.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Rod implements IRod {
 
     @Override
     public ItemStack buildItem() {
+        List<Component> lore = new ArrayList<>(List.of(
+                TextUtils.miniText("<i><gray>The average catch time is <b>%s</b>.", getAverageCatchTime())
+        ));
+
+        if (Settings.DEBUG) {
+            lore.addAll(List.of(
+                    Component.empty(),
+                    TextUtils.miniText("<gray>ID: <white>%s", getId().toString()),
+                    TextUtils.miniText("<gray>Bite Time: <white>%d - %d ticks", getBobberSettings().minBiteTime(), getBobberSettings().maxBiteTime()),
+                    TextUtils.miniText("<gray>Lure Time: <white>%d - %d ticks", getBobberSettings().minLureTime(), getBobberSettings().maxLureTime()),
+                    TextUtils.miniText("<gray>Idle Time: <white>%d - %d ticks", getBobberSettings().minIdleTime(), getBobberSettings().maxIdleTime())
+            ));
+        }
+
         return ItemStack.of(Material.FISHING_ROD).with(builder -> {
             builder.setTag(Tag.UUID("rod_id"), getId());
             builder.customName(getName());
-
-            builder.set(DataComponents.LORE, List.of(
-                    TextUtils.miniText("<i><gray>The average catch time is <b>%s</b>.", getAverageCatchTime())
-            ));
+            builder.set(DataComponents.LORE, lore);
         });
     }
 

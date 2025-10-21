@@ -1,7 +1,14 @@
 package nl.devpieter.features.portals;
 
+import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.coordinate.Vec;
+import net.minestom.server.instance.Instance;
+import net.minestom.server.instance.InstanceContainer;
+import nl.devpieter.Settings;
 import nl.devpieter.features.portals.models.Portal;
+import nl.devpieter.managers.WorldManager;
+import nl.devpieter.utils.WorldUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +31,7 @@ public class PortalManager {
                 List.of(new Portal(
                         UUID.fromString("aba23b3b-0cae-42dd-92a0-7aaf63f4fe54"),
                         new Pos(2.5, 58, -2.5, -180, 0),
-                        new Pos(3, 60, -2),
+                        new Pos(4, 61, -2),
                         new Pos(1, 58, -2)
                 ))
         );
@@ -34,7 +41,7 @@ public class PortalManager {
                 List.of(new Portal(
                         UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"),
                         new Pos(2.5, 58, -2.5, -180, 0),
-                        new Pos(3, 60, -2),
+                        new Pos(4, 61, -2),
                         new Pos(1, 58, -2)
                 ))
         );
@@ -43,6 +50,24 @@ public class PortalManager {
     public static PortalManager getInstance() {
         if (INSTANCE == null) INSTANCE = new PortalManager();
         return INSTANCE;
+    }
+
+    public void init() {
+        if (!Settings.DEBUG) return;
+
+        for (UUID worldUuid : this.portals.keySet()) {
+            InstanceContainer world = WorldManager.getInstance().getWorld(worldUuid);
+            if (world == null) continue;
+
+            for (Portal portal : this.portals.get(worldUuid)) {
+                BoundingBox box = new BoundingBox(
+                        new Vec(portal.start().x(), portal.start().y(), portal.start().z()),
+                        new Vec(portal.end().x(), portal.end().y(), portal.end().z())
+                );
+
+                WorldUtils.placeBoundingBox(world, new Pos(0, 0, 0), box);
+            }
+        }
     }
 
     public List<Portal> getPortalsInWorld(UUID world) {

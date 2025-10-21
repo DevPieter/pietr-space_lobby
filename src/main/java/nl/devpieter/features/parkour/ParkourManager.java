@@ -1,6 +1,8 @@
 package nl.devpieter.features.parkour;
 
 import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.text.Component;
+import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
@@ -22,6 +24,7 @@ import nl.devpieter.features.parkour.models.*;
 import nl.devpieter.utils.PacketUtils;
 import nl.devpieter.utils.PlayerUtils;
 import nl.devpieter.utils.TextUtils;
+import nl.devpieter.utils.WorldUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -35,6 +38,8 @@ public class ParkourManager {
 
     private final WorldManager worldManager = WorldManager.getInstance();
     private final ParkourTryManager parkourTryManager = ParkourTryManager.getInstance();
+
+    private final BoundingBox debugBox = new BoundingBox(new Vec(-0.5, 0, -0.5), new Vec(0.5, 0.2, 0.5));
 
     private final HashMap<UUID, Parkour> parkours = new HashMap<>();
     private final HashMap<UUID, HashMap<Pos, Parkour>> worldParkourLookup = new HashMap<>();
@@ -245,8 +250,21 @@ public class ParkourManager {
             InstanceContainer instance = worldManager.getWorld(parkour.worldId());
             if (instance == null) continue;
 
-            instance.setBlock(parkour.start(), Block.HEAVY_WEIGHTED_PRESSURE_PLATE);
-            instance.setBlock(parkour.end(), Block.LIGHT_WEIGHTED_PRESSURE_PLATE);
+            Pos start = parkour.start();
+            instance.setBlock(start, Block.HEAVY_WEIGHTED_PRESSURE_PLATE);
+
+            Pos end = parkour.end();
+            instance.setBlock(end, Block.LIGHT_WEIGHTED_PRESSURE_PLATE);
+
+            if (Settings.DEBUG) {
+                Pos debugStart = start.withYaw(0).withPitch(0);
+                WorldUtils.placeMarker(instance, debugStart.add(0, 0.5, 0), TextUtils.miniText("<b><green>Start</green>"));
+                WorldUtils.placeBoundingBox(instance, debugStart, debugBox);
+
+                Pos debugEnd = end.withYaw(0).withPitch(0);
+                WorldUtils.placeMarker(instance, debugEnd.add(0, 0.5, 0), TextUtils.miniText("<b><red>End</red>"));
+                WorldUtils.placeBoundingBox(instance, debugEnd, debugBox);
+            }
 
             for (ParkourNode node : parkour.nodes()) {
                 if (node.isCheckpoint()) instance.setBlock(node.position(), Block.SPRUCE_PRESSURE_PLATE);
@@ -254,17 +272,12 @@ public class ParkourManager {
                 if (Settings.DEBUG) {
                     if (!node.isCheckpoint()) instance.setBlock(node.position(), Block.STONE_PRESSURE_PLATE);
 
-                    Entity leaderboardEntity = new Entity(EntityType.TEXT_DISPLAY);
-                    leaderboardEntity.setInstance(instance, node.position().add(0, 0.5, 0));
+                    Pos debugPos = node.position().withYaw(0).withPitch(0);
+                    if (!node.isCheckpoint()) instance.setBlock(debugPos, Block.STONE_PRESSURE_PLATE);
 
-                    leaderboardEntity.editEntityMeta(TextDisplayMeta.class, textDisplayMeta -> {
-                        textDisplayMeta.setText(TextUtils.miniText("<b><yellow>%s</yellow>", node.index()));
-                        textDisplayMeta.setScale(new Vec(.5, .5, .5));
-
-                        textDisplayMeta.setBillboardRenderConstraints(AbstractDisplayMeta.BillboardConstraints.CENTER);
-                        textDisplayMeta.setAlignment(TextDisplayMeta.Alignment.CENTER);
-                        textDisplayMeta.setHasNoGravity(true);
-                    });
+                    Component text = TextUtils.miniText("<b><yellow>%s</yellow>", node.index());
+                    WorldUtils.placeMarker(instance, debugPos.add(0, 0.5, 0), text);
+                    WorldUtils.placeBoundingBox(instance, debugPos, debugBox);
                 }
             }
         }

@@ -1,22 +1,22 @@
-package nl.devpieter.features.fishing.rod;
+package nl.devpieter.features.fishing.rods;
 
 import net.kyori.adventure.text.Component;
-import net.minestom.server.item.ItemStack;
-import net.minestom.server.item.Material;
 import nl.devpieter.features.fishing.models.BobberSettings;
+import nl.devpieter.features.fishing.rod.Rod;
+import nl.devpieter.utils.TextUtils;
 
 import java.util.UUID;
 
-public class DefaultRod extends Rod {
+public class VanillaRod extends Rod {
 
     @Override
     public UUID getId() {
-        return UUID.fromString("67f79f88-1bed-456c-81bf-67c0a816d251");
+        return UUID.fromString("f1c6a5e8-ae54-4cae-aea9-b5c0f014cae7");
     }
 
     @Override
     public Component getName() {
-        return Component.text("Default Rod");
+        return TextUtils.miniText("Fishing Rod");
     }
 
     @Override
