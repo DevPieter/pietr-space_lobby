@@ -1,4 +1,4 @@
-package nl.devpieter.features.mobs.decoder.partDecoder;
+package nl.devpieter.features.signs.partDecoder;
 
 public interface IPartDecoder<T> {
 

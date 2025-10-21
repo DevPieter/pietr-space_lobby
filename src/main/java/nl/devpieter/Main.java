@@ -21,6 +21,7 @@ import nl.devpieter.commands.player.GamemodeCommand;
 import nl.devpieter.commands.world.FarmCommand;
 import nl.devpieter.commands.world.TimeCommand;
 import nl.devpieter.commands.world.WeatherCommand;
+import nl.devpieter.features.creatures.CreatureManager;
 import nl.devpieter.features.farming.FarmManager;
 import nl.devpieter.features.farming.listeners.PlayerBlockBreakListener;
 import nl.devpieter.features.fishing.listeners.PlayerUseItemListener;
@@ -31,6 +32,7 @@ import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerMoveListener;
 import nl.devpieter.features.portals.PortalManager;
 import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
+import nl.devpieter.features.signs.SignManager;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
 import nl.devpieter.listeners.PlayerConfigurationListener;
@@ -61,6 +63,12 @@ public class Main {
 
         WorldManager worldManager = WorldManager.getInstance();
         worldManager.loadWorlds();
+
+        SignManager signManager = SignManager.getInstance();
+        signManager.init();
+
+        CreatureManager creatureManager = CreatureManager.getInstance();
+        creatureManager.init();
 
         ParkourManager parkourManager = ParkourManager.getInstance();
         parkourManager.init();

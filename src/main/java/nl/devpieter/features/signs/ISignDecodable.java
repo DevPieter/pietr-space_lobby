@@ -1,6 +1,6 @@
-package nl.devpieter.features.mobs.decoder;
+package nl.devpieter.features.signs;
 
-import nl.devpieter.features.mobs.decoder.partDecoder.IPartDecoder;
+import nl.devpieter.features.signs.partDecoder.IPartDecoder;
 
 import java.util.HashMap;
 import java.util.List;

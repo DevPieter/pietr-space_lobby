@@ -22,7 +22,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class WorldUtils {
 
-    public static void placeBoundingBox(@NotNull InstanceContainer instance, @NotNull Pos origin, @NotNull BoundingBox box) {
+    public static void placeBoundingBox(@NotNull Instance instance, @NotNull Pos origin, @NotNull BoundingBox box) {
         double sizeX = Math.abs(box.relativeEnd().x() - box.relativeStart().x());
         double sizeY = Math.abs(box.relativeEnd().y() - box.relativeStart().y());
         double sizeZ = Math.abs(box.relativeEnd().z() - box.relativeStart().z());
@@ -42,7 +42,7 @@ public class WorldUtils {
         });
     }
 
-    public static Entity placeMarker(@NotNull InstanceContainer instance, @NotNull Point point, @NotNull Component text) {
+    public static Entity placeMarker(@NotNull Instance instance, @NotNull Point point, @NotNull Component text) {
         Entity entity = new Entity(EntityType.TEXT_DISPLAY);
         entity.setInstance(instance, point);
 

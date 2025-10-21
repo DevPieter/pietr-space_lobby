@@ -40,6 +40,10 @@ public class WorldManager {
         this.logger.info("Worlds loaded");
     }
 
+    public HashMap<UUID, InstanceContainer> getWorlds() {
+        return this.worlds;
+    }
+
     public @Nullable InstanceContainer getWorld(@Nullable UUID uuid) {
         if (uuid == null) return null;
         return this.worlds.get(uuid);

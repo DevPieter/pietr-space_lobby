@@ -1,6 +1,6 @@
-package nl.devpieter.features.mobs.decoder.partDecoders;
+package nl.devpieter.features.signs.partDecoders;
 
-import nl.devpieter.features.mobs.decoder.partDecoder.PartDecoder;
+import nl.devpieter.features.signs.partDecoder.PartDecoder;
 
 import java.util.function.Consumer;
 

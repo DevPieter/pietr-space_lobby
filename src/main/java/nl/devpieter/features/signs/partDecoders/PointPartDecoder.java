@@ -1,21 +1,27 @@
-package nl.devpieter.features.mobs.decoder.partDecoders;
+package nl.devpieter.features.signs.partDecoders;
 
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
-import nl.devpieter.features.mobs.decoder.partDecoder.PartDecoder;
+import nl.devpieter.features.signs.partDecoder.PartDecoder;
 
 import java.util.function.Consumer;
 
 public class PointPartDecoder extends PartDecoder<Point> {
 
-    public PointPartDecoder(Consumer<Point> onDecodedCallback) {
+    private final Point fallback;
+
+    public PointPartDecoder(Point fallback, Consumer<Point> onDecodedCallback) {
         super(onDecodedCallback);
+        this.fallback = fallback;
     }
 
     @Override
     public void decode(String data) {
         String[] parts = data.split(",");
-        if (parts.length != 3) throw new IllegalArgumentException("Invalid point data: " + data);
+        if (parts.length != 3) {
+            onDecoded(fallback);
+            return;
+        }
 
         try {
             float x = Float.parseFloat(parts[0]);
@@ -24,7 +30,7 @@ public class PointPartDecoder extends PartDecoder<Point> {
 
             onDecoded(new Pos(x, y, z));
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid number format in point data: " + data, e);
+            onDecoded(fallback);
         }
     }
 }
