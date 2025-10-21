@@ -8,8 +8,12 @@ import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import nl.devpieter.Settings;
+import nl.devpieter.features.fishing.FishingManager;
+import nl.devpieter.features.fishing.rod.IRod;
 import nl.devpieter.managers.WorldManager;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class PlayerConfigurationListener implements EventListener<@NotNull AsyncPlayerConfigurationEvent> {
 
@@ -29,7 +33,8 @@ public class PlayerConfigurationListener implements EventListener<@NotNull Async
         player.setGameMode(GameMode.SURVIVAL);
         player.setRespawnPoint(Settings.MAIN_WORLD_SPAWN);
 
-        player.getInventory().addItemStack(ItemStack.of(Material.FISHING_ROD));
+        List<IRod> rods = FishingManager.getInstance().getRods();
+        for (IRod rod : rods) player.getInventory().addItemStack(rod.buildItem());
 
         return Result.SUCCESS;
     }

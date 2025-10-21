@@ -5,36 +5,26 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import nl.devpieter.features.fishing.models.BobberSettings;
 
-public class DefaultRod implements IRod {
+import java.util.UUID;
+
+public class DefaultRod extends Rod {
 
     @Override
-    public Component getName() {
-        return Component.text("Fishing Rod");
+    public UUID getId() {
+        return UUID.fromString("67f79f88-1bed-456c-81bf-67c0a816d251");
     }
 
     @Override
-    public ItemStack getItem() {
-        return ItemStack.of(Material.FISHING_ROD).withCustomName(getName());
+    public Component getName() {
+        return Component.text("Default Rod");
     }
 
     @Override
     public BobberSettings getBobberSettings() {
         return new BobberSettings(
-                20, 40,
-                20, 80,
-                100, 600
+                20, 2 * 20,
+                20, 4 * 20,
+                5 * 20, 30 * 20
         );
-
-        // TODO - For testing purposes only
-//        return new BobberSettings(
-//                40, 80,
-//                20, 40,
-//                20, 40
-//        );
-    }
-
-    @Override
-    public void onUse() {
-
     }
 }
