@@ -57,95 +57,65 @@ public class TestCommand extends Command {
 
         String firstLine = lines.getFirst();
         String secondLine = lines.size() > 1 ? lines.get(1) : "";
-
-        int rotation = Integer.parseInt(block.getProperty("rotation"));
-        SignRotation signRotation = SignRotation.fromValue(rotation);
+        String thirdLine = lines.size() > 2 ? lines.get(2) : "";
 
         if (firstLine.equals("CuteCat")) {
             instance.setBlock(point, Block.AIR);
 
-            // [variant],[collar],[lying]
-            // [int],[int],[t|f]
+            String[] firstParts = secondLine.split(",");
+            String[] secondParts = thirdLine.split(",");
 
-            String[] parts = secondLine.split(",");
             CuteCat.CuteCatVariant variant = CuteCat.CuteCatVariant.BLACK;
             CuteCat.CuteCatCollar collar = CuteCat.CuteCatCollar.RED;
             boolean lying = false;
+            boolean baby = false;
 
-            if (parts.length >= 1) {
-                int variantId = Integer.parseInt(parts[0]);
-                for (CuteCat.CuteCatVariant v : CuteCat.CuteCatVariant.values()) {
-                    if (v.getId() == variantId) {
-                        variant = v;
-                        break;
-                    }
-                }
+            float yaw = 0f;
+            float pitch = 0f;
+            float offsetX = 0f;
+            float offsetZ = 0f;
+
+            if (firstParts.length >= 1) {
+                int variantId = Integer.parseInt(firstParts[0]);
+                variant = CuteCat.CuteCatVariant.fromId(variantId);
             }
 
-            if (parts.length >= 2) {
-                int collarId = Integer.parseInt(parts[1]);
-                for (CuteCat.CuteCatCollar c : CuteCat.CuteCatCollar.values()) {
-                    if (c.getId() == collarId) {
-                        collar = c;
-                        break;
-                    }
-                }
+            if (firstParts.length >= 2) {
+                int collarId = Integer.parseInt(firstParts[1]);
+                collar = CuteCat.CuteCatCollar.fromId(collarId);
             }
 
-            if (parts.length >= 3) {
-                lying = parts[2].equalsIgnoreCase("t");
+            if (firstParts.length >= 3) {
+                lying = firstParts[2].equalsIgnoreCase("t");
             }
 
-            new CuteCat(variant, collar, lying).setInstance(instance, new Pos(
-                    point.x() + 0.5,
+            if (firstParts.length >= 4) {
+                baby = firstParts[3].equalsIgnoreCase("t");
+            }
+
+            if (secondParts.length >= 1) {
+                yaw = Float.parseFloat(secondParts[0]);
+            }
+
+            if (secondParts.length >= 2) {
+                pitch = Float.parseFloat(secondParts[1]);
+            }
+
+            if (secondParts.length >= 3) {
+                offsetX = Float.parseFloat(secondParts[2]);
+            }
+
+            if (secondParts.length >= 4) {
+                offsetZ = Float.parseFloat(secondParts[3]);
+            }
+
+            new CuteCat(variant, collar, lying, baby).setInstance(instance, new Pos(
+                    point.x() + 0.5 + offsetX,
                     point.y(),
-                    point.z() + 0.5,
-                    signRotation.getYaw(),
-                    0
+                    point.z() + 0.5 + offsetZ,
+                    yaw,
+                    pitch
             ));
-        }
-    }
-
-    enum SignRotation {
-        SOUTH(0),
-        SOUTH_SOUTHWEST(1),
-        SOUTHWEST(2),
-        WEST_SOUTHWEST(3),
-        WEST(4),
-        WEST_NORTHWEST(5),
-        NORTHWEST(6),
-        NORTH_NORTHWEST(7),
-        NORTH(8),
-        NORTH_NORTHEAST(9),
-        NORTHEAST(10),
-        EAST_NORTHEAST(11),
-        EAST(12),
-        EAST_SOUTHEAST(13),
-        SOUTHEAST(14),
-        SOUTH_SOUTHEAST(15);
-
-        private final int value;
-        private final float yaw;
-
-        SignRotation(int value) {
-            this.value = value;
-            this.yaw = (value * 22.5f);
-        }
-
-        public int getValue() {
-            return value;
-        }
-
-        public float getYaw() {
-            return yaw;
-        }
-
-        public static SignRotation fromValue(int value) {
-            for (SignRotation rotation : values()) {
-                if (rotation.getValue() == value) return rotation;
-            }
-
-            return SOUTH;
         }
     }
 }

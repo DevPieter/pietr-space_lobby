@@ -11,13 +11,15 @@ import org.jetbrains.annotations.NotNull;
 
 public class CuteCat extends EntityCreature {
 
-    public CuteCat(CuteCatVariant variant, CuteCatCollar collar, boolean lying) {
+    public CuteCat(CuteCatVariant variant, CuteCatCollar collar, boolean lying, boolean baby) {
         super(EntityType.CAT);
 
         CatMeta catMeta = (CatMeta) getEntityMeta();
         catMeta.setTamed(true);
-        catMeta.setLying(lying);
         catMeta.setRelaxed(true);
+
+        catMeta.setLying(lying);
+        catMeta.setBaby(baby);
 
         set(DataComponents.CAT_COLLAR, collar.getColor());
         set(DataComponents.CAT_VARIANT, variant.getVariant());
@@ -50,6 +52,14 @@ public class CuteCat extends EntityCreature {
 
         public RegistryKey<@NotNull CatVariant> getVariant() {
             return variant;
+        }
+
+        public static CuteCatVariant fromId(int id) {
+            for (CuteCatVariant variant : values()) {
+                if (variant.getId() == id) return variant;
+            }
+
+            return BLACK;
         }
     }
 
@@ -84,6 +94,14 @@ public class CuteCat extends EntityCreature {
 
         public DyeColor getColor() {
             return color;
+        }
+
+        public static CuteCatCollar fromId(int id) {
+            for (CuteCatCollar collar : values()) {
+                if (collar.getId() == id) return collar;
+            }
+
+            return RED;
         }
     }
 }
