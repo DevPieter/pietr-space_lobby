@@ -32,26 +32,37 @@ public class FarmCommand extends Command {
             if (!(sender instanceof Player player)) return;
 
             switch (action) {
-                case SCAN -> {
-                    player.sendMessage("Scanning for farms...");
-                    int foundFarms = farmManager.scanFarms();
-                    player.sendMessage("Found " + foundFarms + " farms.");
+                case INIT -> {
+                    player.sendMessage("Initializing, this may take a while...");
+                    farmManager.init();
+                    player.sendMessage("Initialization complete.");
                 }
                 case SHUFFLE -> {
                     farmManager.shuffleFarms();
-                    player.sendMessage("Farms have been shuffled.");
+                    player.sendMessage("Farms shuffled.");
                 }
-                case CLEAR -> {
-                    farmManager.clearFarms();
-                    player.sendMessage("Farms have been cleared.");
+                case REVERT -> {
+                    farmManager.revertFarms();
+                    player.sendMessage("Farms reverted.");
+                }
+                // TODO - Convert into subcommands
+                case DEBUG_PLACE -> {
+                    farmManager.placeDebugMarkers();
+                    player.sendMessage("Farm debug markers placed.");
+                }
+                case DEBUG_CLEAR -> {
+                    farmManager.clearDebugMarkers();
+                    player.sendMessage("Farm debug markers cleared.");
                 }
             }
         }, actionArgument);
     }
 
     enum Action {
-        SCAN,
+        INIT,
         SHUFFLE,
-        CLEAR
+        REVERT,
+        DEBUG_PLACE,
+        DEBUG_CLEAR
     }
 }

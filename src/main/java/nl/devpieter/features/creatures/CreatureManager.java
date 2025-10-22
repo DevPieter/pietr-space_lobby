@@ -17,7 +17,6 @@ import java.util.List;
 public class CreatureManager {
 
     private static CreatureManager INSTANCE;
-
     private static final String SIGN_KEY = "<ENTITY>";
 
     private final SignManager signManager = SignManager.getInstance();

@@ -1,6 +1,5 @@
 package nl.devpieter.features.signs;
 
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Point;
@@ -13,6 +12,7 @@ import nl.devpieter.features.signs.models.SignHolder;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.models.BlockHolder;
+import nl.devpieter.utils.TextUtils;
 import nl.devpieter.utils.WorldUtils;
 
 import java.util.ArrayList;
@@ -124,8 +124,7 @@ public class SignManager {
             debugMarkers.add(WorldUtils.placeMarker(
                     block.instance(),
                     block.position().add(0.5, 0.5, 0.5),
-                    Component.text("Marked | " + cleanedFirstLine)
-            ));
+                    TextUtils.miniText("<#4bafff>Marked <gray>%s", cleanedFirstLine)));
         }
     }
 
