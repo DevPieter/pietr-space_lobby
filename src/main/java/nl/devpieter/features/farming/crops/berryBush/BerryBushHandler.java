@@ -1,14 +1,16 @@
-package nl.devpieter.features.farming.blockHandlers;
+package nl.devpieter.features.farming.crops.berryBush;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
+import nl.devpieter.features.farming.FarmBlockHandler;
+import nl.devpieter.models.BlockHolder;
 import org.jetbrains.annotations.NotNull;
 
-public class FarmBerryCropHandler extends FarmBlockHandler {
+public class BerryBushHandler extends FarmBlockHandler {
 
-    public FarmBerryCropHandler() {
+    public BerryBushHandler() {
         super(5_000, 8_000, 3);
 
         setReplantSound(Sound.sound(Key.key("block.sweet_berry_bush.pick_berries"), Sound.Source.BLOCK, 0.8f, 0.8f));
@@ -16,21 +18,18 @@ public class FarmBerryCropHandler extends FarmBlockHandler {
 
     @Override
     public boolean onInteract(Interaction interaction) {
-        Block block = interaction.getBlock();
         Instance instance = interaction.getInstance();
+        Block block = interaction.getBlock();
 
-        String ageProperty = block.getProperty("age");
-        if (ageProperty == null) return false;
+        BlockHolder holder = new BlockHolder(instance, interaction.getBlockPosition(), block);
+        if (!isMature(holder)) return false;
 
-        int age = Integer.parseInt(ageProperty);
-        if (age < 3) return false;
-
-        replant(instance, block, interaction.getBlockPosition(), interaction.getPlayer());
+        replant(holder, interaction.getPlayer());
         return true;
     }
 
     @Override
     public @NotNull Key getKey() {
-        return Key.key("pieter_space", "farm_berry_crop");
+        return Key.key("pieter_space", "berry_bush_crop");
     }
 }

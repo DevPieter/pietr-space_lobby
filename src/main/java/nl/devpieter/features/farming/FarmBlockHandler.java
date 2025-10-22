@@ -1,4 +1,4 @@
-package nl.devpieter.features.farming.blockHandlers;
+package nl.devpieter.features.farming;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
@@ -10,6 +10,7 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.network.packet.server.play.ParticlePacket;
 import net.minestom.server.particle.Particle;
+import nl.devpieter.models.BlockHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,11 +20,11 @@ public abstract class FarmBlockHandler implements BlockHandler {
     protected final long maxGrowInterval;
     protected final int maxAge;
 
+    protected long lastGrowTime = System.currentTimeMillis();
+    protected long nextGrowInterval = -1;
+
     private Sound replantSound = null;
     private Sound growSound = Sound.sound(Key.key("item.bone_meal.use"), Sound.Source.BLOCK, 0.3f, 1.0f);
-
-    private long lastGrowTime = System.currentTimeMillis();
-    private long nextGrowInterval = -1;
 
     protected FarmBlockHandler(long minGrowInterval, long maxGrowInterval, int maxAge) {
         this.minGrowInterval = minGrowInterval;
@@ -33,14 +34,10 @@ public abstract class FarmBlockHandler implements BlockHandler {
 
     @Override
     public void tick(Tick tick) {
-        Block block = tick.getBlock();
-        Instance instance = tick.getInstance();
+        BlockHolder holder = new BlockHolder(tick.getInstance(), tick.getBlockPosition(), tick.getBlock());
 
-        String ageProperty = block.getProperty("age");
-        if (ageProperty == null) return;
-
-        int age = Integer.parseInt(ageProperty);
-        if (age >= maxAge) return;
+        int age = getAge(holder);
+        if (age == -1 || age >= maxAge) return;
 
         if (nextGrowInterval == -1) {
             nextGrowInterval = (int) (Math.random() * (maxGrowInterval - minGrowInterval)) + (int) minGrowInterval;
@@ -52,8 +49,7 @@ public abstract class FarmBlockHandler implements BlockHandler {
         lastGrowTime = currentTime;
         nextGrowInterval = -1;
 
-        instance.setBlock(tick.getBlockPosition(), block.withProperty("age", String.valueOf(age + 1)));
-        onGrow(instance, block, tick.getBlockPosition());
+        grow(holder, age, age + 1);
     }
 
     @Override
@@ -61,7 +57,25 @@ public abstract class FarmBlockHandler implements BlockHandler {
         return true;
     }
 
-    public void replant(@NotNull Instance instance, @NotNull Block block, Point position, @Nullable Entity replanter) {
+    public int getAge(@NotNull BlockHolder holder) {
+        Block block = holder.block();
+
+        String ageProperty = block.getProperty("age");
+        if (ageProperty == null) return -1;
+
+        return Integer.parseInt(ageProperty);
+    }
+
+    public boolean isMature(@NotNull BlockHolder holder) {
+        int age = getAge(holder);
+        return age != -1 && age >= maxAge;
+    }
+
+    public void replant(@NotNull BlockHolder holder, @Nullable Entity replanter) {
+        Instance instance = holder.instance();
+        Block block = holder.block();
+        Point position = holder.position();
+
         instance.setBlock(position, block.withProperty("age", "0"));
         onReplant(instance, block, position, replanter);
 
@@ -71,6 +85,14 @@ public abstract class FarmBlockHandler implements BlockHandler {
 
     public int maxAge() {
         return maxAge;
+    }
+
+    protected void grow(@NotNull BlockHolder holder, int currentAge, int newAge) {
+        Instance instance = holder.instance();
+        Block block = holder.block();
+
+        instance.setBlock(holder.position(), block.withProperty("age", String.valueOf(newAge)));
+        onGrow(instance, block, holder.position());
     }
 
     protected void onGrow(Instance instance, Block block, Point position) {

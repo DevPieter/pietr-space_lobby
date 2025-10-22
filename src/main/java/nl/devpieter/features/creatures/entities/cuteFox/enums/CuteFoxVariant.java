@@ -16,17 +16,13 @@ public enum CuteFoxVariant {
         this.variant = variant;
     }
 
-    public int getId() {
-        return id;
-    }
-
     public FoxMeta.@NotNull Variant getVariant() {
         return variant;
     }
 
     public static @Nullable CuteFoxVariant fromId(int id) {
         for (CuteFoxVariant variant : values()) {
-            if (variant.getId() == id) return variant;
+            if (variant.id == id) return variant;
         }
 
         return null;

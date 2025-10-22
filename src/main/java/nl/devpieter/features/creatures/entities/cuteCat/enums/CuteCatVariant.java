@@ -26,17 +26,13 @@ public enum CuteCatVariant {
         this.variant = variant;
     }
 
-    public int getId() {
-        return id;
-    }
-
     public RegistryKey<@NotNull CatVariant> getVariant() {
         return variant;
     }
 
     public static @Nullable CuteCatVariant fromId(int id) {
         for (CuteCatVariant variant : values()) {
-            if (variant.getId() == id) return variant;
+            if (variant.id == id) return variant;
         }
 
         return null;

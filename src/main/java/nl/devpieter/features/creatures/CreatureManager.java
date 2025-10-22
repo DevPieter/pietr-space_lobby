@@ -21,11 +21,11 @@ public class CreatureManager {
 
     private final SignManager signManager = SignManager.getInstance();
 
-    private final List<ISignSpawnable> signSpawnables = new ArrayList<>();
+    private final List<ISignSpawnable> spawnables = new ArrayList<>();
     private final List<Entity> loadedEntities = new ArrayList<>();
 
     private CreatureManager() {
-        signSpawnables.addAll(List.of(
+        spawnables.addAll(List.of(
                 new CuteCatSpawnable(),
                 new CuteFoxSpawnable()
         ));
@@ -40,15 +40,13 @@ public class CreatureManager {
         List<SignHolder> signs = signManager.getMatchedSigns(SIGN_KEY);
         for (SignHolder sign : signs) {
 
-            ISignSpawnable signEntity = getFromSign(sign);
-            if (signEntity == null) continue;
+            ISignSpawnable spawnable = getFromSign(sign);
+            if (spawnable == null) continue;
 
             List<String> lines = sign.lines().subList(2, sign.lines().size());
-            HashMap<Integer, List<IPartDecoder<?>>> decoders = signEntity.getDecoders();
+            SignDecoder.decodeLines(lines, spawnable.getDecoders());
 
-            SignDecoder.decodeLines(lines, decoders);
-
-            Entity entity = signEntity.spawn(sign.block().instance(), sign.block().position(), sign);
+            Entity entity = spawnable.spawn(sign.block().instance(), sign.block().position(), sign);
             loadedEntities.add(entity);
         }
     }
@@ -56,7 +54,7 @@ public class CreatureManager {
     private @Nullable ISignSpawnable getFromSign(@NotNull SignHolder sign) {
         String secondLine = sign.lines().get(1);
 
-        for (ISignSpawnable signSpawnable : signSpawnables) {
+        for (ISignSpawnable signSpawnable : spawnables) {
             if (!signSpawnable.getIdentifier().matches(secondLine)) continue;
             return signSpawnable;
         }

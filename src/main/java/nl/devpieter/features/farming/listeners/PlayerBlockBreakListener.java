@@ -5,7 +5,8 @@ import net.minestom.server.event.player.PlayerBlockBreakEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
-import nl.devpieter.features.farming.blockHandlers.FarmCropHandler;
+import nl.devpieter.features.farming.FarmBlockHandler;
+import nl.devpieter.models.BlockHolder;
 import org.jetbrains.annotations.NotNull;
 
 public class PlayerBlockBreakListener implements EventListener<@NotNull PlayerBlockBreakEvent> {
@@ -20,19 +21,18 @@ public class PlayerBlockBreakListener implements EventListener<@NotNull PlayerBl
         BlockHandler handler = event.getBlock().handler();
         if (handler == null) return Result.SUCCESS;
 
-        if (!(handler instanceof FarmCropHandler cropHandler)) return Result.SUCCESS;
+        if (!(handler instanceof FarmBlockHandler farmHandler)) return Result.SUCCESS;
         event.setCancelled(true);
 
-        Block block = event.getBlock();
         Instance instance = event.getInstance();
+        Block block = event.getBlock();
 
-        String ageProperty = block.getProperty("age");
-        if (ageProperty == null) return Result.SUCCESS;
+        System.out.println("Player " + event.getPlayer().getUsername() + " broke block " + block.name() + " at " + event.getBlockPosition());
 
-        int age = Integer.parseInt(ageProperty);
-        if (age < cropHandler.maxAge()) return Result.SUCCESS;
+        BlockHolder holder = new BlockHolder(instance, event.getBlockPosition(), block);
+        if (!farmHandler.isMature(holder)) return Result.SUCCESS;
 
-        cropHandler.replant(instance, block, event.getBlockPosition(), event.getPlayer());
+        farmHandler.replant(holder, event.getPlayer());
         return Result.SUCCESS;
     }
 }

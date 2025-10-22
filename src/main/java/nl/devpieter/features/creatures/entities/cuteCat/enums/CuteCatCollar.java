@@ -27,17 +27,13 @@ public enum CuteCatCollar {
         this.color = color;
     }
 
-    public int getId() {
-        return id;
-    }
-
     public DyeColor getColor() {
         return color;
     }
 
     public static CuteCatCollar fromId(int id) {
         for (CuteCatCollar collar : values()) {
-            if (collar.getId() == id) return collar;
+            if (collar.id == id) return collar;
         }
 
         return RED;
