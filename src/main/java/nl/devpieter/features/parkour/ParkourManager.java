@@ -15,7 +15,8 @@ import nl.devpieter.Settings;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.models.*;
-import nl.devpieter.managers.WorldManager;
+import nl.devpieter.features.world.WorldManager;
+import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.models.GlowingBlockHolder;
 import nl.devpieter.utils.PacketUtils;
 import nl.devpieter.utils.PlayerUtils;
@@ -38,7 +39,7 @@ public class ParkourManager {
     private final BoundingBox debugBox = new BoundingBox(new Vec(-0.5, 0, -0.5), new Vec(0.5, 0.2, 0.5));
 
     private final HashMap<UUID, Parkour> parkours = new HashMap<>();
-    private final HashMap<UUID, HashMap<Pos, Parkour>> worldParkourLookup = new HashMap<>();
+    private final HashMap<String, HashMap<Pos, Parkour>> worldParkourLookup = new HashMap<>();
 
     private final HashMap<UUID, ParkourTry> players = new HashMap<>();
     private final HashMap<UUID, GlowingBlockHolder> glowingHolders = new HashMap<>();
@@ -46,7 +47,7 @@ public class ParkourManager {
     private ParkourManager() {
         Parkour mainWorldParkour = new Parkour(
                 UUID.fromString("0198b79d-7424-76e9-8aec-d329e60d4814"),
-                UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"),
+                "main",
 
                 "Main World Parkour",
                 new Pos(10.5, 65, 11.5, 0, 0),
@@ -233,7 +234,7 @@ public class ParkourManager {
         );
 
         parkours.put(mainWorldParkour.id(), mainWorldParkour);
-        worldParkourLookup.computeIfAbsent(UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"), k -> new HashMap<>()).put(mainWorldParkour.start(), mainWorldParkour);
+        worldParkourLookup.computeIfAbsent("main", k -> new HashMap<>()).put(mainWorldParkour.start(), mainWorldParkour);
     }
 
     public static ParkourManager getInstance() {
@@ -243,8 +244,10 @@ public class ParkourManager {
 
     public void init() {
         for (Parkour parkour : parkours.values()) {
-            InstanceContainer instance = worldManager.getWorld(parkour.worldId());
-            if (instance == null) continue;
+            LoadedWorld world = worldManager.getWorldById(parkour.worldId());
+            if (world == null) continue;
+
+            InstanceContainer instance = world.instance();
 
             Pos start = parkour.start();
             instance.setBlock(start, Block.HEAVY_WEIGHTED_PRESSURE_PLATE);
@@ -287,7 +290,7 @@ public class ParkourManager {
         return parkours.get(uuid);
     }
 
-    public Parkour getParkour(UUID world, Player player) {
+    public Parkour getParkour(String world, Player player) {
         HashMap<Pos, Parkour> starts = worldParkourLookup.get(world);
         if (starts == null) return null;
 

@@ -40,7 +40,7 @@ import nl.devpieter.listeners.PlayerConfigurationListener;
 import nl.devpieter.listeners.PlayerDisconnectListener;
 import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
-import nl.devpieter.managers.WorldManager;
+import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.utils.PacketUtils;
 import org.slf4j.Logger;
 

@@ -6,7 +6,8 @@ import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.InstanceContainer;
 import nl.devpieter.Settings;
 import nl.devpieter.features.portals.models.Portal;
-import nl.devpieter.managers.WorldManager;
+import nl.devpieter.features.world.WorldManager;
+import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.utils.WorldUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,14 +22,16 @@ public class PortalManager {
 
     private static PortalManager INSTANCE;
 
-    private final HashMap<UUID, List<Portal>> portals = new HashMap<>();
+    private final WorldManager worldManager = WorldManager.getInstance();
+
+    private final HashMap<String, List<Portal>> portals = new HashMap<>();
     private final HashMap<UUID, Long> portalCooldowns = new HashMap<>();
 
     private PortalManager() {
         this.portals.put(
-                UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"),
+                "main",
                 List.of(new Portal(
-                        UUID.fromString("aba23b3b-0cae-42dd-92a0-7aaf63f4fe54"),
+                        "special",
                         new Pos(2.5, 58, -2.5, -180, 0),
                         new Pos(4, 61, -2),
                         new Pos(1, 58, -2)
@@ -36,9 +39,9 @@ public class PortalManager {
         );
 
         this.portals.put(
-                UUID.fromString("aba23b3b-0cae-42dd-92a0-7aaf63f4fe54"),
+                "special",
                 List.of(new Portal(
-                        UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"),
+                        "main",
                         new Pos(2.5, 58, -2.5, -180, 0),
                         new Pos(4, 61, -2),
                         new Pos(1, 58, -2)
@@ -54,27 +57,29 @@ public class PortalManager {
     public void init() {
         if (!Settings.DEBUG) return;
 
-        for (UUID worldUuid : this.portals.keySet()) {
-            InstanceContainer world = WorldManager.getInstance().getWorld(worldUuid);
+        for (String worldId : this.portals.keySet()) {
+            LoadedWorld world = worldManager.getWorldById(worldId);
             if (world == null) continue;
 
-            for (Portal portal : this.portals.get(worldUuid)) {
+            InstanceContainer instance = world.instance();
+
+            for (Portal portal : this.portals.get(worldId)) {
                 BoundingBox box = new BoundingBox(
                         new Vec(portal.start().x(), portal.start().y(), portal.start().z()),
                         new Vec(portal.end().x(), portal.end().y(), portal.end().z())
                 );
 
-                WorldUtils.placeBoundingBox(world, new Pos(0, 0, 0), box);
+                WorldUtils.placeBoundingBox(instance, new Pos(0, 0, 0), box);
             }
         }
     }
 
-    public List<Portal> getPortalsInWorld(UUID world) {
+    public List<Portal> getPortalsInWorld(String world) {
         if (!this.portals.containsKey(world)) return List.of();
         return this.portals.get(world);
     }
 
-    public @Nullable Portal getIntersectingPortal(@NotNull Pos pos, @NotNull UUID world) {
+    public @Nullable Portal getIntersectingPortal(@NotNull Pos pos, @NotNull String world) {
         List<Portal> portals = this.getPortalsInWorld(world);
 
         for (Portal portal : portals) {

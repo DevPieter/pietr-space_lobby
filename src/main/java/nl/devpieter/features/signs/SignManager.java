@@ -10,14 +10,14 @@ import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import nl.devpieter.Settings;
 import nl.devpieter.features.signs.models.SignHolder;
-import nl.devpieter.managers.WorldManager;
+import nl.devpieter.features.world.WorldManager;
+import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.models.BlockHolder;
 import nl.devpieter.utils.WorldUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 
 public class SignManager {
 
@@ -54,8 +54,11 @@ public class SignManager {
         return signHolderMap.getOrDefault(key, new ArrayList<>());
     }
 
-    private void scanSigns(UUID uuid, Instance instance) {
-        logger.info("Scanning instance {} for marked signs...", uuid);
+    private void scanSigns(LoadedWorld world) {
+        String id = world.world().id();
+        Instance instance = world.instance();
+
+        logger.info("Scanning instance {} for marked signs...", id);
         List<Point> locations = new ArrayList<>();
 
         locations.addAll(WorldUtils.findBlocks(instance, SCAN_CENTER, SCAN_RADIUS, Block.OAK_SIGN));
@@ -64,7 +67,7 @@ public class SignManager {
         locations.addAll(WorldUtils.findBlocks(instance, SCAN_CENTER, SCAN_RADIUS, Block.OAK_WALL_HANGING_SIGN));
 
         if (locations.isEmpty()) {
-            logger.info("No signs found in the instance {}.", uuid);
+            logger.info("No signs found in the instance {}.", id);
             return;
         }
 
@@ -86,7 +89,7 @@ public class SignManager {
             instance.setBlock(point, Block.AIR);
         }
 
-        logger.info("Found {} marked signs in instance {}.", signHolders.size(), uuid);
+        logger.info("Found {} marked signs in instance {}.", signHolders.size(), id);
     }
 
     public void revertSigns() {

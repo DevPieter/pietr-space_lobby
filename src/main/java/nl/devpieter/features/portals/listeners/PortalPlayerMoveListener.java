@@ -4,15 +4,13 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.instance.Instance;
-import net.minestom.server.instance.InstanceContainer;
 import nl.devpieter.features.parkour.ParkourManager;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.portals.PortalManager;
 import nl.devpieter.features.portals.models.Portal;
-import nl.devpieter.managers.WorldManager;
+import nl.devpieter.features.world.WorldManager;
+import nl.devpieter.features.world.models.LoadedWorld;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.UUID;
 
 public class PortalPlayerMoveListener implements EventListener<@NotNull PlayerMoveEvent> {
 
@@ -36,19 +34,19 @@ public class PortalPlayerMoveListener implements EventListener<@NotNull PlayerMo
             return Result.SUCCESS;
         }
 
-        UUID worldUUID = this.worldManager.getWorldUUID(currentWorld);
-        if (worldUUID == null) return Result.SUCCESS;
+        LoadedWorld world = this.worldManager.getWorldByInstance(currentWorld);
+        if (world == null) return Result.SUCCESS;
 
-        Portal portal = this.portalManager.getIntersectingPortal(player.getPosition(), worldUUID);
+        Portal portal = this.portalManager.getIntersectingPortal(player.getPosition(), world.world().id());
         if (portal == null) return Result.SUCCESS;
 
-        InstanceContainer destination = this.worldManager.getWorld(portal.destinationWorld());
+        LoadedWorld destination = this.worldManager.getWorldById(portal.destinationWorld());
         if (destination == null) return Result.SUCCESS;
 
         this.parkourManager.cancelParkour(player, ParkourCancelReason.PortalUsed);
 
         this.portalManager.startPortalCooldown(player.getUuid());
-        player.setInstance(destination, portal.destinationPos());
+        player.setInstance(destination.instance(), portal.destinationPos());
         return Result.SUCCESS;
     }
 }

@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public class Parkour {
     private final UUID id;
-    private final UUID worldId;
+    private final String worldId;
 
     private final String name;
     private final Pos startPosition;
@@ -17,7 +17,7 @@ public class Parkour {
 
     private final List<ParkourNode> nodes;
 
-    public Parkour(UUID id, UUID worldId, String name, Pos startPosition, Pos endPosition, Pos leaderboardPosition, List<ParkourNode> nodes) {
+    public Parkour(UUID id, String worldId, String name, Pos startPosition, Pos endPosition, Pos leaderboardPosition, List<ParkourNode> nodes) {
         this.id = id;
         this.worldId = worldId;
         this.name = name;
@@ -31,7 +31,7 @@ public class Parkour {
         return id;
     }
 
-    public UUID worldId() {
+    public String worldId() {
         return worldId;
     }
 

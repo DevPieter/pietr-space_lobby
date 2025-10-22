@@ -11,7 +11,7 @@ import net.minestom.server.instance.block.Block;
 import nl.devpieter.Settings;
 import nl.devpieter.features.farming.blockHandlers.FarmBerryCropHandler;
 import nl.devpieter.features.farming.blockHandlers.FarmCropHandler;
-import nl.devpieter.managers.WorldManager;
+import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.utils.WorldUtils;
 
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ public class FarmManager {
     }
 
     public int scanFarms() {
-        InstanceContainer instance = worldManager.getWorld(UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"));
+        InstanceContainer instance = worldManager.getWorldById("main").instance();
         if (instance == null) throw new IllegalStateException("Farm world not found");
 
         clearFarms();
@@ -66,7 +66,7 @@ public class FarmManager {
     }
 
     public void clearFarms() {
-        InstanceContainer instance = worldManager.getWorld(UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"));
+        InstanceContainer instance = worldManager.getWorldById("main").instance();
         if (instance == null) throw new IllegalStateException("Farm world not found");
 
         for (Point point : farmLocations) {
@@ -84,7 +84,7 @@ public class FarmManager {
     }
 
     public void shuffleFarms() {
-        InstanceContainer instance = worldManager.getWorld(UUID.fromString("52ccbf8b-7528-41c2-9f4c-9bc2b5e10951"));
+        InstanceContainer instance = worldManager.getWorldById("main").instance();
         if (instance == null) throw new IllegalStateException("Farm world not found");
 
         for (Point point : farmLocations) {

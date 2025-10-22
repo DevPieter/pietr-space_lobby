@@ -5,7 +5,7 @@ import net.minestom.server.coordinate.Pos;
 import java.util.UUID;
 
 public record Portal(
-        UUID destinationWorld,
+        String destinationWorld,
         Pos destinationPos,
         Pos start,
         Pos end
