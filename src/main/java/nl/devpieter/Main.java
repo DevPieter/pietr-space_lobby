@@ -18,12 +18,7 @@ import nl.devpieter.blockHandler.SignBlockHandler;
 import nl.devpieter.commands.ServerCommand;
 import nl.devpieter.commands.TestCommand;
 import nl.devpieter.commands.player.GamemodeCommand;
-import nl.devpieter.commands.world.FarmCommand;
-import nl.devpieter.commands.world.SignCommand;
-import nl.devpieter.commands.world.TimeCommand;
-import nl.devpieter.commands.world.WeatherCommand;
-import nl.devpieter.features.creatures.CreatureManager;
-import nl.devpieter.features.farming.FarmManager;
+import nl.devpieter.commands.world.*;
 import nl.devpieter.features.farming.listeners.PlayerBlockBreakListener;
 import nl.devpieter.features.fishing.listeners.PlayerUseItemListener;
 import nl.devpieter.features.parkour.ParkourManager;
@@ -31,23 +26,21 @@ import nl.devpieter.features.parkour.ParkourTryManager;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerMoveListener;
-import nl.devpieter.features.portals.PortalManager;
 import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
-import nl.devpieter.features.signs.SignManager;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
+import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.listeners.PlayerConfigurationListener;
 import nl.devpieter.listeners.PlayerDisconnectListener;
 import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
-import nl.devpieter.features.world.WorldManager;
+import nl.devpieter.sees.Sees;
 import nl.devpieter.utils.PacketUtils;
 import org.slf4j.Logger;
 
 public class Main {
 
     public static void main(String[] args) {
-
         Logger logger = MinecraftServer.LOGGER;
         if (Settings.DEBUG) logger.warn("Debug mode is enabled");
 
@@ -62,23 +55,11 @@ public class Main {
 
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:sign"), SignBlockHandler::new);
 
+        Sees sees = Sees.getInstance();
+        sees.subscribe(new MainListener());
+
         WorldManager worldManager = WorldManager.getInstance();
-        worldManager.loadWorlds();
-
-        SignManager signManager = SignManager.getInstance();
-        signManager.init();
-
-        CreatureManager creatureManager = CreatureManager.getInstance();
-        creatureManager.init();
-
-        ParkourManager parkourManager = ParkourManager.getInstance();
-        parkourManager.init();
-
-        PortalManager portalManager = PortalManager.getInstance();
-        portalManager.init();
-
-        FarmManager farmManager = FarmManager.getInstance();
-        farmManager.init();
+        worldManager.init();
 
         GlobalEventHandler eventHandler = MinecraftServer.getGlobalEventHandler();
 
@@ -157,6 +138,7 @@ public class Main {
         commandManager.register(new GamemodeCommand());
 
         // World
+        commandManager.register(new WorldCommand());
         commandManager.register(new SignCommand());
         commandManager.register(new FarmCommand());
         commandManager.register(new TimeCommand());

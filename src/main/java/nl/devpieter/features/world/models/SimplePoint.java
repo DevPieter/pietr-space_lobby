@@ -6,10 +6,12 @@ import net.minestom.server.coordinate.Pos;
 public record SimplePoint(
         double x,
         double y,
-        double z
+        double z,
+        float yaw,
+        float pitch
 ) {
 
     public Point toPoint() {
-        return new Pos(x, y, z);
+        return new Pos(x, y, z, yaw, pitch);
     }
 }

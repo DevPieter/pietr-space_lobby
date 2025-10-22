@@ -71,6 +71,8 @@ public class SignManager {
             return;
         }
 
+        int signsFound = 0;
+
         for (Point point : locations) {
             Block block = instance.getBlock(point);
             BlockHolder blockHolder = new BlockHolder(instance, point, block);
@@ -82,6 +84,7 @@ public class SignManager {
             if (!firstLine.startsWith(MARKED_SIGN_PREFIX)) continue;
 
             signHolders.add(signHolder);
+            signsFound++;
 
             String cleanedFirstLine = firstLine.substring(MARKED_SIGN_PREFIX.length()).trim();
             signHolderMap.computeIfAbsent(cleanedFirstLine, k -> new ArrayList<>()).add(signHolder);
@@ -89,7 +92,7 @@ public class SignManager {
             instance.setBlock(point, Block.AIR);
         }
 
-        logger.info("Found {} marked signs in instance {}.", signHolders.size(), id);
+        logger.info("Found {} marked signs in instance {}.", signsFound, id);
     }
 
     public void revertSigns() {

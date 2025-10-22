@@ -7,8 +7,10 @@ import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
 import net.minestom.server.instance.anvil.AnvilLoader;
 import nl.devpieter.Settings;
+import nl.devpieter.events.WorldManagerInitializedEvent;
 import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.features.world.models.World;
+import nl.devpieter.sees.Sees;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -24,9 +26,12 @@ public class WorldManager {
     private static WorldManager INSTANCE;
 
     private final Logger logger = MinecraftServer.LOGGER;
+    private final Gson gson = new Gson();
+
+    private final Sees sees = Sees.getInstance();
     private final InstanceManager instanceManager = MinecraftServer.getInstanceManager();
 
-    private final List<World> worlds = new ArrayList<>();
+    private final List<World> foundWorlds = new ArrayList<>();
     private final HashMap<String, LoadedWorld> loadedWorlds = new HashMap<>();
 
     private WorldManager() {
@@ -37,16 +42,20 @@ public class WorldManager {
         return INSTANCE;
     }
 
-    public void loadWorlds() {
+    public void init() {
+        scanWorldFolders();
+        loadWorlds();
+
+        sees.dispatch(new WorldManagerInitializedEvent());
+    }
+
+    private void loadWorlds() {
         if (!loadedWorlds.isEmpty()) {
             logger.info("Worlds are already loaded, unloading first...");
             unloadWorlds();
         }
 
         logger.info("Loading worlds...");
-
-        List<World> foundWorlds = scanWorldFolders();
-        worlds.addAll(foundWorlds);
 
         for (World world : foundWorlds) {
             logger.info("Loading world: {} ({})", world.name(), world.id());
@@ -62,7 +71,7 @@ public class WorldManager {
         logger.info("Worlds loaded");
     }
 
-    public void unloadWorlds() {
+    private void unloadWorlds() {
         logger.info("Unloading worlds...");
 
         for (LoadedWorld loadedWorld : loadedWorlds.values()) {
@@ -71,12 +80,12 @@ public class WorldManager {
         }
 
         loadedWorlds.clear();
-        worlds.clear();
-
         logger.info("Worlds unloaded");
     }
 
     private @NotNull List<World> scanWorldFolders() {
+        logger.info("Scanning world folders in: {}", Settings.WORLD_PATH_BASE);
+
         File worldsDir = new File(Settings.WORLD_PATH_BASE);
         List<World> foundWorlds = new ArrayList<>();
 
@@ -87,8 +96,6 @@ public class WorldManager {
 
         File[] files = worldsDir.listFiles();
         if (files == null) return foundWorlds;
-
-        Gson gson = new Gson();
 
         for (File file : files) {
             if (!file.isDirectory()) continue;
@@ -107,7 +114,15 @@ public class WorldManager {
             }
         }
 
+        this.foundWorlds.clear();
+        this.foundWorlds.addAll(foundWorlds);
+
+        logger.info("Finished scanning worlds. Found {} worlds.", foundWorlds.size());
         return foundWorlds;
+    }
+
+    public List<World> getFoundWorlds() {
+        return new ArrayList<>(foundWorlds);
     }
 
     public List<LoadedWorld> getWorlds() {

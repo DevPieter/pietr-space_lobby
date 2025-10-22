@@ -13,15 +13,25 @@ repositories {
             includeModule("net.minestom", "minestom")
         }
     }
+    maven {
+        name = "pietrSpaceReleases"
+        url = uri("https://maven.pietr.space/releases")
+    }
+    maven {
+        name = "pietrSpaceSnapshots"
+        url = uri("https://maven.pietr.space/snapshots")
+    }
 }
 
 dependencies {
     implementation("net.minestom:minestom:2025.10.05-1.21.8")
-//    implementation("net.minestom:minestom:1_21_9-SNAPSHOT")
-
     implementation("net.kyori:adventure-text-minimessage:4.24.0")
 
     implementation("org.slf4j:slf4j-simple:2.0.16")
+
+//    implementation("nl.devpieter:sees:1.1.0")
+    implementation("nl.devpieter:sees:1.2.0-dd2c322-SNAPSHOT")
+
 }
 
 java {
