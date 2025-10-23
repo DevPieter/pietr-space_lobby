@@ -1,4 +1,6 @@
 package nl.devpieter.models;
 
-public record BlockChangeHolder(BlockHolder original, BlockHolder replacement) {
+import net.minestom.server.instance.Instance;
+
+public record BlockChangeHolder(Instance instance, BlockHolder original, BlockHolder replacement) {
 }

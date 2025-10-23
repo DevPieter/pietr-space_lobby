@@ -3,7 +3,7 @@ package nl.devpieter.features.farming.crops.berryBush;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
-import nl.devpieter.features.farming.ISignPlaceable;
+import nl.devpieter.features.signs.interfaces.ISignPlaceable;
 import nl.devpieter.features.signs.models.SignHolder;
 import nl.devpieter.features.signs.partDecoder.IPartDecoder;
 import nl.devpieter.models.BlockChangeHolder;

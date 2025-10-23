@@ -3,15 +3,14 @@ package nl.devpieter.features.creatures;
 import net.minestom.server.entity.Entity;
 import nl.devpieter.features.creatures.entities.cuteCat.CuteCatSpawnable;
 import nl.devpieter.features.creatures.entities.cuteFox.CuteFoxSpawnable;
+import nl.devpieter.features.signs.interfaces.ISignSpawnable;
 import nl.devpieter.features.signs.SignDecoder;
 import nl.devpieter.features.signs.SignManager;
 import nl.devpieter.features.signs.models.SignHolder;
-import nl.devpieter.features.signs.partDecoder.IPartDecoder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class CreatureManager {

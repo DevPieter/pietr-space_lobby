@@ -3,7 +3,7 @@ package nl.devpieter.features.farming.crops.genericCrop;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
-import nl.devpieter.features.farming.ISignPlaceable;
+import nl.devpieter.features.signs.interfaces.ISignPlaceable;
 import nl.devpieter.features.farming.crops.genericCrop.enums.GenericCrop;
 import nl.devpieter.features.farming.crops.genericCrop.partDecoders.GenericCropPartDecoder;
 import nl.devpieter.features.signs.models.SignHolder;

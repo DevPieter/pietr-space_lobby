@@ -1,9 +1,8 @@
-package nl.devpieter.features.farming;
+package nl.devpieter.features.signs.interfaces;
 
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
-import nl.devpieter.features.signs.ISignDecodable;
 import nl.devpieter.features.signs.models.SignHolder;
 import nl.devpieter.models.BlockChangeHolder;
 import nl.devpieter.models.BlockHolder;
@@ -18,6 +17,7 @@ public interface ISignPlaceable extends ISignDecodable {
 
     default BlockChangeHolder replace(Instance instance, Point point, Block newBlock) {
         BlockChangeHolder changeHolder = new BlockChangeHolder(
+                instance,
                 new BlockHolder(
                         instance,
                         point,

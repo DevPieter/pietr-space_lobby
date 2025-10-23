@@ -7,6 +7,7 @@ import nl.devpieter.Settings;
 import nl.devpieter.features.farming.crops.berryBush.BerryBushPlaceable;
 import nl.devpieter.features.farming.crops.genericCrop.GenericCropPlaceable;
 import nl.devpieter.features.farming.crops.sugarCane.SugarCanePlaceable;
+import nl.devpieter.features.signs.interfaces.ISignPlaceable;
 import nl.devpieter.features.signs.SignDecoder;
 import nl.devpieter.features.signs.SignManager;
 import nl.devpieter.features.signs.models.SignHolder;
@@ -53,13 +54,12 @@ public class FarmManager {
 
     public void init() {
         revertFarms();
-        scanFarms();
-        shuffleFarms();
+        scanAndPlaceFarms();
 
         if (Settings.DEBUG) placeDebugMarkers();
     }
 
-    private void scanFarms() {
+    private void scanAndPlaceFarms() {
         List<SignHolder> signs = signManager.getMatchedSigns(SIGN_KEY);
         for (SignHolder sign : signs) {
 
@@ -74,7 +74,41 @@ public class FarmManager {
                     sign.block().position(),
                     sign
             ));
+
+            farmLocations.add(sign.block());
         }
+    }
+
+    public void revertFarms() {
+        clearDebugMarkers();
+
+        if (placedBlocks.isEmpty()) return;
+        logger.info("Reverting {} farms to their original state.", placedBlocks.size());
+
+        for (BlockChangeHolder changeHolder : placedBlocks) {
+            BlockHolder original = changeHolder.original();
+            changeHolder.instance().setBlock(original.position(), original.block());
+        }
+
+        placedBlocks.clear();
+        farmLocations.clear();
+    }
+
+    public void placeDebugMarkers() {
+        clearDebugMarkers();
+
+        for (BlockHolder block : farmLocations) {
+            debugMarkers.add(WorldUtils.placeMarker(
+                    block.instance(),
+                    block.position().add(0.5, 0.8, 0.5),
+                    TextUtils.miniText("<#ffcf4b>Farmable")
+            ));
+        }
+    }
+
+    public void clearDebugMarkers() {
+        for (Entity marker : debugMarkers) marker.remove();
+        debugMarkers.clear();
     }
 
     private @Nullable ISignPlaceable getFromSign(@NotNull SignHolder sign) {
@@ -91,50 +125,5 @@ public class FarmManager {
         }
 
         return null;
-    }
-
-    public void revertFarms() {
-        clearDebugMarkers();
-
-        if (farmLocations.isEmpty()) return;
-        logger.info("Reverting {} farms to their original state.", farmLocations.size());
-
-//        for (BlockHolder block : farmLocations) {
-//            Instance instance = block.instance();
-//            instance.setBlock(block.position(), block.block());
-//            instance.setBlock(block.position().add(0, 1, 0), Block.AIR);
-//        }
-//
-//        farmLocations.clear();
-    }
-
-    public void shuffleFarms() {
-//        for (BlockHolder block : farmLocations) {
-//            Instance instance = block.instance();
-//            Point point = block.position().add(0, 1, 0);
-//
-//            Block crop = getRandomCrop();
-//            instance.setBlock(point, crop);
-//
-//            Block blockBelow = getBlockBelow(crop);
-//            instance.setBlock(point.withY(point.y() - 1), blockBelow);
-//        }
-    }
-
-    public void placeDebugMarkers() {
-        clearDebugMarkers();
-
-        for (BlockHolder block : farmLocations) {
-            debugMarkers.add(WorldUtils.placeMarker(
-                    block.instance(),
-                    block.position().add(0.5, 1.8, 0.5),
-                    TextUtils.miniText("<#ffcf4b>Farmable")
-            ));
-        }
-    }
-
-    public void clearDebugMarkers() {
-        for (Entity marker : debugMarkers) marker.remove();
-        debugMarkers.clear();
     }
 }

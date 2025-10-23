@@ -6,7 +6,7 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.metadata.animal.FoxMeta;
 import net.minestom.server.instance.Instance;
-import nl.devpieter.features.creatures.ISignSpawnable;
+import nl.devpieter.features.signs.interfaces.ISignSpawnable;
 import nl.devpieter.features.creatures.entities.cuteFox.enums.CuteFoxVariant;
 import nl.devpieter.features.creatures.entities.cuteFox.partDecoders.CuteFoxVariantPartDecoder;
 import nl.devpieter.features.signs.models.SignHolder;

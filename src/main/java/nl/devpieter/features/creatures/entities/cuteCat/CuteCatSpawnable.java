@@ -6,7 +6,7 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.metadata.animal.tameable.CatMeta;
 import net.minestom.server.instance.Instance;
-import nl.devpieter.features.creatures.ISignSpawnable;
+import nl.devpieter.features.signs.interfaces.ISignSpawnable;
 import nl.devpieter.features.creatures.entities.cuteCat.enums.CuteCatCollar;
 import nl.devpieter.features.creatures.entities.cuteCat.enums.CuteCatVariant;
 import nl.devpieter.features.creatures.entities.cuteCat.partDecoders.CuteCatCollarPartDecoder;

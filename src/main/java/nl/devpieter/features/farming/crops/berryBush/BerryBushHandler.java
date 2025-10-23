@@ -17,6 +17,11 @@ public class BerryBushHandler extends FarmBlockHandler {
     }
 
     @Override
+    public boolean canBeHarvested(@NotNull BlockHolder holder) {
+        return getAge(holder) >= 2;
+    }
+
+    @Override
     public boolean onInteract(Interaction interaction) {
         Instance instance = interaction.getInstance();
         Block block = interaction.getBlock();

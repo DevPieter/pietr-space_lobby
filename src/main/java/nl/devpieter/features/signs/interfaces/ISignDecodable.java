@@ -1,4 +1,4 @@
-package nl.devpieter.features.signs;
+package nl.devpieter.features.signs.interfaces;
 
 import nl.devpieter.features.signs.partDecoder.IPartDecoder;
 

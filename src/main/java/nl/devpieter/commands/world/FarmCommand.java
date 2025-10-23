@@ -37,10 +37,6 @@ public class FarmCommand extends Command {
                     farmManager.init();
                     player.sendMessage("Initialization complete.");
                 }
-                case SHUFFLE -> {
-                    farmManager.shuffleFarms();
-                    player.sendMessage("Farms shuffled.");
-                }
                 case REVERT -> {
                     farmManager.revertFarms();
                     player.sendMessage("Farms reverted.");
@@ -60,7 +56,6 @@ public class FarmCommand extends Command {
 
     enum Action {
         INIT,
-        SHUFFLE,
         REVERT,
         DEBUG_PLACE,
         DEBUG_CLEAR
