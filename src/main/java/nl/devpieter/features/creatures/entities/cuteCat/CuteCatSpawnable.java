@@ -3,6 +3,7 @@ package nl.devpieter.features.creatures.entities.cuteCat;
 import net.minestom.server.component.DataComponents;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.metadata.animal.tameable.CatMeta;
 import net.minestom.server.instance.Instance;
@@ -30,7 +31,7 @@ public class CuteCatSpawnable implements ISignSpawnable {
     private boolean isSitting = false;
     private boolean isBaby = false;
 
-    private Point offset = Pos.ZERO;
+    private Point offset = Vec.ZERO;
     private YawPitch rotation = YawPitch.ZERO;
 
     @Override

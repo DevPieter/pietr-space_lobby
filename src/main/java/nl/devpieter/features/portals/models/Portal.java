@@ -1,13 +1,16 @@
 package nl.devpieter.features.portals.models;
 
+import net.minestom.server.collision.BoundingBox;
+import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
-
-import java.util.UUID;
+import net.minestom.server.instance.Instance;
+import nl.devpieter.features.world.models.World;
 
 public record Portal(
-        String destinationWorld,
+        Instance instance,
+        World destinationWorld,
         Pos destinationPos,
-        Pos start,
-        Pos end
+        Point origin,
+        BoundingBox boundingBox
 ) {
 }

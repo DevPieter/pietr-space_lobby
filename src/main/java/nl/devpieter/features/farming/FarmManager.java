@@ -7,12 +7,13 @@ import nl.devpieter.Settings;
 import nl.devpieter.features.farming.crops.berryBush.BerryBushPlaceable;
 import nl.devpieter.features.farming.crops.genericCrop.GenericCropPlaceable;
 import nl.devpieter.features.farming.crops.sugarCane.SugarCanePlaceable;
-import nl.devpieter.features.signs.interfaces.ISignPlaceable;
 import nl.devpieter.features.signs.SignDecoder;
 import nl.devpieter.features.signs.SignManager;
+import nl.devpieter.features.signs.interfaces.ISignPlaceable;
 import nl.devpieter.features.signs.models.SignHolder;
 import nl.devpieter.models.BlockChangeHolder;
 import nl.devpieter.models.BlockHolder;
+import nl.devpieter.models.PointHolder;
 import nl.devpieter.utils.TextUtils;
 import nl.devpieter.utils.WorldUtils;
 import org.jetbrains.annotations.NotNull;
@@ -33,11 +34,11 @@ public class FarmManager {
     private final ComponentLogger logger = MinecraftServer.LOGGER;
     private final SignManager signManager = SignManager.getInstance();
 
-    private final List<ISignPlaceable> placeables = new ArrayList<>();
-    private final List<BlockChangeHolder> placedBlocks = new ArrayList<>();
-
-    private final List<BlockHolder> farmLocations = new ArrayList<>();
     private final List<Entity> debugMarkers = new ArrayList<>();
+    private final List<ISignPlaceable> placeables = new ArrayList<>();
+
+    private final List<PointHolder> farmLocations = new ArrayList<>();
+    private final List<BlockChangeHolder> placedBlocks = new ArrayList<>();
 
     private FarmManager() {
         placeables.addAll(List.of(
@@ -75,7 +76,7 @@ public class FarmManager {
                     sign
             ));
 
-            farmLocations.add(sign.block());
+            farmLocations.add(PointHolder.of(sign.block()));
         }
     }
 
@@ -97,10 +98,10 @@ public class FarmManager {
     public void placeDebugMarkers() {
         clearDebugMarkers();
 
-        for (BlockHolder block : farmLocations) {
+        for (PointHolder point : farmLocations) {
             debugMarkers.add(WorldUtils.placeMarker(
-                    block.instance(),
-                    block.position().add(0.5, 0.8, 0.5),
+                    point.instance(),
+                    point.position().add(0.5, 0.8, 0.5),
                     TextUtils.miniText("<#ffcf4b>Farmable")
             ));
         }

@@ -10,6 +10,7 @@ import nl.devpieter.features.portals.PortalManager;
 import nl.devpieter.features.portals.models.Portal;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
+import nl.devpieter.utils.PlayerUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class PortalPlayerMoveListener implements EventListener<@NotNull PlayerMoveEvent> {
@@ -34,19 +35,25 @@ public class PortalPlayerMoveListener implements EventListener<@NotNull PlayerMo
             return Result.SUCCESS;
         }
 
-        LoadedWorld world = this.worldManager.getWorldByInstance(currentWorld);
+        LoadedWorld world = this.worldManager.getLoadedWorldByInstance(currentWorld);
         if (world == null) return Result.SUCCESS;
 
-        Portal portal = this.portalManager.getIntersectingPortal(player.getPosition(), world.world().id());
+        Portal portal = this.portalManager.getIntersectingPortal(player);
         if (portal == null) return Result.SUCCESS;
 
-        LoadedWorld destination = this.worldManager.getWorldById(portal.destinationWorld());
+        LoadedWorld destination = this.worldManager.getLoadedWorld(portal.destinationWorld());
         if (destination == null) return Result.SUCCESS;
 
         this.parkourManager.cancelParkour(player, ParkourCancelReason.PortalUsed);
 
         this.portalManager.startPortalCooldown(player.getUuid());
-        player.setInstance(destination.instance(), portal.destinationPos());
+
+        if (player.getInstance() != destination.instance()) {
+            player.setInstance(destination.instance(), portal.destinationPos());
+        } else {
+            PlayerUtils.teleport(player, portal.destinationPos());
+        }
+
         return Result.SUCCESS;
     }
 }

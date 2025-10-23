@@ -12,7 +12,6 @@ import net.minestom.server.entity.metadata.display.BlockDisplayMeta;
 import net.minestom.server.entity.metadata.display.TextDisplayMeta;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.Instance;
-import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.block.Block;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class WorldUtils {
 
-    public static void placeBoundingBox(@NotNull Instance instance, @NotNull Pos origin, @NotNull BoundingBox box) {
+    public static Entity placeBoundingBox(@NotNull Instance instance, @NotNull Point origin, @NotNull BoundingBox box) {
         double sizeX = Math.abs(box.relativeEnd().x() - box.relativeStart().x());
         double sizeY = Math.abs(box.relativeEnd().y() - box.relativeStart().y());
         double sizeZ = Math.abs(box.relativeEnd().z() - box.relativeStart().z());
@@ -40,6 +39,8 @@ public class WorldUtils {
 
             meta.setHasNoGravity(true);
         });
+
+        return entity;
     }
 
     public static Entity placeMarker(@NotNull Instance instance, @NotNull Point point, @NotNull Component text) {

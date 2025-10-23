@@ -8,5 +8,4 @@ import java.util.List;
 public interface ISignDecodable {
 
     HashMap<Integer, List<IPartDecoder<?>>> getDecoders();
-
 }

@@ -30,7 +30,7 @@ public class PlayerMoveListener implements EventListener<@NotNull PlayerMoveEven
             return Result.SUCCESS;
         }
 
-        LoadedWorld world = worldManager.getWorldByInstance(player.getInstance());
+        LoadedWorld world = worldManager.getLoadedWorldByInstance(player.getInstance());
         if (world == null) return Result.INVALID;
 
         PlayerUtils.teleport(player, world.world().settings().spawn().toPoint().asPos());

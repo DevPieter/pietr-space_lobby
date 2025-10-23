@@ -244,7 +244,7 @@ public class ParkourManager {
 
     public void init() {
         for (Parkour parkour : parkours.values()) {
-            LoadedWorld world = worldManager.getWorldById(parkour.worldId());
+            LoadedWorld world = worldManager.getLoadedWorldById(parkour.worldId());
             if (world == null) continue;
 
             InstanceContainer instance = world.instance();

@@ -24,7 +24,7 @@ public class PlayerConfigurationListener implements EventListener<@NotNull Async
 
     @Override
     public @NotNull Result run(@NotNull AsyncPlayerConfigurationEvent event) {
-        LoadedWorld world = worldManager.getWorldById("main");
+        LoadedWorld world = worldManager.getLoadedWorldById("main");
         if (world == null) return Result.INVALID;
 
         InstanceContainer container = world.instance();

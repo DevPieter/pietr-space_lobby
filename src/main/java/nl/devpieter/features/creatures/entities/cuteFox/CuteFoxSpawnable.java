@@ -3,6 +3,7 @@ package nl.devpieter.features.creatures.entities.cuteFox;
 import net.minestom.server.component.DataComponents;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.metadata.animal.FoxMeta;
 import net.minestom.server.instance.Instance;
@@ -27,7 +28,7 @@ public class CuteFoxSpawnable implements ISignSpawnable {
     private boolean isSitting = false;
     private boolean isBaby = false;
 
-    private Point offset = Pos.ZERO;
+    private Point offset = Vec.ZERO;
     private YawPitch rotation = YawPitch.ZERO;
 
     @Override

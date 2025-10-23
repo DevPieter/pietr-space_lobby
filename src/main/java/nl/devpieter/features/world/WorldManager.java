@@ -76,7 +76,10 @@ public class WorldManager {
 
         for (LoadedWorld loadedWorld : loadedWorlds.values()) {
             logger.info("Unloading world: {} ({})", loadedWorld.world().name(), loadedWorld.world().id());
-            instanceManager.unregisterInstance(loadedWorld.instance());
+            Instance instance = loadedWorld.instance();
+
+            instance.getPlayers().forEach(player -> player.kick("World is unloading"));
+            instanceManager.unregisterInstance(instance);
         }
 
         loadedWorlds.clear();
@@ -129,12 +132,28 @@ public class WorldManager {
         return new ArrayList<>(loadedWorlds.values());
     }
 
-    public @Nullable LoadedWorld getWorldById(@Nullable String id) {
+    public @Nullable World getWorldById(@Nullable String id) {
+        if (id == null) return null;
+
+        for (World world : foundWorlds) {
+            if (!world.id().equals(id)) continue;
+            return world;
+        }
+
+        return null;
+    }
+
+    public @Nullable LoadedWorld getLoadedWorld(World world) {
+        if (world == null) return null;
+        return loadedWorlds.get(world.id());
+    }
+
+    public @Nullable LoadedWorld getLoadedWorldById(@Nullable String id) {
         if (id == null) return null;
         return loadedWorlds.get(id);
     }
 
-    public @Nullable LoadedWorld getWorldByInstance(@Nullable Instance instance) {
+    public @Nullable LoadedWorld getLoadedWorldByInstance(@Nullable Instance instance) {
         if (instance == null) return null;
 
         for (LoadedWorld loadedWorld : loadedWorlds.values()) {
