@@ -27,10 +27,8 @@ public class PlayerBlockBreakListener implements EventListener<@NotNull PlayerBl
         Instance instance = event.getInstance();
         Block block = event.getBlock();
 
-        System.out.println("Player " + event.getPlayer().getUsername() + " broke block " + block.name() + " at " + event.getBlockPosition());
-
         BlockHolder holder = new BlockHolder(instance, event.getBlockPosition(), block);
-        if (!farmHandler.isMature(holder)) return Result.SUCCESS;
+        if (!farmHandler.canBeHarvested(holder)) return Result.SUCCESS;
 
         farmHandler.replant(holder, event.getPlayer());
         return Result.SUCCESS;

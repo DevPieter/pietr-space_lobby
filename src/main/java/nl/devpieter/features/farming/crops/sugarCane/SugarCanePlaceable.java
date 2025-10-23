@@ -20,7 +20,7 @@ public class SugarCanePlaceable implements ISignPlaceable {
 
     @Override
     public List<BlockChangeHolder> place(Instance instance, Point point, SignHolder signHolder) {
-        Block berryBush = Block.SUGAR_CANE.withHandler(new SugarCaneHandler());
+        Block berryBush = Block.SUGAR_CANE.withHandler(new SugarCaneHandler(point));
         return List.of(replace(instance, point, berryBush));
     }
 

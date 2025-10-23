@@ -22,7 +22,7 @@ public class BerryBushHandler extends FarmBlockHandler {
         Block block = interaction.getBlock();
 
         BlockHolder holder = new BlockHolder(instance, interaction.getBlockPosition(), block);
-        if (!isMature(holder)) return false;
+        if (!canBeHarvested(holder)) return false;
 
         replant(holder, interaction.getPlayer());
         return true;

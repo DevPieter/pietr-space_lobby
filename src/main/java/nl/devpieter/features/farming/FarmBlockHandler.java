@@ -23,8 +23,8 @@ public abstract class FarmBlockHandler implements BlockHandler {
     protected long lastGrowTime = System.currentTimeMillis();
     protected long nextGrowInterval = -1;
 
-    private Sound replantSound = null;
-    private Sound growSound = Sound.sound(Key.key("item.bone_meal.use"), Sound.Source.BLOCK, 0.3f, 1.0f);
+    protected Sound replantSound = null;
+    protected Sound growSound = Sound.sound(Key.key("item.bone_meal.use"), Sound.Source.BLOCK, 0.3f, 1.0f);
 
     protected FarmBlockHandler(long minGrowInterval, long maxGrowInterval, int maxAge) {
         this.minGrowInterval = minGrowInterval;
@@ -57,6 +57,15 @@ public abstract class FarmBlockHandler implements BlockHandler {
         return true;
     }
 
+    public boolean isMature(@NotNull BlockHolder holder) {
+        int age = getAge(holder);
+        return age != -1 && age >= maxAge;
+    }
+
+    public boolean canBeHarvested(@NotNull BlockHolder holder) {
+        return isMature(holder);
+    }
+
     public int getAge(@NotNull BlockHolder holder) {
         Block block = holder.block();
 
@@ -64,23 +73,6 @@ public abstract class FarmBlockHandler implements BlockHandler {
         if (ageProperty == null) return -1;
 
         return Integer.parseInt(ageProperty);
-    }
-
-    public boolean isMature(@NotNull BlockHolder holder) {
-        int age = getAge(holder);
-        return age != -1 && age >= maxAge;
-    }
-
-    public void replant(@NotNull BlockHolder holder, @Nullable Entity replanter) {
-        Instance instance = holder.instance();
-        Block block = holder.block();
-        Point position = holder.position();
-
-        instance.setBlock(position, block.withProperty("age", "0"));
-        onReplant(instance, block, position, replanter);
-
-        nextGrowInterval = -1;
-        lastGrowTime = System.currentTimeMillis();
     }
 
     public int maxAge() {
@@ -93,6 +85,18 @@ public abstract class FarmBlockHandler implements BlockHandler {
 
         instance.setBlock(holder.position(), block.withProperty("age", String.valueOf(newAge)));
         onGrow(instance, block, holder.position());
+    }
+
+    public void replant(@NotNull BlockHolder holder, @Nullable Entity replanter) {
+        Instance instance = holder.instance();
+        Block block = holder.block();
+        Point position = holder.position();
+
+        instance.setBlock(position, block.withProperty("age", "0"));
+        onReplant(instance, block, position, replanter);
+
+        nextGrowInterval = -1;
+        lastGrowTime = System.currentTimeMillis();
     }
 
     protected void onGrow(Instance instance, Block block, Point position) {
