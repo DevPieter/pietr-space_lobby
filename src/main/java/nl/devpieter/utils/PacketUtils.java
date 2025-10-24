@@ -1,6 +1,7 @@
 package nl.devpieter.utils;
 
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.Player;
@@ -27,13 +28,11 @@ public class PacketUtils {
         player.sendPacket(new SpawnEntityPacket(
                 glowingEntity.getEntityId(),
                 glowingEntity.getUuid(),
-                EntityType.FALLING_BLOCK.id(),
+                EntityType.FALLING_BLOCK,
                 pos,
                 0f,
                 block.stateId(),
-                (short) 0,
-                (short) 0,
-                (short) 0
+                Vec.ZERO
         ));
 
         player.sendPacket(glowingEntity.getMetadataPacket());
