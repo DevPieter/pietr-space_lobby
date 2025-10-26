@@ -8,7 +8,8 @@ COPY gradle /app/gradle
 
 COPY src /app/src
 
-RUN ./gradlew shadowJar
+RUN chmod +x ./gradlew
+RUN ./gradlew --no-daemon shadowJar
 
 EXPOSE 25565
 
