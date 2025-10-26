@@ -1,11 +1,8 @@
 package nl.devpieter.commands.world;
 
 import net.minestom.server.command.builder.Command;
-import net.minestom.server.command.builder.arguments.ArgumentEnum;
-import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.entity.Player;
 import nl.devpieter.features.farming.FarmManager;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -16,48 +13,58 @@ public class FarmCommand extends Command {
     public FarmCommand() {
         super("farm");
 
-        setDefaultExecutor((sender, context) -> {
-            sender.sendMessage("Usage: /farm <action>");
-        });
-
         setCondition((sender, commandString) -> {
             if (!(sender instanceof Player player)) return false;
             return player.getUuid().equals(UUID.fromString("c292f4e0-f990-4592-a067-f5f77c15d408"));
         });
 
-        ArgumentEnum<@NotNull Action> actionArgument = ArgumentType.Enum("action", Action.class).setFormat(ArgumentEnum.Format.LOWER_CASED);
+        setDefaultExecutor((sender, context) -> {
+            sender.sendMessage("Usage: /farm <init|revert|debug>");
+        });
 
-        addSyntax((sender, context) -> {
-            Action action = context.get(actionArgument);
+        Command init = new Command("init");
+        init.setDefaultExecutor((sender, context) -> {
             if (!(sender instanceof Player player)) return;
 
-            switch (action) {
-                case INIT -> {
-                    player.sendMessage("Initializing, this may take a while...");
-                    farmManager.init();
-                    player.sendMessage("Initialization complete.");
-                }
-                case REVERT -> {
-                    farmManager.revertFarms();
-                    player.sendMessage("Farms reverted.");
-                }
-                // TODO - Convert into subcommands
-                case DEBUG_PLACE -> {
-                    farmManager.placeDebugMarkers();
-                    player.sendMessage("Farm debug markers placed.");
-                }
-                case DEBUG_CLEAR -> {
-                    farmManager.clearDebugMarkers();
-                    player.sendMessage("Farm debug markers cleared.");
-                }
-            }
-        }, actionArgument);
-    }
+            player.sendMessage("Initializing, this may take a while...");
+            farmManager.init();
+            player.sendMessage("Initialization complete.");
+        });
 
-    enum Action {
-        INIT,
-        REVERT,
-        DEBUG_PLACE,
-        DEBUG_CLEAR
+        Command revert = new Command("revert");
+        revert.setDefaultExecutor((sender, context) -> {
+            if (!(sender instanceof Player player)) return;
+
+            farmManager.revertFarms();
+            player.sendMessage("All farms reverted to original state.");
+        });
+
+        Command debug = new Command("debug");
+        debug.setDefaultExecutor((sender, context) -> {
+            sender.sendMessage("Usage: /farm debug <place|clear>");
+        });
+
+        Command debugPlace = new Command("place");
+        debugPlace.setDefaultExecutor((sender, context) -> {
+            if (!(sender instanceof Player player)) return;
+
+            farmManager.placeDebugMarkers();
+            player.sendMessage("Debug markers placed.");
+        });
+
+        Command debugClear = new Command("clear");
+        debugClear.setDefaultExecutor((sender, context) -> {
+            if (!(sender instanceof Player player)) return;
+
+            farmManager.clearDebugMarkers();
+            player.sendMessage("Debug markers cleared.");
+        });
+
+        debug.addSubcommand(debugPlace);
+        debug.addSubcommand(debugClear);
+
+        addSubcommand(init);
+        addSubcommand(revert);
+        addSubcommand(debug);
     }
 }

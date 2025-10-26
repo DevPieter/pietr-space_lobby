@@ -68,7 +68,7 @@ public class PortalManager {
         }
     }
 
-    private void revertPortals() {
+    public void revertPortals() {
         clearDebugMarkers();
 
         if (portals.isEmpty()) return;

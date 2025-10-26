@@ -141,6 +141,8 @@ public class Main {
         commandManager.register(new WorldCommand());
         commandManager.register(new SignCommand());
         commandManager.register(new FarmCommand());
+        commandManager.register(new PortalCommand());
+
         commandManager.register(new TimeCommand());
         commandManager.register(new WeatherCommand());
 
