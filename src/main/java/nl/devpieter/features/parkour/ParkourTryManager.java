@@ -56,10 +56,11 @@ public class ParkourTryManager {
                 CreateParkourTryRequest parkourTryRequest = CreateParkourTryRequest.of(parkourTry);
                 if (debug) logger.info("Posting ParkourTry for player: {}", parkourTry.playerUuid());
 
-                postParkourTry(parkourTryRequest).exceptionally(e -> {
-                    logger.error("Failed to post ParkourTry for player: {} - {}", parkourTry.playerUuid(), e.getMessage());
-                    return null;
-                });
+                // TODO - First update the API to support posting
+//                postParkourTry(parkourTryRequest).exceptionally(e -> {
+//                    logger.error("Failed to post ParkourTry for player: {} - {}", parkourTry.playerUuid(), e.getMessage());
+//                    return null;
+//                });
             }
 
             if (debug) logger.info("Done processing ParkourTries");
