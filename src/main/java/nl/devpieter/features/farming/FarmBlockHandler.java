@@ -4,11 +4,13 @@ import net.kyori.adventure.sound.Sound;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
+import net.minestom.server.entity.Player;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.particle.Particle;
 import net.minestom.server.sound.SoundEvent;
+import nl.devpieter.features.experience.ExperienceManager;
 import nl.devpieter.models.BlockHolder;
 import nl.devpieter.utils.ParticleUtils;
 import nl.devpieter.utils.SoundUtils;
@@ -98,6 +100,9 @@ public abstract class FarmBlockHandler implements BlockHandler {
 
         nextGrowInterval = -1;
         lastGrowTime = System.currentTimeMillis();
+
+        if (!(replanter instanceof Player player)) return;
+        ExperienceManager.getInstance().grantExperience(player, "test_experience_category", 1.0);
     }
 
     protected void onGrow(Instance instance, Block block, Point position) {
