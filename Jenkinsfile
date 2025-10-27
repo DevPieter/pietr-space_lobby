@@ -30,6 +30,7 @@ pipeline {
                     docker.withRegistry("https://${REGISTRY}", 'pietr-space_harbor') {
                         def img = docker.build("${PROJECT}/${IMAGE_NAME}:${tag}")
                         img.push()
+                        img.push('latest')
                     }
                 }
             }
