@@ -1,5 +1,6 @@
 package nl.devpieter.features.experience.category;
 
+import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import nl.devpieter.utils.TextUtils;
 
@@ -14,7 +15,12 @@ public class TestExperienceCategory implements IExperienceCategory {
 
     @Override
     public Component getName() {
-        return TextUtils.miniText("Test Experience Category");
+        return TextUtils.miniText("<gradient:#65b4c9:#656cc9>Testing");
+    }
+
+    @Override
+    public BossBar.Color getBossBarColor() {
+        return BossBar.Color.BLUE;
     }
 
     @Override

@@ -10,7 +10,6 @@ import net.minestom.server.particle.Particle;
 import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.models.BlockHolder;
 import nl.devpieter.utils.ParticleUtils;
-import nl.devpieter.utils.SoundUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,13 +22,22 @@ public class SugarCaneHandler extends FarmBlockHandler {
     private final List<Point> offspring = new ArrayList<>();
 
     public SugarCaneHandler(Point base) {
-        super(4_000, 6_000, 3);
+        super(5_000, 8_000, 3);
         this.base = base;
     }
 
     @Override
     public @NotNull Key getKey() {
         return Key.key("pieter_space", "sugar_cane_crop");
+    }
+
+    @Override
+    protected int getExperienceOnHarvest(@NotNull BlockHolder holder, @Nullable Entity harvester, int age) {
+        return switch (age) {
+            case 2 -> 2;
+            case 3 -> 4;
+            default -> 0;
+        };
     }
 
     @Override
@@ -45,27 +53,22 @@ public class SugarCaneHandler extends FarmBlockHandler {
     @Override
     protected void grow(@NotNull BlockHolder holder, int currentAge, int newAge) {
         if (!canGrow(holder)) return;
-
-        Instance instance = holder.instance();
-        Block block = holder.block();
+        onGrow(holder);
 
         Pos newPos = base.asPos().add(0, currentAge, 0);
-        instance.setBlock(newPos, block);
+        holder.instance().setBlock(newPos, holder.block());
         offspring.add(newPos);
-
-        onGrow(instance, block, holder.position());
     }
 
     @Override
     public void replant(@NotNull BlockHolder holder, @Nullable Entity replanter) {
+        onReplant(holder, replanter);
+
         Instance instance = holder.instance();
         Block block = holder.block();
-        Pos position = holder.position().asPos();
 
         Pos basePos = base.asPos();
         int height = getAge(holder);
-
-        onReplant(instance, block, position, replanter);
 
         for (int y = 0; y < height; y++) {
             Pos removePos = basePos.add(0, y, 0);
@@ -80,8 +83,8 @@ public class SugarCaneHandler extends FarmBlockHandler {
     }
 
     @Override
-    protected void onReplant(Instance instance, Block block, Point position, @Nullable Entity replanter) {
-        SoundUtils.playSoundInWorld(instance, position, replantSound);
+    protected void onReplant(@NotNull BlockHolder holder, @Nullable Entity replanter) {
+        super.onReplant(holder, replanter);
         if (replanter == null) return;
 
         for (Point pos : offspring) {

@@ -11,10 +11,7 @@ import nl.devpieter.features.fishing.rods.ProRod;
 import nl.devpieter.features.fishing.rods.VanillaRod;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class FishingManager {
 
@@ -90,13 +87,37 @@ public class FishingManager {
     public @Nullable ICatchable getRandomCatchable(Player player, IRod rod) {
         if (this.catchables.isEmpty()) return null;
 
-        double totalWeight = Math.max(100.0d, this.catchables.stream().mapToDouble(c -> c.getPickChance(player, rod)).sum());
-        double randomValue = Math.random() * totalWeight;
-        double cumulativeWeight = 0.0d;
+        int n = this.catchables.size();
 
-        for (ICatchable catchable : this.catchables) {
-            cumulativeWeight += catchable.getPickChance(player, rod);
-            if (randomValue < cumulativeWeight) return catchable;
+        double[] weights = new double[n];
+        double sum = 0.0d;
+
+        for (int i = 0; i < n; i++) {
+            double w = Math.max(0.0d, this.catchables.get(i).getPickChance(player, rod));
+            weights[i] = w;
+            sum += w;
+        }
+
+        // If every weight is zero, give equal chance
+        if (sum == 0.0d) {
+            Arrays.fill(weights, 1.0d);
+            sum = n;
+        }
+
+        // If total is less than 100, distribute the remaining weight evenly across items
+        if (sum < 100.0d) {
+            double extraPerItem = (100.0d - sum) / n;
+            for (int i = 0; i < n; i++) weights[i] += extraPerItem;
+
+            sum = 100.0d;
+        }
+
+        double randomValue = Math.random() * sum;
+        double cumulative = 0.0d;
+
+        for (int i = 0; i < n; i++) {
+            cumulative += weights[i];
+            if (randomValue < cumulative) return this.catchables.get(i);
         }
 
         return null;

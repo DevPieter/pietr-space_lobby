@@ -3,6 +3,8 @@ package nl.devpieter.features.experience;
 import net.kyori.adventure.bossbar.BossBar;
 import net.minestom.server.entity.Player;
 import net.minestom.server.sound.SoundEvent;
+import nl.devpieter.features.experience.categories.FarmingExperienceCategory;
+import nl.devpieter.features.experience.categories.FishingExperienceCategory;
 import nl.devpieter.features.experience.category.IExperienceCategory;
 import nl.devpieter.features.experience.category.TestExperienceCategory;
 import nl.devpieter.features.experience.models.LevelHolder;
@@ -23,7 +25,11 @@ public class ExperienceManager {
     private final HashMap<UUID, LevelHolder> levels = new HashMap<>();
 
     private ExperienceManager() {
-        categories.add(new TestExperienceCategory());
+        categories.addAll(List.of(
+                new TestExperienceCategory(),
+                new FarmingExperienceCategory(),
+                new FishingExperienceCategory()
+        ));
     }
 
     public static ExperienceManager getInstance() {
@@ -43,7 +49,7 @@ public class ExperienceManager {
         int newLevel = levelHolder.getLevel();
 
         if (newLevel > currentLevel) {
-            player.sendMessage(TextUtils.miniText("<green>Congratulations! You leveled up to <white>" + newLevel + " <green>in <white>").append(category.getName()).append(TextUtils.miniText("<green>!")));
+            player.sendMessage(TextUtils.miniText("<green>You leveled up to Level <b>" + newLevel + "</b> in ").append(category.getName()).append(TextUtils.miniText("<green>!")));
             SoundUtils.playSoundForPlayer(player, SoundEvent.ENTITY_PLAYER_LEVELUP);
         }
 
@@ -52,12 +58,14 @@ public class ExperienceManager {
         }
 
         bossBar = BossBar.bossBar(
-                TextUtils.miniText("XP in ").append(category.getName()),
+                category.getName().append(TextUtils.miniText(" Level " + levelHolder.getLevel())),
                 (float) (levelHolder.getExperience() / levelHolder.getRequiredExperienceForNextLevel(category)),
-                BossBar.Color.GREEN,
+                category.getBossBarColor(),
                 BossBar.Overlay.PROGRESS
         );
         player.showBossBar(bossBar);
+
+        player.sendActionBar(TextUtils.miniText("<green>+" + String.format("%.2f", amount) + " ").append(category.getName()).append(TextUtils.miniText(" <green>XP!")));
 
 //        double currentExp = levelHolder.getExperience();
 //        double neededExp = levelHolder.getRequiredExperienceForNextLevel(category);

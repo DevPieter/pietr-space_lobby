@@ -1,5 +1,6 @@
 package nl.devpieter.features.experience.category;
 
+import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 
 import java.util.function.DoubleFunction;
@@ -9,6 +10,8 @@ public interface IExperienceCategory {
     String getId();
 
     Component getName();
+
+    BossBar.Color getBossBarColor();
 
     double getBaseExperience();
 

@@ -1,11 +1,9 @@
 package nl.devpieter.features.farming;
 
 import net.kyori.adventure.sound.Sound;
-import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
-import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.particle.Particle;
@@ -34,6 +32,8 @@ public abstract class FarmBlockHandler implements BlockHandler {
         this.maxGrowInterval = maxGrowInterval;
         this.maxAge = maxAge;
     }
+
+    protected abstract int getExperienceOnHarvest(@NotNull BlockHolder holder, @Nullable Entity harvester, int age);
 
     @Override
     public void tick(Tick tick) {
@@ -83,44 +83,39 @@ public abstract class FarmBlockHandler implements BlockHandler {
     }
 
     protected void grow(@NotNull BlockHolder holder, int currentAge, int newAge) {
-        Instance instance = holder.instance();
-        Block block = holder.block();
-
-        instance.setBlock(holder.position(), block.withProperty("age", String.valueOf(newAge)));
-        onGrow(instance, block, holder.position());
+        onGrow(holder);
+        holder.instance().setBlock(holder.position(), holder.block().withProperty("age", String.valueOf(newAge)));
     }
 
     public void replant(@NotNull BlockHolder holder, @Nullable Entity replanter) {
-        Instance instance = holder.instance();
-        Block block = holder.block();
-        Point position = holder.position();
-
-        instance.setBlock(position, block.withProperty("age", "0"));
-        onReplant(instance, block, position, replanter);
+        onReplant(holder, replanter);
+        holder.instance().setBlock(holder.position(), holder.block().withProperty("age", "0"));
 
         nextGrowInterval = -1;
         lastGrowTime = System.currentTimeMillis();
-
-        if (!(replanter instanceof Player player)) return;
-        ExperienceManager.getInstance().grantExperience(player, "test_experience_category", 1.0);
     }
 
-    protected void onGrow(Instance instance, Block block, Point position) {
-        SoundUtils.playSoundInWorld(instance, position, growSound);
+    protected void onGrow(@NotNull BlockHolder holder) {
+        SoundUtils.playSoundInWorld(holder.instance(), holder.position(), growSound);
     }
 
-    protected void onReplant(Instance instance, Block block, Point position, @Nullable Entity replanter) {
-        SoundUtils.playSoundInWorld(instance, position, growSound);
+    protected void onReplant(@NotNull BlockHolder holder, @Nullable Entity replanter) {
+        SoundUtils.playSoundInWorld(holder.instance(), holder.position(), replantSound);
         if (replanter == null) return;
 
         ParticleUtils.spawnParticleToViewersAndSelf(
                 replanter,
                 Particle.HAPPY_VILLAGER,
-                position.add(0.5, 0.5, 0.5),
+                holder.position().add(0.5, 0.5, 0.5),
                 new Pos(0.25, 0.25, 0.25),
                 0f,
                 4
         );
+
+        if (replanter instanceof Player player) {
+            int exp = getExperienceOnHarvest(holder, replanter, getAge(holder));
+            ExperienceManager.getInstance().grantExperience(player, "farming", exp);
+        }
     }
 
     protected void setReplantSound(Sound sound) {
