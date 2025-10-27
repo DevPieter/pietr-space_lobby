@@ -4,10 +4,12 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Point;
+import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Player;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
+import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import nl.devpieter.utils.MathUtils;
@@ -25,23 +27,28 @@ public class DoorBlockHandler implements BlockHandler {
     @Override
     public boolean onInteract(Interaction interaction) {
         boolean isOpen = "true".equals(interaction.getBlock().getProperty("open"));
+        boolean isHingeLeft = "left".equals(interaction.getBlock().getProperty("hinge"));
         boolean newState = !isOpen;
 
-        setDoorState(interaction.getInstance(), interaction.getBlockPosition(), interaction.getPlayer(), newState);
+        Instance instance = interaction.getInstance();
+        Block block = interaction.getBlock();
+        Point point = interaction.getBlockPosition();
+        Player player = interaction.getPlayer();
+
+        setDoorState(instance, block, point, player, newState);
         cancelCloseTask();
 
         if (newState) closeTask = scheduler.buildTask(() -> {
-            setDoorState(interaction.getInstance(), interaction.getBlockPosition(), null, false);
+            setDoorState(instance, block, point, null, false);
 
-            Sound sound = Sound.sound(
-                    Key.key("minecraft", "entity.player.breath"),
-                    Sound.Source.AMBIENT,
+            SoundUtils.playSoundInWorld(
+                    instance,
+                    getSoundPosition(block, point),
+                    SoundEvent.ENTITY_PLAYER_BREATH,
                     0.7f,
                     MathUtils.randomFloat(0.6f, 1.0f)
             );
-
-            SoundUtils.playSoundInWorld(interaction.getInstance(), interaction.getBlockPosition().add(0.5, 0.5, 0.5), sound);
-        }).delay(Duration.ofSeconds(8)).schedule();
+        }).delay(Duration.ofSeconds(MathUtils.randomInt(6, 12))).schedule();
 
         return true;
     }
@@ -59,12 +66,10 @@ public class DoorBlockHandler implements BlockHandler {
         closeTask = null;
     }
 
-    private void setDoorState(Instance instance, Point point, @Nullable Player player, boolean open) {
-        Block block = instance.getBlock(point);
+    private void setDoorState(Instance instance, Block block, Point point, @Nullable Player player, boolean open) {
         String newState = open ? "true" : "false";
 
         boolean isUpperPart = "upper".equals(block.getProperty("half"));
-
         Point lowerPos = isUpperPart ? point.withY(point.y() - 1) : point;
         Point upperPos = isUpperPart ? point : point.withY(point.y() + 1);
 
@@ -78,13 +83,32 @@ public class DoorBlockHandler implements BlockHandler {
         instance.setBlock(upperPos, newUpper);
 
         Sound sound = Sound.sound(
-                open ? Key.key("minecraft", "block.wooden_door.open") : Key.key("minecraft", "block.wooden_door.close"),
+                open ? SoundEvent.BLOCK_WOODEN_DOOR_OPEN : SoundEvent.BLOCK_WOODEN_DOOR_CLOSE,
                 Sound.Source.BLOCK,
                 0.9f,
                 1f
         );
 
-        if (player != null) SoundUtils.playSoundToViewers(player, lowerPos.add(0.5, 0.5, 0.5), sound);
-        else SoundUtils.playSoundInWorld(instance, lowerPos.add(0.5, 0.5, 0.5), sound);
+        Point soundPos = getSoundPosition(newLower, lowerPos);
+        if (player != null) SoundUtils.playSoundToViewers(player, soundPos, sound);
+        else SoundUtils.playSoundInWorld(instance, soundPos, sound);
+    }
+
+    private Point getSoundPosition(Block block, Point point) {
+        String facing = block.getProperty("facing");
+        if (facing == null) return point.add(0.5, 0.5, 0.5);
+
+        String hinge = block.getProperty("hinge");
+        if (hinge == null) return point.add(0.5, 0.5, 0.5);
+
+        Point offset = switch (facing) {
+            case "north" -> hinge.equals("left") ? new Vec(-0.3, 0, 0) : new Vec(0.3, 0, 0);
+            case "south" -> hinge.equals("left") ? new Vec(0.3, 0, 0) : new Vec(-0.3, 0, 0);
+            case "west" -> hinge.equals("left") ? new Vec(0, 0, 0.3) : new Vec(0, 0, -0.3);
+            case "east" -> hinge.equals("left") ? new Vec(0, 0, -0.3) : new Vec(0, 0, 0.3);
+            default -> new Vec(0, 0, 0);
+        };
+
+        return point.add(0.5 + offset.x(), 0.5 + offset.y(), 0.5 + offset.z());
     }
 }
