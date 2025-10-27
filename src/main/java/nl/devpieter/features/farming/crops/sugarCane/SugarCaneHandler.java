@@ -22,7 +22,7 @@ public class SugarCaneHandler extends FarmBlockHandler {
     private final List<Point> offspring = new ArrayList<>();
 
     public SugarCaneHandler(Point base) {
-        super(4_000, 6_000, 4);
+        super(4_000, 6_000, 3);
         this.base = base;
     }
 
