@@ -25,6 +25,7 @@ import nl.devpieter.commands.ServerCommand;
 import nl.devpieter.commands.TestCommand;
 import nl.devpieter.commands.player.GamemodeCommand;
 import nl.devpieter.commands.world.*;
+import nl.devpieter.features.experience.ExperienceManager;
 import nl.devpieter.features.farming.listeners.PlayerBlockBreakListener;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.FishingReferenceHolder;
@@ -37,6 +38,7 @@ import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerMoveListener;
 import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
+import nl.devpieter.features.sitting.SitManager;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
 import nl.devpieter.features.world.WorldManager;
@@ -117,6 +119,13 @@ public class Main {
                     .append(TextUtils.miniText("<#586373>!"))
             );
 
+            boolean isSitting = SitManager.getInstance().isSitting(player);
+            boolean isRaining = player.getInstance() != null && player.getInstance().getWeather().isRaining();
+
+            int bonus = isRaining ? 1 : 0;
+            bonus += isSitting ? 2 : 0;
+
+            ExperienceManager.getInstance().grantExperience(player, "fishing", 3, bonus);
             playSoundEffect(player);
         });
 

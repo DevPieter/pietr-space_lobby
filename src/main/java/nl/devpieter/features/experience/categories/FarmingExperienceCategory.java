@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import nl.devpieter.features.experience.category.IExperienceCategory;
 import nl.devpieter.utils.TextUtils;
 
+import java.awt.*;
 import java.util.function.DoubleFunction;
 
 public class FarmingExperienceCategory implements IExperienceCategory {
@@ -17,6 +18,11 @@ public class FarmingExperienceCategory implements IExperienceCategory {
     @Override
     public Component getName() {
         return TextUtils.miniText("<gradient:#c9d265:#c9a665>Farming");
+    }
+
+    @Override
+    public Color getColor() {
+        return new Color(0xc9d265);
     }
 
     @Override

@@ -27,6 +27,13 @@ public class TextUtils {
         return CLEAR.append(MiniMessage.miniMessage().deserialize(String.format(minimessageString, args)));
     }
 
+    public static @NotNull Component combine(@NotNull Component... components) {
+        Component combined = CLEAR;
+        for (Component component : components) combined = combined.append(component);
+
+        return combined;
+    }
+
     public static @NotNull String getFormattedTime(long timeMs, boolean includeMillis, boolean small) {
         long totalSeconds = timeMs / 1000;
         long minutes = totalSeconds / 60;
