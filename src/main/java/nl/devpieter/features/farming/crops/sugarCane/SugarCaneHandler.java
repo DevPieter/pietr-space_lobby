@@ -6,10 +6,11 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
-import net.minestom.server.network.packet.server.play.ParticlePacket;
 import net.minestom.server.particle.Particle;
 import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.models.BlockHolder;
+import nl.devpieter.utils.ParticleUtils;
+import nl.devpieter.utils.SoundUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -80,17 +81,18 @@ public class SugarCaneHandler extends FarmBlockHandler {
 
     @Override
     protected void onReplant(Instance instance, Block block, Point position, @Nullable Entity replanter) {
-        playSound(instance, position, replantSound);
+        SoundUtils.playSoundInWorld(instance, position, replantSound);
         if (replanter == null) return;
 
         for (Point pos : offspring) {
-            replanter.sendPacketToViewersAndSelf(new ParticlePacket(
+            ParticleUtils.spawnParticleToViewersAndSelf(
+                    replanter,
                     Particle.HAPPY_VILLAGER,
                     pos.add(0.5, 0.5, 0.5),
                     new Pos(0.25, 0.25, 0.25),
-                    0,
+                    0f,
                     4
-            ));
+            );
         }
     }
 
