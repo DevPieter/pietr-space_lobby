@@ -34,7 +34,6 @@ public class PortalManager {
     private final SignManager signManager = SignManager.getInstance();
 
     private final List<Entity> debugMarkers = new ArrayList<>();
-    private final ISignPortalPlaceable portalDecodable = new PortalDecodable();
 
     private final List<PointHolder> portalLocations = new ArrayList<>();
     private final List<Portal> portals = new ArrayList<>();
@@ -54,6 +53,7 @@ public class PortalManager {
     private void scanAndRegisterPortals() {
         List<SignHolder> signs = signManager.getMatchedSigns(SIGN_KEY);
         for (SignHolder sign : signs) {
+            PortalDecodable portalDecodable = new PortalDecodable();
 
             List<String> lines = sign.lines().subList(1, sign.lines().size());
             SignDecoder.decodeLines(lines, portalDecodable.getDecoders());

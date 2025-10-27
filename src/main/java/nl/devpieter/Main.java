@@ -140,6 +140,7 @@ public class Main {
         // World
         commandManager.register(new WorldCommand());
         commandManager.register(new SignCommand());
+        commandManager.register(new CreatureCommand());
         commandManager.register(new FarmCommand());
         commandManager.register(new PortalCommand());
 

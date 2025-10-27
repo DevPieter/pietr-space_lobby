@@ -2,6 +2,7 @@ package nl.devpieter.features.farming;
 
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Entity;
 import nl.devpieter.Settings;
 import nl.devpieter.features.farming.crops.berryBush.BerryBushPlaceable;
@@ -21,15 +22,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class FarmManager {
 
     private static FarmManager INSTANCE;
     private static final String SIGN_KEY = "<FARM>";
-    private static final String RANDOM_KEY = "<RNG>";
-
-    private final Random random = new Random();
 
     private final ComponentLogger logger = MinecraftServer.LOGGER;
     private final SignManager signManager = SignManager.getInstance();
@@ -64,7 +61,7 @@ public class FarmManager {
         List<SignHolder> signs = signManager.getMatchedSigns(SIGN_KEY);
         for (SignHolder sign : signs) {
 
-            ISignPlaceable placeable = getFromSign(sign);
+            ISignPlaceable placeable = getFreshFromSign(sign);
             if (placeable == null) continue;
 
             List<String> lines = sign.lines().subList(2, sign.lines().size());
@@ -112,17 +109,17 @@ public class FarmManager {
         debugMarkers.clear();
     }
 
-    private @Nullable ISignPlaceable getFromSign(@NotNull SignHolder sign) {
-        String secondLine = sign.lines().get(1);
+    private @Nullable ISignPlaceable getFreshFromSign(@NotNull SignHolder sign) {
+        try {
+            String secondLine = sign.lines().get(1);
 
-        if (secondLine.equals(RANDOM_KEY)) {
-            int randomIndex = random.nextInt(placeables.size());
-            return placeables.get(randomIndex);
-        }
-
-        for (ISignPlaceable signPlaceable : placeables) {
-            if (!signPlaceable.getIdentifier().matches(secondLine)) continue;
-            return signPlaceable;
+            for (ISignPlaceable signPlaceable : placeables) {
+                if (!signPlaceable.getIdentifier().matches(secondLine)) continue;
+                return (ISignPlaceable) signPlaceable.freshInstance();
+            }
+        } catch (Exception e) {
+            Point pos = sign.block().position();
+            logger.error("Error while getting farm placeable for sign at {}:{}", pos.x(), pos.y(), e);
         }
 
         return null;
