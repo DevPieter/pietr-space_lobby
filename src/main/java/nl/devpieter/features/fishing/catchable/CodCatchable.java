@@ -6,22 +6,30 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import nl.devpieter.features.fishing.bobber.FishingBobber;
 import nl.devpieter.features.fishing.rod.IRod;
+import nl.devpieter.utils.TextUtils;
 
-public class CodCatchable implements ICatchable {
+import java.util.UUID;
+
+public class CodCatchable extends Catchable {
 
     @Override
-    public Component getName() {
-        return Component.text("Cod");
+    public UUID getId() {
+        return UUID.fromString("be321241-18de-48eb-aa3f-8ac8d2d6e6aa");
     }
 
     @Override
-    public ItemStack getItem() {
-        return ItemStack.of(Material.COD).withCustomName(getName());
+    public Component getName() {
+        return TextUtils.miniText("<gradient:#cbac82:#d9cbb6>Cod");
+    }
+
+    @Override
+    protected ItemStack getItemStack() {
+        return ItemStack.of(Material.COD);
     }
 
     @Override
     public double getPickChance(Player player, IRod rod) {
-        return 50.0;
+        return 40.0;
     }
 
     @Override
@@ -39,5 +47,9 @@ public class CodCatchable implements ICatchable {
 
     @Override
     public void onFail(Player player, IRod rod, FishingBobber bobber) {
+    }
+
+    @Override
+    public void onPickup(Player player, IRod rod) {
     }
 }

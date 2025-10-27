@@ -1,11 +1,10 @@
 package nl.devpieter.features.fishing;
 
+import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.tag.Tag;
-import nl.devpieter.features.fishing.catchable.CodCatchable;
-import nl.devpieter.features.fishing.catchable.ICatchable;
-import nl.devpieter.features.fishing.catchable.SalmonCatchable;
+import nl.devpieter.features.fishing.catchable.*;
 import nl.devpieter.features.fishing.rod.IRod;
 import nl.devpieter.features.fishing.rods.DefaultRod;
 import nl.devpieter.features.fishing.rods.ProRod;
@@ -13,6 +12,7 @@ import nl.devpieter.features.fishing.rods.VanillaRod;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,6 +23,8 @@ public class FishingManager {
     private final List<IRod> rods = new ArrayList<>();
     private final List<ICatchable> catchables = new ArrayList<>();
 
+    private final HashMap<UUID, FishingReferenceHolder> fishingReferences = new HashMap<>();
+
     private FishingManager() {
         rods.addAll(List.of(
                 new VanillaRod(),
@@ -32,7 +34,9 @@ public class FishingManager {
 
         catchables.addAll(List.of(
                 new CodCatchable(),
-                new SalmonCatchable()
+                new SalmonCatchable(),
+                new NautilusCatchable(),
+                new ShardCatchable()
         ));
     }
 
@@ -49,6 +53,18 @@ public class FishingManager {
         return catchables;
     }
 
+    public void registerReference(Entity entity, FishingReferenceHolder reference) {
+        fishingReferences.put(entity.getUuid(), reference);
+    }
+
+    public FishingReferenceHolder getReference(Entity entity) {
+        return fishingReferences.get(entity.getUuid());
+    }
+
+    public void unregisterReference(Entity entity) {
+        fishingReferences.remove(entity.getUuid());
+    }
+
     public @Nullable IRod getRodByItem(ItemStack itemStack) {
         for (IRod rod : this.rods) {
             UUID itemId = itemStack.getTag(Tag.UUID("rod_id"));
@@ -56,6 +72,18 @@ public class FishingManager {
 
             if (rod.getId().equals(itemId)) return rod;
         }
+
+        return null;
+    }
+
+    public @Nullable ICatchable getCatchableByItem(ItemStack itemStack) {
+        for (ICatchable catchable : this.catchables) {
+            UUID itemId = itemStack.getTag(Tag.UUID("catchable_id"));
+            if (itemId == null) continue;
+
+            if (catchable.getId().equals(itemId)) return catchable;
+        }
+
         return null;
     }
 

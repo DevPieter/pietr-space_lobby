@@ -1,20 +1,20 @@
 package nl.devpieter.features.fishing.catchable;
 
 import net.kyori.adventure.text.Component;
-import net.minestom.server.coordinate.Pos;
-import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Player;
 import net.minestom.server.item.ItemStack;
-import nl.devpieter.entities.PhysicsItem;
 import nl.devpieter.features.fishing.bobber.FishingBobber;
 import nl.devpieter.features.fishing.rod.IRod;
-import org.jetbrains.annotations.NotNull;
+
+import java.util.UUID;
 
 public interface ICatchable {
 
+    UUID getId();
+
     Component getName();
 
-    ItemStack getItem();
+    ItemStack buildItem();
 
     double getPickChance(Player player, IRod rod);
 
@@ -26,17 +26,5 @@ public interface ICatchable {
 
     void onFail(Player player, IRod rod, FishingBobber bobber);
 
-    default void reelInItem(@NotNull Player player, @NotNull FishingBobber bobber) {
-        PhysicsItem itemEntity = new PhysicsItem(getItem());
-
-        Pos pPos = player.getPosition();
-        Pos bPos = bobber.getPosition();
-
-        double x = pPos.x() - bPos.x();
-        double y = pPos.y() - bPos.y();
-        double z = pPos.z() - bPos.z();
-
-        itemEntity.setInstance(player.getInstance(), bPos);
-        itemEntity.setVelocity(new Vec(x * 0.1, y * 0.1 + Math.sqrt(Math.sqrt(x * x + y * y + z * z)) * 0.08, z * 0.1));
-    }
+    void onPickup(Player player, IRod rod);
 }

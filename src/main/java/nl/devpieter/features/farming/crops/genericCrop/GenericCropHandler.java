@@ -2,6 +2,7 @@ package nl.devpieter.features.farming.crops.genericCrop;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
+import net.minestom.server.sound.SoundEvent;
 import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.features.farming.crops.genericCrop.enums.GenericCrop;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +16,7 @@ public class GenericCropHandler extends FarmBlockHandler {
     public GenericCropHandler(long minGrowInterval, long maxGrowInterval, int maxAge) {
         super(minGrowInterval, maxGrowInterval, maxAge);
 
-        setReplantSound(Sound.sound(Key.key("item.crop.plant"), Sound.Source.BLOCK, 0.45f, 0.96f));
+        setReplantSound(Sound.sound(SoundEvent.ITEM_CROP_PLANT, Sound.Source.BLOCK, 0.45f, 0.96f));
     }
 
     @Override

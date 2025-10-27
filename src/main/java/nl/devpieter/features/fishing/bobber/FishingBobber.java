@@ -1,6 +1,5 @@
 package nl.devpieter.features.fishing.bobber;
 
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.collision.PhysicsResult;
@@ -13,8 +12,8 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.entity.metadata.other.FishingHookMeta;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
-import net.minestom.server.network.packet.server.play.ParticlePacket;
 import net.minestom.server.particle.Particle;
+import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.utils.chunk.ChunkCache;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.catchable.ICatchable;
@@ -23,6 +22,7 @@ import nl.devpieter.features.fishing.models.BobberSettings;
 import nl.devpieter.features.fishing.rod.IRod;
 import nl.devpieter.features.sitting.SitManager;
 import nl.devpieter.utils.MathUtils;
+import nl.devpieter.utils.ParticleUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -213,31 +213,34 @@ public class FishingBobber extends EntityCreature implements IBobber {
 
 //            if (blockState.isOf(Blocks.WATER)) {
                 {
-                    if (rng.nextFloat() < 0.15f) sendPacketToViewersAndSelf(new ParticlePacket(
+                    if (rng.nextFloat() < 0.15f) ParticleUtils.spawnParticleToViewersAndSelf(
+                            this,
                             Particle.BUBBLE,
                             new Pos(particleX, particleY - 0.1f, particleZ),
                             new Pos(sinAngle, 0.1f, cosAngle),
                             0,
                             1
-                    ));
+                    );
 
                     float offsetX = cosAngle * 0.04f;
                     float offsetZ = sinAngle * 0.04f;
 
-                    sendPacketToViewersAndSelf(new ParticlePacket(
+                    ParticleUtils.spawnParticleToViewersAndSelf(
+                            this,
                             Particle.FISHING,
                             new Pos(particleX, particleY, particleZ),
                             new Pos(offsetX, 0.01f, -offsetZ),
                             1.0f,
                             0
-                    ));
-                    sendPacketToViewersAndSelf(new ParticlePacket(
+                    );
+                    ParticleUtils.spawnParticleToViewersAndSelf(
+                            this,
                             Particle.FISHING,
                             new Pos(particleX, particleY, particleZ),
                             new Pos(-offsetX, 0.01f, offsetZ),
                             1.0f,
                             0
-                    ));
+                    );
                 }
             } else {
                 currentCatchable.onBite(thrower, rod, this);
@@ -247,7 +250,7 @@ public class FishingBobber extends EntityCreature implements IBobber {
                 caught = true;
 
                 instance.playSound(Sound.sound(
-                        Key.key("entity.fishing_bobber.splash"),
+                        SoundEvent.ENTITY_FISHING_BOBBER_SPLASH,
                         Sound.Source.NEUTRAL,
                         0.25f, 1.0f + (rng.nextFloat() - rng.nextFloat()) * 0.4f
                 ), getPosition());
@@ -255,20 +258,22 @@ public class FishingBobber extends EntityCreature implements IBobber {
                 Pos particlePos = new Pos(getPosition().x(), getPosition().y() + 0.5, getPosition().z());
                 Pos particleOffset = new Pos(getBoundingBox().width(), 0.0, getBoundingBox().width());
 
-                sendPacketToViewersAndSelf(new ParticlePacket(
+                ParticleUtils.spawnParticleToViewersAndSelf(
+                        this,
                         Particle.BUBBLE,
                         particlePos,
                         particleOffset,
                         0.2f,
                         (int) (1.0f + getBoundingBox().width() * 20.0f)
-                ));
-                sendPacketToViewersAndSelf(new ParticlePacket(
+                );
+                ParticleUtils.spawnParticleToViewersAndSelf(
+                        this,
                         Particle.FISHING,
                         particlePos,
                         particleOffset,
                         0.2f,
                         (int) (1.0f + getBoundingBox().width() * 20.0f)
-                ));
+                );
 
                 setVelocity(new Vec(getVelocity().x(), -0.4f * rng.nextFloat(0.6f, 1.0f), getVelocity().z()));
             }
@@ -290,13 +295,14 @@ public class FishingBobber extends EntityCreature implements IBobber {
 
 //            if (blockState.isOf(Blocks.WATER)) {
                 {
-                    sendPacketToViewersAndSelf(new ParticlePacket(
+                    ParticleUtils.spawnParticleToViewersAndSelf(
+                            this,
                             Particle.SPLASH,
                             new Pos(splashX, splashY - 0.1f, splashZ),
                             new Pos(0.1, 0.0, 0.1),
                             0,
                             2 + rng.nextInt(2)
-                    ));
+                    );
                 }
             }
 

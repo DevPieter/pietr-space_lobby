@@ -8,12 +8,17 @@ import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.inventory.InventoryPreClickEvent;
+import net.minestom.server.event.item.PickupItemEvent;
 import net.minestom.server.event.player.*;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
+import net.minestom.server.sound.SoundEvent;
+import net.minestom.server.timer.Scheduler;
+import net.minestom.server.timer.Task;
+import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.blockHandler.DoorBlockHandler;
 import nl.devpieter.blockHandler.SignBlockHandler;
 import nl.devpieter.commands.ServerCommand;
@@ -21,7 +26,11 @@ import nl.devpieter.commands.TestCommand;
 import nl.devpieter.commands.player.GamemodeCommand;
 import nl.devpieter.commands.world.*;
 import nl.devpieter.features.farming.listeners.PlayerBlockBreakListener;
+import nl.devpieter.features.fishing.FishingManager;
+import nl.devpieter.features.fishing.FishingReferenceHolder;
+import nl.devpieter.features.fishing.catchable.ICatchable;
 import nl.devpieter.features.fishing.listeners.PlayerUseItemListener;
+import nl.devpieter.features.fishing.rod.IRod;
 import nl.devpieter.features.parkour.ParkourManager;
 import nl.devpieter.features.parkour.ParkourTryManager;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
@@ -37,7 +46,11 @@ import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
 import nl.devpieter.sees.Sees;
 import nl.devpieter.utils.PacketUtils;
+import nl.devpieter.utils.SoundUtils;
+import nl.devpieter.utils.TextUtils;
 import org.slf4j.Logger;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Main {
 
@@ -77,6 +90,34 @@ public class Main {
                         event.getHand()
                 ));
             }
+        });
+
+        MinecraftServer.getGlobalEventHandler().addListener(PickupItemEvent.class, event -> {
+            FishingManager manager = FishingManager.getInstance();
+
+            FishingReferenceHolder reference = manager.getReference(event.getItemEntity());
+            if (reference == null) return;
+
+            Player player = reference.player();
+            if (player.getUuid() != event.getEntity().getUuid()) {
+                event.setCancelled(true);
+                return;
+            }
+
+            manager.unregisterReference(event.getEntity());
+            reference.catchable().onPickup(player, reference.rod());
+
+            IRod rod = reference.rod();
+            ICatchable catchable = reference.catchable();
+
+            player.sendMessage(TextUtils.miniText("<#586373>You caught a ")
+                    .append(catchable.getName())
+                    .append(TextUtils.miniText("<#586373> with your "))
+                    .append(rod.getName())
+                    .append(TextUtils.miniText("<#586373>!"))
+            );
+
+            playSoundEffect(player);
         });
 
         Sees sees = Sees.getInstance();
@@ -177,5 +218,18 @@ public class Main {
 
         ParkourTryManager.getInstance().start();
         server.start("0.0.0.0", 25565);
+    }
+
+    private static void playSoundEffect(Player player) {
+        Scheduler scheduler = MinecraftServer.getSchedulerManager();
+
+        AtomicReference<Float> pitch = new AtomicReference<>(0.6f);
+
+        Task task = scheduler.scheduleTask(() -> {
+            SoundUtils.playSoundForPlayer(player, SoundEvent.BLOCK_NOTE_BLOCK_BASS, 1.5f, pitch.get());
+            pitch.updateAndGet(v -> v + 0.2f);
+        }, TaskSchedule.immediate(), TaskSchedule.millis(100));
+
+        scheduler.scheduleTask(task::cancel, TaskSchedule.millis(500), TaskSchedule.stop());
     }
 }

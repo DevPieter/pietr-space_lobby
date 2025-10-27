@@ -6,42 +6,50 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import nl.devpieter.features.fishing.bobber.FishingBobber;
 import nl.devpieter.features.fishing.rod.IRod;
+import nl.devpieter.utils.TextUtils;
 
-public class SalmonCatchable implements ICatchable {
+import java.util.UUID;
+
+public class SalmonCatchable extends Catchable {
 
     @Override
-    public Component getName() {
-        return Component.text("Salmon");
+    public UUID getId() {
+        return UUID.fromString("8f42bf9d-0c1b-4969-b3f7-e57e73131821");
     }
 
     @Override
-    public ItemStack getItem() {
-        return ItemStack.of(Material.SALMON).withCustomName(getName());
+    public Component getName() {
+        return TextUtils.miniText("<gradient:#b44d4c:#c49e98>Salmon");
+    }
+
+    @Override
+    protected ItemStack getItemStack() {
+        return ItemStack.of(Material.SALMON);
     }
 
     @Override
     public double getPickChance(Player player, IRod rod) {
-        return 50.0;
+        return 40.0;
     }
 
     @Override
     public void onLure(Player player, IRod rod, FishingBobber bobber) {
-//        player.sendMessage(Component.text("You feel a tug on your line..."));
     }
 
     @Override
     public void onBite(Player player, IRod rod, FishingBobber bobber) {
-//        player.sendMessage(Component.text("A salmon is nibbling on your hook!"));
     }
 
     @Override
     public void onCatch(Player player, IRod rod, FishingBobber bobber) {
-//        player.sendMessage(Component.text("You caught a salmon!"));
         reelInItem(player, bobber);
     }
 
     @Override
     public void onFail(Player player, IRod rod, FishingBobber bobber) {
-//        player.sendMessage(Component.text("The salmon got away!"));
+    }
+
+    @Override
+    public void onPickup(Player player, IRod rod) {
     }
 }
