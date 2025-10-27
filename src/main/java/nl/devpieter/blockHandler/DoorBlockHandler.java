@@ -8,11 +8,10 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
-import net.minestom.server.network.packet.server.play.SoundEffectPacket;
-import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import nl.devpieter.utils.MathUtils;
+import nl.devpieter.utils.SoundUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +40,7 @@ public class DoorBlockHandler implements BlockHandler {
                     MathUtils.randomFloat(0.6f, 1.0f)
             );
 
-            playSoundInWorld(interaction.getInstance(), interaction.getBlockPosition().add(0.5, 0.5, 0.5), sound);
+            SoundUtils.playSoundInWorld(interaction.getInstance(), interaction.getBlockPosition().add(0.5, 0.5, 0.5), sound);
         }).delay(Duration.ofSeconds(8)).schedule();
 
         return true;
@@ -85,32 +84,7 @@ public class DoorBlockHandler implements BlockHandler {
                 1f
         );
 
-        if (player != null) playSoundToViewers(player, lowerPos.add(0.5, 0.5, 0.5), sound);
-        else playSoundInWorld(instance, lowerPos.add(0.5, 0.5, 0.5), sound);
-    }
-
-    private void playSoundInWorld(Instance instance, Point point, Sound sound) {
-        instance.playSound(sound, point);
-    }
-
-    private void playSoundToViewers(Player player, Point point, Sound sound) {
-        SoundEvent soundEvent = SoundEvent.fromKey(sound.name());
-        if (soundEvent == null) return;
-
-        SoundEffectPacket packet = new SoundEffectPacket(
-                soundEvent,
-                sound.source(),
-//                (int) (point.x() * 8),
-//                (int) (point.y() * 8),
-//                (int) (point.z() * 8),
-                (int) point.x(),
-                (int) point.y(),
-                (int) point.z(),
-                sound.volume(),
-                sound.pitch(),
-                0L
-        );
-
-        player.sendPacketToViewers(packet);
+        if (player != null) SoundUtils.playSoundToViewers(player, lowerPos.add(0.5, 0.5, 0.5), sound);
+        else SoundUtils.playSoundInWorld(instance, lowerPos.add(0.5, 0.5, 0.5), sound);
     }
 }

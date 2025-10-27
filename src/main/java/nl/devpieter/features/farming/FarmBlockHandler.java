@@ -8,9 +8,10 @@ import net.minestom.server.entity.Entity;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
-import net.minestom.server.network.packet.server.play.ParticlePacket;
 import net.minestom.server.particle.Particle;
 import nl.devpieter.models.BlockHolder;
+import nl.devpieter.utils.ParticleUtils;
+import nl.devpieter.utils.SoundUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,20 +101,21 @@ public abstract class FarmBlockHandler implements BlockHandler {
     }
 
     protected void onGrow(Instance instance, Block block, Point position) {
-        playSound(instance, position, growSound);
+        SoundUtils.playSoundInWorld(instance, position, growSound);
     }
 
     protected void onReplant(Instance instance, Block block, Point position, @Nullable Entity replanter) {
-        playSound(instance, position, replantSound);
+        SoundUtils.playSoundInWorld(instance, position, growSound);
         if (replanter == null) return;
 
-        replanter.sendPacketToViewersAndSelf(new ParticlePacket(
+        ParticleUtils.spawnParticleToViewersAndSelf(
+                replanter,
                 Particle.HAPPY_VILLAGER,
                 position.add(0.5, 0.5, 0.5),
                 new Pos(0.25, 0.25, 0.25),
-                0,
+                0f,
                 4
-        ));
+        );
     }
 
     protected void setReplantSound(Sound sound) {
@@ -122,9 +124,5 @@ public abstract class FarmBlockHandler implements BlockHandler {
 
     protected void setGrowSound(Sound sound) {
         this.growSound = sound;
-    }
-
-    protected void playSound(Instance instance, Point position, Sound sound) {
-        if (sound != null) instance.playSound(sound, position);
     }
 }
