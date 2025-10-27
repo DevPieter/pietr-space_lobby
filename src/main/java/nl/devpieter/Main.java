@@ -1,6 +1,7 @@
 package nl.devpieter;
 
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandManager;
@@ -8,6 +9,7 @@ import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.inventory.InventoryPreClickEvent;
+import net.minestom.server.event.item.PickupItemEvent;
 import net.minestom.server.event.player.*;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
@@ -21,7 +23,11 @@ import nl.devpieter.commands.TestCommand;
 import nl.devpieter.commands.player.GamemodeCommand;
 import nl.devpieter.commands.world.*;
 import nl.devpieter.features.farming.listeners.PlayerBlockBreakListener;
+import nl.devpieter.features.fishing.FishingManager;
+import nl.devpieter.features.fishing.FishingReferenceHolder;
+import nl.devpieter.features.fishing.catchable.ICatchable;
 import nl.devpieter.features.fishing.listeners.PlayerUseItemListener;
+import nl.devpieter.features.fishing.rod.IRod;
 import nl.devpieter.features.parkour.ParkourManager;
 import nl.devpieter.features.parkour.ParkourTryManager;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
@@ -77,6 +83,19 @@ public class Main {
                         event.getHand()
                 ));
             }
+        });
+
+        MinecraftServer.getGlobalEventHandler().addListener(PickupItemEvent.class, event -> {
+            FishingReferenceHolder reference = FishingManager.getInstance().popReference(event.getItemEntity());
+            if (reference == null) return;
+
+            Player player = reference.player();
+            reference.catchable().onPickup(player, reference.rod());
+
+            IRod rod = reference.rod();
+            ICatchable catchable = reference.catchable();
+
+            player.sendMessage(Component.text("You caught a ").append(catchable.getName().append(Component.text(" using a ")).append(rod.getName())));
         });
 
         Sees sees = Sees.getInstance();

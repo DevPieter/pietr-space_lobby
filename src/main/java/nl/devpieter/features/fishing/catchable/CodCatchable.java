@@ -7,7 +7,14 @@ import net.minestom.server.item.Material;
 import nl.devpieter.features.fishing.bobber.FishingBobber;
 import nl.devpieter.features.fishing.rod.IRod;
 
-public class CodCatchable implements ICatchable {
+import java.util.UUID;
+
+public class CodCatchable extends Catchable {
+
+    @Override
+    public UUID getId() {
+        return UUID.fromString("be321241-18de-48eb-aa3f-8ac8d2d6e6aa");
+    }
 
     @Override
     public Component getName() {
@@ -15,8 +22,8 @@ public class CodCatchable implements ICatchable {
     }
 
     @Override
-    public ItemStack getItem() {
-        return ItemStack.of(Material.COD).withCustomName(getName());
+    protected ItemStack getItemStack() {
+        return ItemStack.of(Material.COD);
     }
 
     @Override
@@ -39,5 +46,10 @@ public class CodCatchable implements ICatchable {
 
     @Override
     public void onFail(Player player, IRod rod, FishingBobber bobber) {
+    }
+
+    @Override
+    public void onPickup(Player player, IRod rod) {
+        player.sendMessage(Component.text("You picked up a Cod!"));
     }
 }

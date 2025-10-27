@@ -2,7 +2,6 @@ package nl.devpieter.utils;
 
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Entity;
-import net.minestom.server.entity.Player;
 import net.minestom.server.network.packet.server.play.ParticlePacket;
 import net.minestom.server.particle.Particle;
 import org.jetbrains.annotations.NotNull;

@@ -7,14 +7,18 @@ import net.minestom.server.instance.Instance;
 import net.minestom.server.network.packet.server.play.SoundEffectPacket;
 import net.minestom.server.sound.SoundEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SoundUtils {
 
-    public static void playSoundInWorld(@NotNull Instance instance, @NotNull Point point, @NotNull Sound sound) {
+    public static void playSoundInWorld(@NotNull Instance instance, @NotNull Point point, @Nullable Sound sound) {
+        if (sound == null) return;
         instance.playSound(sound, point);
     }
 
-    public static void playSoundToViewers(@NotNull Entity entity, @NotNull Point point, @NotNull Sound sound) {
+    public static void playSoundToViewers(@NotNull Entity entity, @NotNull Point point, @Nullable Sound sound) {
+        if (sound == null) return;
+
         SoundEvent soundEvent = SoundEvent.fromKey(sound.name());
         if (soundEvent == null) return;
 

@@ -7,7 +7,14 @@ import net.minestom.server.item.Material;
 import nl.devpieter.features.fishing.bobber.FishingBobber;
 import nl.devpieter.features.fishing.rod.IRod;
 
-public class SalmonCatchable implements ICatchable {
+import java.util.UUID;
+
+public class SalmonCatchable extends Catchable {
+
+    @Override
+    public UUID getId() {
+        return UUID.fromString("8f42bf9d-0c1b-4969-b3f7-e57e73131821");
+    }
 
     @Override
     public Component getName() {
@@ -15,8 +22,8 @@ public class SalmonCatchable implements ICatchable {
     }
 
     @Override
-    public ItemStack getItem() {
-        return ItemStack.of(Material.SALMON).withCustomName(getName());
+    protected ItemStack getItemStack() {
+        return ItemStack.of(Material.SALMON);
     }
 
     @Override
@@ -26,22 +33,23 @@ public class SalmonCatchable implements ICatchable {
 
     @Override
     public void onLure(Player player, IRod rod, FishingBobber bobber) {
-//        player.sendMessage(Component.text("You feel a tug on your line..."));
     }
 
     @Override
     public void onBite(Player player, IRod rod, FishingBobber bobber) {
-//        player.sendMessage(Component.text("A salmon is nibbling on your hook!"));
     }
 
     @Override
     public void onCatch(Player player, IRod rod, FishingBobber bobber) {
-//        player.sendMessage(Component.text("You caught a salmon!"));
         reelInItem(player, bobber);
     }
 
     @Override
     public void onFail(Player player, IRod rod, FishingBobber bobber) {
-//        player.sendMessage(Component.text("The salmon got away!"));
+    }
+
+    @Override
+    public void onPickup(Player player, IRod rod) {
+        player.sendMessage(Component.text("You picked up a Salmon!"));
     }
 }
