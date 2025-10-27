@@ -4,6 +4,7 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
+import net.minestom.server.sound.SoundEvent;
 import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.models.BlockHolder;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +14,7 @@ public class BerryBushHandler extends FarmBlockHandler {
     public BerryBushHandler() {
         super(5_000, 8_000, 3);
 
-        setReplantSound(Sound.sound(Key.key("block.sweet_berry_bush.pick_berries"), Sound.Source.BLOCK, 0.8f, 0.8f));
+        setReplantSound(Sound.sound(SoundEvent.BLOCK_SWEET_BERRY_BUSH_PICK_BERRIES, Sound.Source.BLOCK, 0.8f, 0.8f));
     }
 
     @Override

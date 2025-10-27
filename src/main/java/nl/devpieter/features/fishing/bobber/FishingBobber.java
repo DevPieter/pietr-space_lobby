@@ -1,6 +1,5 @@
 package nl.devpieter.features.fishing.bobber;
 
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.collision.PhysicsResult;
@@ -14,6 +13,7 @@ import net.minestom.server.entity.metadata.other.FishingHookMeta;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.particle.Particle;
+import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.utils.chunk.ChunkCache;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.catchable.ICatchable;
@@ -250,7 +250,7 @@ public class FishingBobber extends EntityCreature implements IBobber {
                 caught = true;
 
                 instance.playSound(Sound.sound(
-                        Key.key("entity.fishing_bobber.splash"),
+                        SoundEvent.ENTITY_FISHING_BOBBER_SPLASH,
                         Sound.Source.NEUTRAL,
                         0.25f, 1.0f + (rng.nextFloat() - rng.nextFloat()) * 0.4f
                 ), getPosition());

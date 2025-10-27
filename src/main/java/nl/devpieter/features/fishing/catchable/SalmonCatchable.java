@@ -6,6 +6,7 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import nl.devpieter.features.fishing.bobber.FishingBobber;
 import nl.devpieter.features.fishing.rod.IRod;
+import nl.devpieter.utils.TextUtils;
 
 import java.util.UUID;
 
@@ -18,7 +19,7 @@ public class SalmonCatchable extends Catchable {
 
     @Override
     public Component getName() {
-        return Component.text("Salmon");
+        return TextUtils.miniText("<gradient:#b44d4c:#c49e98>Salmon");
     }
 
     @Override
@@ -28,7 +29,7 @@ public class SalmonCatchable extends Catchable {
 
     @Override
     public double getPickChance(Player player, IRod rod) {
-        return 50.0;
+        return 40.0;
     }
 
     @Override
@@ -50,6 +51,5 @@ public class SalmonCatchable extends Catchable {
 
     @Override
     public void onPickup(Player player, IRod rod) {
-        player.sendMessage(Component.text("You picked up a Salmon!"));
     }
 }

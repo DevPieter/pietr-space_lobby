@@ -1,6 +1,5 @@
 package nl.devpieter.features.parkour;
 
-import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Pos;
@@ -18,10 +17,7 @@ import nl.devpieter.features.parkour.models.*;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.models.GlowingBlockHolder;
-import nl.devpieter.utils.PacketUtils;
-import nl.devpieter.utils.PlayerUtils;
-import nl.devpieter.utils.TextUtils;
-import nl.devpieter.utils.WorldUtils;
+import nl.devpieter.utils.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -361,7 +357,7 @@ public class ParkourManager {
         if (parkour == null) return;
 
         player.sendMessage(TextUtils.miniText("<green>Parkour started! Go go go!"));
-        player.playSound(Sound.sound(SoundEvent.BLOCK_NOTE_BLOCK_PLING, Sound.Source.MASTER, 1.0f, 1.0f));
+        SoundUtils.playSoundForPlayer(player, SoundEvent.BLOCK_NOTE_BLOCK_PLING);
 
         Pos nextCheckpoint = getFirstCheckpoint(parkour);
         glowingHolders.put(player.getUuid(), PacketUtils.replaceWithGlowing(player, nextCheckpoint));
@@ -389,7 +385,7 @@ public class ParkourManager {
 
         if (reason == ParkourCancelReason.PlayerRequest) {
             player.sendMessage(TextUtils.miniText("<red>You cancelled the parkour!"));
-            player.playSound(Sound.sound(SoundEvent.ENTITY_VILLAGER_NO, Sound.Source.MASTER, 1.0f, 1.0f));
+            SoundUtils.playSoundForPlayer(player, SoundEvent.ENTITY_VILLAGER_NO);
 
             if (parkourTry.lastReachedNode() >= 0 && parkourTry.lastReachedNode() < parkour.nodes().size()) {
                 ParkourNode lastReachedNode = parkour.nodes().get(parkourTry.lastReachedNode());
@@ -422,7 +418,7 @@ public class ParkourManager {
         }
 
         player.sendMessage(TextUtils.miniText("<red>You failed the jump!"));
-        player.playSound(Sound.sound(SoundEvent.ENTITY_VILLAGER_NO, Sound.Source.MASTER, 1.0f, 1.0f));
+        SoundUtils.playSoundForPlayer(player, SoundEvent.ENTITY_VILLAGER_NO);
 
         if (lastReachedIndex < 0 || lastReachedIndex >= parkour.nodes().size()) return;
 
@@ -497,7 +493,7 @@ public class ParkourManager {
         String time = TextUtils.getFormattedTime(timeMs, true, false);
 
         player.sendMessage(TextUtils.miniText("<green>Parkour finished in <b>%s</b>!", time));
-        player.playSound(Sound.sound(SoundEvent.ENTITY_PLAYER_LEVELUP, Sound.Source.MASTER, 1.0f, 1.0f));
+        SoundUtils.playSoundForPlayer(player, SoundEvent.ENTITY_PLAYER_LEVELUP);
     }
 
     private boolean hasReachedAllCheckpoints(@NotNull Player player) {
@@ -530,7 +526,7 @@ public class ParkourManager {
 
     private void handleCheckpointReached(@NotNull Player player, @NotNull UUID parkourId) {
         player.sendMessage(TextUtils.miniText("<yellow>Checkpoint reached!"));
-        player.playSound(Sound.sound(SoundEvent.ENTITY_EXPERIENCE_ORB_PICKUP, Sound.Source.MASTER, 1.0f, 0.8f));
+        SoundUtils.playSoundForPlayer(player, SoundEvent.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 0.8f);
 
         GlowingBlockHolder holder = glowingHolders.remove(player.getUuid());
         if (holder != null) PacketUtils.revertToOriginalBlock(player, holder);

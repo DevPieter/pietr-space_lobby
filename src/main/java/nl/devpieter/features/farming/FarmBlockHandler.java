@@ -1,6 +1,5 @@
 package nl.devpieter.features.farming;
 
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
@@ -9,6 +8,7 @@ import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.particle.Particle;
+import net.minestom.server.sound.SoundEvent;
 import nl.devpieter.models.BlockHolder;
 import nl.devpieter.utils.ParticleUtils;
 import nl.devpieter.utils.SoundUtils;
@@ -25,7 +25,7 @@ public abstract class FarmBlockHandler implements BlockHandler {
     protected long nextGrowInterval = -1;
 
     protected Sound replantSound = null;
-    protected Sound growSound = Sound.sound(Key.key("item.bone_meal.use"), Sound.Source.BLOCK, 0.3f, 1.0f);
+    protected Sound growSound = Sound.sound(SoundEvent.ITEM_BONE_MEAL_USE, Sound.Source.BLOCK, 0.3f, 1.0f);
 
     protected FarmBlockHandler(long minGrowInterval, long maxGrowInterval, int maxAge) {
         this.minGrowInterval = minGrowInterval;

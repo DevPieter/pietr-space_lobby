@@ -1,6 +1,5 @@
 package nl.devpieter.features.fishing.listeners;
 
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerHand;
@@ -8,9 +7,11 @@ import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerUseItemEvent;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
+import net.minestom.server.sound.SoundEvent;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.bobber.IBobber;
 import nl.devpieter.features.fishing.rod.IRod;
+import nl.devpieter.utils.SoundUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -47,11 +48,14 @@ public class PlayerUseItemListener implements EventListener<@NotNull PlayerUseIt
         IBobber bobber = rod.castBobber(player);
         bobbers.put(player.getUuid(), bobber);
 
-        player.getInstance().playSound(Sound.sound(
-                Key.key("entity.fishing_bobber.throw"),
+        Sound sound = Sound.sound(
+                SoundEvent.ENTITY_FISHING_BOBBER_THROW,
                 Sound.Source.NEUTRAL,
                 0.5f, 0.4f / (new Random().nextFloat() * 0.4f + 0.8f)
-        ), player.getPosition());
+        );
+
+        SoundUtils.playSoundForPlayer(player, sound);
+        SoundUtils.playSoundToViewers(player, player.getPosition(), sound);
     }
 
     public static void reelInFishingRod(Player player) {
@@ -61,10 +65,13 @@ public class PlayerUseItemListener implements EventListener<@NotNull PlayerUseIt
         bobber.reelIn();
         bobbers.remove(player.getUuid());
 
-        player.getInstance().playSound(Sound.sound(
-                Key.key("entity.fishing_bobber.retrieve"),
+        Sound sound = Sound.sound(
+                SoundEvent.ENTITY_FISHING_BOBBER_RETRIEVE,
                 Sound.Source.NEUTRAL,
                 1.0f, 0.4f / (new Random().nextFloat() * 0.4f + 0.8f)
-        ), player.getPosition());
+        );
+
+        SoundUtils.playSoundForPlayer(player, sound);
+        SoundUtils.playSoundToViewers(player, player.getPosition(), sound);
     }
 }

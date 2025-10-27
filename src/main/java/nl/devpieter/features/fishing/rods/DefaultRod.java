@@ -16,7 +16,7 @@ public class DefaultRod extends Rod {
 
     @Override
     public Component getName() {
-        return TextUtils.miniText("Default Rod");
+        return TextUtils.miniText("<#767aab>Default Rod");
     }
 
     @Override

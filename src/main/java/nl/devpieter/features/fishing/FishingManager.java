@@ -4,9 +4,7 @@ import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.tag.Tag;
-import nl.devpieter.features.fishing.catchable.CodCatchable;
-import nl.devpieter.features.fishing.catchable.ICatchable;
-import nl.devpieter.features.fishing.catchable.SalmonCatchable;
+import nl.devpieter.features.fishing.catchable.*;
 import nl.devpieter.features.fishing.rod.IRod;
 import nl.devpieter.features.fishing.rods.DefaultRod;
 import nl.devpieter.features.fishing.rods.ProRod;
@@ -36,7 +34,9 @@ public class FishingManager {
 
         catchables.addAll(List.of(
                 new CodCatchable(),
-                new SalmonCatchable()
+                new SalmonCatchable(),
+                new NautilusCatchable(),
+                new ShardCatchable()
         ));
     }
 
@@ -57,8 +57,12 @@ public class FishingManager {
         fishingReferences.put(entity.getUuid(), reference);
     }
 
-    public FishingReferenceHolder popReference(Entity entity) {
-        return fishingReferences.remove(entity.getUuid());
+    public FishingReferenceHolder getReference(Entity entity) {
+        return fishingReferences.get(entity.getUuid());
+    }
+
+    public void unregisterReference(Entity entity) {
+        fishingReferences.remove(entity.getUuid());
     }
 
     public @Nullable IRod getRodByItem(ItemStack itemStack) {

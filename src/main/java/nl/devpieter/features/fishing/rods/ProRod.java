@@ -16,7 +16,7 @@ public class ProRod extends Rod {
 
     @Override
     public Component getName() {
-        return TextUtils.miniText("Pro Rod");
+        return TextUtils.miniText("<#ab769d>Pro Rod");
     }
 
     @Override
