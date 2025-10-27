@@ -98,7 +98,7 @@ public class FarmManager {
         for (PointHolder point : farmLocations) {
             debugMarkers.add(WorldUtils.placeMarker(
                     point.instance(),
-                    point.position().add(0.5, 0.8, 0.5),
+                    point.position().add(0.5, 0.7, 0.5),
                     TextUtils.miniText("<#ffcf4b>Farmable")
             ));
         }

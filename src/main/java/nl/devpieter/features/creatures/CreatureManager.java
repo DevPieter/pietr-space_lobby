@@ -68,7 +68,7 @@ public class CreatureManager {
             loadedCreatures.add(entity);
 
             creatureLocations.add(new CreaturePointHolder(
-                    spawnable, PointHolder.of(sign.block())
+                    spawnable.getIdentifier(), PointHolder.of(sign.block())
             ));
         }
     }
@@ -90,11 +90,11 @@ public class CreatureManager {
     public void placeDebugMarkers() {
         clearDebugMarkers();
 
-        for (CreaturePointHolder creature : creatureLocations) {
+        for (CreaturePointHolder holder : creatureLocations) {
             debugMarkers.add(WorldUtils.placeMarker(
-                    creature.point().instance(),
-                    creature.point().position().add(0.5, 0.8, 0.5),
-                    TextUtils.miniText("<#4bafff>Creature <gray>%s", creature.spawnable().getIdentifier())
+                    holder.point().instance(),
+                    holder.point().position().add(0.5, 0.7, 0.5),
+                    TextUtils.miniText("<#ff4b8a>Creature <gray>%s", holder.identifier())
             ));
         }
     }
