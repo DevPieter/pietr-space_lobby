@@ -8,12 +8,13 @@ import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.inventory.InventoryPreClickEvent;
-import net.minestom.server.event.player.PlayerBlockBreakEvent;
-import net.minestom.server.event.player.PlayerBlockPlaceEvent;
-import net.minestom.server.event.player.PlayerPacketEvent;
-import net.minestom.server.event.player.PlayerUseItemEvent;
+import net.minestom.server.event.player.*;
+import net.minestom.server.instance.Instance;
+import net.minestom.server.instance.block.Block;
+import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
+import nl.devpieter.blockHandler.DoorBlockHandler;
 import nl.devpieter.blockHandler.SignBlockHandler;
 import nl.devpieter.commands.ServerCommand;
 import nl.devpieter.commands.TestCommand;
@@ -54,6 +55,29 @@ public class Main {
         MinecraftServer.setBrandName("Pieter Space Lobby");
 
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:sign"), SignBlockHandler::new);
+
+        // TODO - A bit hacky, but I don't know a better way yet
+        MinecraftServer.getGlobalEventHandler().addListener(PlayerBlockInteractEvent.class, event -> {
+            Block block = event.getBlock();
+            Instance instance = event.getInstance();
+
+            if (block.key().asString().endsWith("_door")) {
+                if (block.handler() instanceof DoorBlockHandler) return;
+
+                BlockHandler handler = new DoorBlockHandler();
+                instance.setBlock(event.getBlockPosition(), block.withHandler(handler));
+
+                handler.onInteract(new BlockHandler.Interaction(
+                        block,
+                        instance,
+                        event.getBlockFace(),
+                        event.getBlockPosition(),
+                        event.getCursorPosition(),
+                        event.getPlayer(),
+                        event.getHand()
+                ));
+            }
+        });
 
         Sees sees = Sees.getInstance();
         sees.subscribe(new MainListener());
@@ -140,6 +164,7 @@ public class Main {
         // World
         commandManager.register(new WorldCommand());
         commandManager.register(new SignCommand());
+        commandManager.register(new CreatureCommand());
         commandManager.register(new FarmCommand());
         commandManager.register(new PortalCommand());
 

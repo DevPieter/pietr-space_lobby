@@ -23,7 +23,7 @@ public class SignManager {
 
     private static SignManager INSTANCE;
 
-    private static final int SCAN_RADIUS = 24;
+    private static final int SCAN_RADIUS = 64;
     private static final Vec SCAN_CENTER = new Vec(0, 64, 0);
     private static final String MARKED_SIGN_PREFIX = "[PTR]";
 

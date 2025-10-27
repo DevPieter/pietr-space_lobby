@@ -8,6 +8,6 @@ public class SignBlockHandler implements BlockHandler {
 
     @Override
     public @NotNull Key getKey() {
-        return Key.key("minecraft", "sign");
+        return Key.key("pieter_space", "sign_block");
     }
 }

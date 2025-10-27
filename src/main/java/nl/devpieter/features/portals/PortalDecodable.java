@@ -6,6 +6,7 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.Instance;
 import nl.devpieter.features.portals.models.Portal;
+import nl.devpieter.features.signs.interfaces.ISignDecodable;
 import nl.devpieter.features.signs.models.SignHolder;
 import nl.devpieter.features.signs.partDecoder.IPartDecoder;
 import nl.devpieter.features.signs.partDecoders.BoundingBoxPartDecoder;
@@ -19,7 +20,7 @@ import nl.devpieter.models.YawPitch;
 import java.util.HashMap;
 import java.util.List;
 
-public class PortalDecodable implements ISignPortalPlaceable {
+public class PortalDecodable implements ISignDecodable {
 
     private final WorldManager worldManager = WorldManager.getInstance();
 
@@ -30,7 +31,6 @@ public class PortalDecodable implements ISignPortalPlaceable {
     private Point originOffset = Vec.ZERO;
     private BoundingBox boundingBox = new BoundingBox(1, 2, 1);
 
-    @Override
     public Portal placePortal(Instance instance, Point point, SignHolder signHolder) {
         Point originPos = point.add(originOffset).add(0.5, 0, 0.5);
 

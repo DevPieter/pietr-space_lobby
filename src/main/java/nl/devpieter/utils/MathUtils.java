@@ -9,4 +9,8 @@ public class MathUtils {
     public static double nextTriangular(double mode, double deviation) {
         return mode + deviation * (RANDOM.nextDouble() - RANDOM.nextDouble());
     }
+
+    public static float randomFloat(float min, float max) {
+        return min + (max - min) * RANDOM.nextFloat();
+    }
 }

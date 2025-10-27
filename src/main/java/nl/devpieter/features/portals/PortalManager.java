@@ -9,6 +9,7 @@ import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
 import nl.devpieter.Settings;
 import nl.devpieter.features.portals.models.Portal;
+import nl.devpieter.features.portals.models.PortalPointHolder;
 import nl.devpieter.features.signs.SignDecoder;
 import nl.devpieter.features.signs.SignManager;
 import nl.devpieter.features.signs.models.SignHolder;
@@ -34,9 +35,8 @@ public class PortalManager {
     private final SignManager signManager = SignManager.getInstance();
 
     private final List<Entity> debugMarkers = new ArrayList<>();
-    private final ISignPortalPlaceable portalDecodable = new PortalDecodable();
 
-    private final List<PointHolder> portalLocations = new ArrayList<>();
+    private final List<PortalPointHolder> portalLocations = new ArrayList<>();
     private final List<Portal> portals = new ArrayList<>();
 
     public static PortalManager getInstance() {
@@ -54,17 +54,21 @@ public class PortalManager {
     private void scanAndRegisterPortals() {
         List<SignHolder> signs = signManager.getMatchedSigns(SIGN_KEY);
         for (SignHolder sign : signs) {
+            PortalDecodable portalDecodable = new PortalDecodable();
 
             List<String> lines = sign.lines().subList(1, sign.lines().size());
             SignDecoder.decodeLines(lines, portalDecodable.getDecoders());
 
-            portals.add(portalDecodable.placePortal(
+            Portal portal = portalDecodable.placePortal(
                     sign.block().instance(),
                     sign.block().position(),
                     sign
-            ));
+            );
+            portals.add(portal);
 
-            portalLocations.add(PointHolder.of(sign.block()));
+            portalLocations.add(new PortalPointHolder(
+                    portal.destinationWorld().id(), PointHolder.of(sign.block())
+            ));
         }
     }
 
@@ -105,11 +109,11 @@ public class PortalManager {
     public void placeDebugMarkers() {
         clearDebugMarkers();
 
-        for (PointHolder point : portalLocations) {
+        for (PortalPointHolder holder : portalLocations) {
             debugMarkers.add(WorldUtils.placeMarker(
-                    point.instance(),
-                    point.position().add(0.5, 0.8, 0.5),
-                    TextUtils.miniText("<#a84bff>Portal")
+                    holder.point().instance(),
+                    holder.point().position().add(0.5, 0.7, 0.5),
+                    TextUtils.miniText("<#a84bff>Portal <gray>%s", holder.identifier())
             ));
         }
 
@@ -127,21 +131,7 @@ public class PortalManager {
         debugMarkers.clear();
     }
 
-//    private static boolean isBetweenCoordinates(@NotNull Point pos, @NotNull Point start, @NotNull Point end, double tolerance) {
-//        double minX = Math.min(start.x(), end.x()) - tolerance / 2;
-//        double maxX = Math.max(start.x(), end.x()) + tolerance / 2;
-//
-//        double minY = Math.min(start.y(), end.y()) - tolerance / 2;
-//        double maxY = Math.max(start.y(), end.y()) + tolerance / 2;
-//
-//        double minZ = Math.min(start.z(), end.z()) - tolerance / 2;
-//        double maxZ = Math.max(start.z(), end.z()) + tolerance / 2;
-//
-//        return pos.x() >= minX && pos.x() <= maxX &&
-//                pos.y() >= minY && pos.y() <= maxY &&
-//                pos.z() >= minZ && pos.z() <= maxZ;
-//    }
-
+    // TODO - Move to Utils class
     public static boolean isInsideBox(@NotNull Player player, @NotNull Point origin, @NotNull BoundingBox box) {
         BoundingBox playerBB = player.getBoundingBox();
         Pos playerPos = player.getPosition();
