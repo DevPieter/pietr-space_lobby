@@ -3,12 +3,16 @@ package nl.devpieter.features.experience;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.sound.SoundEvent;
+import net.minestom.server.timer.Scheduler;
+import net.minestom.server.timer.Task;
+import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.features.experience.categories.FarmingExperienceCategory;
 import nl.devpieter.features.experience.categories.FishingExperienceCategory;
+import nl.devpieter.features.experience.categories.TestExperienceCategory;
 import nl.devpieter.features.experience.category.IExperienceCategory;
-import nl.devpieter.features.experience.category.TestExperienceCategory;
 import nl.devpieter.features.experience.models.LevelHolder;
 import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
@@ -28,6 +32,7 @@ public class ExperienceManager {
 
     private final HashMap<UUID, LevelHolder> levels = new HashMap<>();
     private final HashMap<String, BossBar> bossBars = new HashMap<>();
+    private final HashMap<String, Task> hideTasks = new HashMap<>();
 
     private ExperienceManager() {
         categories.addAll(List.of(
@@ -42,8 +47,6 @@ public class ExperienceManager {
         return INSTANCE;
     }
 
-//    private BossBar bossBar;
-
     public void grantExperience(Player player, String categoryId, double amount) {
         grantExperience(player, categoryId, amount, 0);
     }
@@ -53,21 +56,42 @@ public class ExperienceManager {
         if (category == null) return;
 
         LevelHolder levelHolder = levels.computeIfAbsent(player.getUuid(), id -> new LevelHolder(id, categoryId));
+
         int currentLevel = levelHolder.getLevel();
         levelHolder.addExperience(amount + bonus, category);
         int newLevel = levelHolder.getLevel();
 
+        Color plusColor = category.getColor();
+        String plusHex = TextColor.color(plusColor.getRGB()).asHexString();
+
         if (newLevel > currentLevel) {
-            player.sendMessage(TextUtils.miniText("<green>You leveled up to Level <b>" + newLevel + "</b> in ").append(category.getName()).append(TextUtils.miniText("<green>!")));
+            Component message = TextUtils.combine(
+                    category.getName(),
+                    Component.space(),
+                    TextUtils.miniText("<#576272>levelled up to"),
+                    Component.space(),
+                    TextUtils.miniText("<%s>Level %d!</%s>", plusHex, newLevel, plusHex)
+            );
+
+            player.sendMessage(message);
             SoundUtils.playSoundForPlayer(player, SoundEvent.ENTITY_PLAYER_LEVELUP);
         }
 
-        BossBar bossBar = bossBars.get(player.getUuid() + "_" + categoryId);
-        if (bossBar != null) player.hideBossBar(bossBar);
+        BossBar existingBossBar = bossBars.get(player.getUuid() + "_" + categoryId);
+        if (existingBossBar != null) {
+            player.hideBossBar(existingBossBar);
+            bossBars.remove(player.getUuid() + "_" + categoryId);
+        }
 
-        bossBar = BossBar.bossBar(
+        Task exitTask = hideTasks.get(player.getUuid() + "_" + categoryId);
+        if (exitTask != null) {
+            exitTask.cancel();
+            hideTasks.remove(player.getUuid() + "_" + categoryId);
+        }
+
+        BossBar bossBar = BossBar.bossBar(
                 category.getName().append(TextUtils.miniText(" Level " + levelHolder.getLevel())),
-                (float) (levelHolder.getExperience() / levelHolder.getRequiredExperienceForNextLevel(category)),
+                (float) (levelHolder.getExperience() / levelHolder.getTotalRequiredExperienceForNextLevel(category)),
                 category.getBossBarColor(),
                 BossBar.Overlay.PROGRESS
         );
@@ -75,8 +99,15 @@ public class ExperienceManager {
         bossBars.put(player.getUuid() + "_" + categoryId, bossBar);
         player.showBossBar(bossBar);
 
-        Color plusColor = category.getColor();
-        String plusHex = TextColor.color(plusColor.getRGB()).asHexString();
+        Scheduler scheduler = MinecraftServer.getSchedulerManager();
+
+        Task hideTask = scheduler.buildTask(() -> {
+            player.hideBossBar(bossBar);
+            bossBars.remove(player.getUuid() + "_" + categoryId);
+            hideTasks.remove(player.getUuid() + "_" + categoryId);
+        }).delay(TaskSchedule.millis(4000)).schedule();
+
+        hideTasks.put(player.getUuid() + "_" + categoryId, hideTask);
 
         if (bonus > 0) {
             Component message = TextUtils.combine(

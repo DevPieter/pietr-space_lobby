@@ -42,11 +42,15 @@ public class FarmingExperienceCategory implements IExperienceCategory {
 
     @Override
     public DoubleFunction<Double> getLevelScaleFunction() {
+        // TODO - Adjust scaling
+
+        // f(x) = 10 + (x^2 * 5)
         return level -> 10 + Math.pow(level, 2) * 5;
     }
 
     @Override
     public DoubleFunction<Double> getPrestigeScaleFunction() {
+        // f(x) = 1.5^x
         return prestige -> Math.pow(1.5, prestige);
     }
 }

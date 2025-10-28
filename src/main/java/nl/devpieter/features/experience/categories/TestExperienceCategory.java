@@ -1,7 +1,8 @@
-package nl.devpieter.features.experience.category;
+package nl.devpieter.features.experience.categories;
 
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
+import nl.devpieter.features.experience.category.IExperienceCategory;
 import nl.devpieter.utils.minestom.TextUtils;
 
 import java.awt.*;

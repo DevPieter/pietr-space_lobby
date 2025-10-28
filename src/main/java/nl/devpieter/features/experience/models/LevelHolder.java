@@ -9,16 +9,21 @@ public class LevelHolder {
     public UUID playerId;
     private String categoryId;
 
-    private int prestige;
-    private int level;
+//    private double totalExperience;
+
     private double experience;
+    private int level;
+    private int prestige;
 
     public LevelHolder(UUID playerId, String categoryId) {
         this.playerId = playerId;
         this.categoryId = categoryId;
+
+//        this.totalExperience = 0;
+
         this.prestige = 0;
         this.level = 0;
-        this.experience = 0.0;
+        this.experience = 0;
     }
 
     public UUID getPlayerId() {
@@ -29,16 +34,16 @@ public class LevelHolder {
         return categoryId;
     }
 
-    public int getPrestige() {
-        return prestige;
+    public double getExperience() {
+        return experience;
     }
 
     public int getLevel() {
         return level;
     }
 
-    public double getExperience() {
-        return experience;
+    public int getPrestige() {
+        return prestige;
     }
 
     public void addExperience(double amount, IExperienceCategory category) {
@@ -47,8 +52,8 @@ public class LevelHolder {
     }
 
     private void checkLevelUp(IExperienceCategory category) {
-        while (experience >= getRequiredExperienceForNextLevel(category)) {
-            experience -= getRequiredExperienceForNextLevel(category);
+        while (experience >= getTotalRequiredExperienceForNextLevel(category)) {
+            experience -= getTotalRequiredExperienceForNextLevel(category);
             level++;
 
             if (level >= category.getLevelsPerPrestige()) {
@@ -58,7 +63,7 @@ public class LevelHolder {
         }
     }
 
-    public double getRequiredExperienceForNextLevel(IExperienceCategory category) {
+    public double getTotalRequiredExperienceForNextLevel(IExperienceCategory category) {
         double levelScale = category.getLevelScaleFunction().apply(level);
         double prestigeMultiplier = category.getPrestigeScaleFunction().apply(prestige);
         return category.getBaseExperience() + (levelScale * prestigeMultiplier);
