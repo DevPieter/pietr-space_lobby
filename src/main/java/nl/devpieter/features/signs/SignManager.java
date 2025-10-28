@@ -7,13 +7,13 @@ import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
-import nl.devpieter.Settings;
+import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.signs.models.SignHolder;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.models.BlockHolder;
-import nl.devpieter.utils.TextUtils;
-import nl.devpieter.utils.WorldUtils;
+import nl.devpieter.utils.minestom.TextUtils;
+import nl.devpieter.utils.minestom.WorldUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,7 +47,7 @@ public class SignManager {
         revertSigns();
 
         worldManager.getWorlds().forEach(this::scanSigns);
-        if (Settings.DEBUG) placeDebugMarkers();
+        if (EnvStatics.DEBUG) placeDebugMarkers();
     }
 
     public List<SignHolder> getMatchedSigns(String key) {

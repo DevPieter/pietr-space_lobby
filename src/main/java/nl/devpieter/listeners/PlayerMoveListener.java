@@ -7,7 +7,7 @@ import nl.devpieter.features.parkour.ParkourManager;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
-import nl.devpieter.utils.PlayerUtils;
+import nl.devpieter.utils.minestom.PlayerUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class PlayerMoveListener implements EventListener<@NotNull PlayerMoveEvent> {

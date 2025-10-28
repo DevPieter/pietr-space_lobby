@@ -5,8 +5,9 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
-import nl.devpieter.Settings;
 import nl.devpieter.api.request.AsyncRequest;
+import nl.devpieter.config.ConfigManager;
+import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.parkour.models.ParkourTry;
 import nl.devpieter.features.parkour.models.requests.CreateParkourTryRequest;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +24,9 @@ public class ParkourTryManager {
 
     private static ParkourTryManager INSTANCE;
 
-    private final URI uri = URI.create(Settings.API_BASE_URL + "/api/mc/lobby/parkour/try");
+    private final ConfigManager configManager = ConfigManager.getInstance();
+
+    private final URI uri = URI.create(configManager.getString("api_base_url") + "/api/mc/lobby/parkour/try");
     private final Gson gson = new Gson();
 
     private final Logger logger = MinecraftServer.LOGGER;
@@ -46,7 +49,7 @@ public class ParkourTryManager {
         task = scheduler.scheduleTask(() -> {
             if (queuedParkourTries.isEmpty()) return;
 
-            boolean debug = Settings.DEBUG;
+            boolean debug = EnvStatics.DEBUG;
             if (debug) logger.info("Processing queued ParkourTries, count: {}", queuedParkourTries.size());
 
             List<ParkourTry> parkourTries = new ArrayList<>(queuedParkourTries);
@@ -76,7 +79,7 @@ public class ParkourTryManager {
 
     public void queueParkourTry(ParkourTry parkourTry) {
         queuedParkourTries.add(parkourTry);
-        if (Settings.DEBUG) logger.info("Queued ParkourTry for player: {}", parkourTry.playerUuid());
+        if (EnvStatics.DEBUG) logger.info("Queued ParkourTry for player: {}", parkourTry.playerUuid());
     }
 
     private CompletableFuture<Void> postParkourTry(CreateParkourTryRequest parkourTry) {
@@ -93,7 +96,7 @@ public class ParkourTryManager {
                     throw new Exception("API returned " + response.statusCode() + ", expected 201");
                 }
 
-                if (Settings.DEBUG) {
+                if (EnvStatics.DEBUG) {
                     logger.info("Successfully posted ParkourTry for player: {}", parkourTry.playerUuid());
                 }
 

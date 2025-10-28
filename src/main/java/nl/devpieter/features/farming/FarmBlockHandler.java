@@ -10,8 +10,8 @@ import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.particle.Particle;
 import net.minestom.server.sound.SoundEvent;
 import nl.devpieter.models.BlockHolder;
-import nl.devpieter.utils.ParticleUtils;
-import nl.devpieter.utils.SoundUtils;
+import nl.devpieter.utils.minestom.ParticleUtils;
+import nl.devpieter.utils.minestom.SoundUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

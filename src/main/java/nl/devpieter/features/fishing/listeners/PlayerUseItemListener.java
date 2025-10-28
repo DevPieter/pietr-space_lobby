@@ -11,7 +11,7 @@ import net.minestom.server.sound.SoundEvent;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.bobber.IBobber;
 import nl.devpieter.features.fishing.rod.IRod;
-import nl.devpieter.utils.SoundUtils;
+import nl.devpieter.utils.minestom.SoundUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;

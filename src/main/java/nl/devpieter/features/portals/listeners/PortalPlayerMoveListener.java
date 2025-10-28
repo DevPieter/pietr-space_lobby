@@ -10,7 +10,7 @@ import nl.devpieter.features.portals.PortalManager;
 import nl.devpieter.features.portals.models.Portal;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
-import nl.devpieter.utils.PlayerUtils;
+import nl.devpieter.utils.minestom.PlayerUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class PortalPlayerMoveListener implements EventListener<@NotNull PlayerMoveEvent> {

@@ -1,4 +1,4 @@
-package nl.devpieter.utils;
+package nl.devpieter.utils.minestom;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;

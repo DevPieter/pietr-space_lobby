@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerLoadedEvent;
-import nl.devpieter.utils.TextUtils;
+import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class PlayerLoadedListener implements EventListener<@NotNull PlayerLoadedEvent> {

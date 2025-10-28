@@ -10,14 +10,14 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
-import nl.devpieter.Settings;
+import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.models.*;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.models.GlowingBlockHolder;
-import nl.devpieter.utils.*;
+import nl.devpieter.utils.minestom.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -251,7 +251,7 @@ public class ParkourManager {
             Pos end = parkour.end();
             instance.setBlock(end, Block.LIGHT_WEIGHTED_PRESSURE_PLATE);
 
-            if (Settings.DEBUG) {
+            if (EnvStatics.DEBUG) {
                 Pos debugStart = start.withYaw(0).withPitch(0);
                 WorldUtils.placeMarker(instance, debugStart.add(0, 0.5, 0), TextUtils.miniText("<b><green>Start</green>"));
                 WorldUtils.placeBoundingBox(instance, debugStart, debugBox);
@@ -264,7 +264,7 @@ public class ParkourManager {
             for (ParkourNode node : parkour.nodes()) {
                 if (node.isCheckpoint()) instance.setBlock(node.position(), Block.SPRUCE_PRESSURE_PLATE);
 
-                if (Settings.DEBUG) {
+                if (EnvStatics.DEBUG) {
                     if (!node.isCheckpoint()) instance.setBlock(node.position(), Block.STONE_PRESSURE_PLATE);
 
                     Pos debugPos = node.position().withYaw(0).withPitch(0);
@@ -519,7 +519,7 @@ public class ParkourManager {
         parkourTry.setReached(i, isCheckpoint);
         if (isCheckpoint) handleCheckpointReached(player, parkourTry.parkourId());
 
-        if (Settings.DEBUG) {
+        if (EnvStatics.DEBUG) {
             player.sendActionBar(TextUtils.miniText("<dark_gray>Node <green>%d</green> reached!", i));
         }
     }

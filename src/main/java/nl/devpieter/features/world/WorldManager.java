@@ -6,7 +6,7 @@ import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
 import net.minestom.server.instance.anvil.AnvilLoader;
-import nl.devpieter.Settings;
+import nl.devpieter.config.EnvStatics;
 import nl.devpieter.events.WorldManagerInitializedEvent;
 import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.features.world.models.World;
@@ -63,7 +63,7 @@ public class WorldManager {
 
             instance.setTime(world.settings().time().time());
             instance.setTimeRate(world.settings().time().cycle() ? 1 : 0);
-            instance.setChunkLoader(new AnvilLoader(Settings.WORLD_PATH_BASE + "/" + world.id()));
+            instance.setChunkLoader(new AnvilLoader(EnvStatics.WORLD_DATA_PATH + "/" + world.id()));
 
             loadedWorlds.put(world.id(), new LoadedWorld(world, instance));
         }
@@ -87,13 +87,13 @@ public class WorldManager {
     }
 
     private @NotNull List<World> scanWorldFolders() {
-        logger.info("Scanning world folders in: {}", Settings.WORLD_PATH_BASE);
+        logger.info("Scanning world folders in: {}", EnvStatics.WORLD_DATA_PATH);
 
-        File worldsDir = new File(Settings.WORLD_PATH_BASE);
+        File worldsDir = new File(EnvStatics.WORLD_DATA_PATH);
         List<World> foundWorlds = new ArrayList<>();
 
         if (!worldsDir.exists() || !worldsDir.isDirectory()) {
-            logger.warn("Worlds directory does not exist or is not a directory: {}", Settings.WORLD_PATH_BASE);
+            logger.warn("Worlds directory does not exist or is not a directory: {}", EnvStatics.WORLD_DATA_PATH);
             return foundWorlds;
         }
 
