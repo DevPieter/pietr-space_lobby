@@ -2,7 +2,7 @@ package nl.devpieter.features.experience.category;
 
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
-import nl.devpieter.utils.TextUtils;
+import nl.devpieter.utils.minestom.TextUtils;
 
 import java.awt.*;
 import java.util.function.DoubleFunction;

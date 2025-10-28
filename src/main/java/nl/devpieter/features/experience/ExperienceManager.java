@@ -10,8 +10,8 @@ import nl.devpieter.features.experience.categories.FishingExperienceCategory;
 import nl.devpieter.features.experience.category.IExperienceCategory;
 import nl.devpieter.features.experience.category.TestExperienceCategory;
 import nl.devpieter.features.experience.models.LevelHolder;
-import nl.devpieter.utils.SoundUtils;
-import nl.devpieter.utils.TextUtils;
+import nl.devpieter.utils.minestom.SoundUtils;
+import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
