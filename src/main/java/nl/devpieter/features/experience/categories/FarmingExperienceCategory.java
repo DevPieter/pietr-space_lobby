@@ -48,7 +48,7 @@ public class FarmingExperienceCategory implements IExperienceCategory {
 
     @Override
     public DoubleFunction<Double> getPrestigeScaleFunction() {
-        // f(x) = 1.20^x
-        return prestige -> Math.pow(1.20, prestige);
+        // f(x) = 1.30^x
+        return prestige -> Math.pow(1.30, prestige);
     }
 }

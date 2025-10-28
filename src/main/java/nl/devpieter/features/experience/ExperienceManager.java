@@ -90,7 +90,7 @@ public class ExperienceManager {
         }
 
         BossBar bossBar = BossBar.bossBar(
-                category.getName().append(TextUtils.miniText(" Level " + levelHolder.getLevel())),
+                category.getName().append(TextUtils.miniText(" Level " + levelHolder.getLevel() + " Prestige " + levelHolder.getPrestige())),
                 (float) (levelHolder.getExperience() / levelHolder.getTotalRequiredExperienceForNextLevel(category)),
                 category.getBossBarColor(),
                 BossBar.Overlay.PROGRESS
