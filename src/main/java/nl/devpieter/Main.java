@@ -25,7 +25,8 @@ import nl.devpieter.commands.ServerCommand;
 import nl.devpieter.commands.TestCommand;
 import nl.devpieter.commands.player.GamemodeCommand;
 import nl.devpieter.commands.world.*;
-import nl.devpieter.features.experience.ExperienceManager;
+import nl.devpieter.config.ConfigManager;
+import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.farming.listeners.PlayerBlockBreakListener;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.FishingReferenceHolder;
@@ -38,7 +39,6 @@ import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerMoveListener;
 import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
-import nl.devpieter.features.sitting.SitManager;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
 import nl.devpieter.features.world.WorldManager;
@@ -47,9 +47,9 @@ import nl.devpieter.listeners.PlayerDisconnectListener;
 import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
 import nl.devpieter.sees.Sees;
-import nl.devpieter.utils.PacketUtils;
-import nl.devpieter.utils.SoundUtils;
-import nl.devpieter.utils.TextUtils;
+import nl.devpieter.utils.minestom.PacketUtils;
+import nl.devpieter.utils.minestom.SoundUtils;
+import nl.devpieter.utils.minestom.TextUtils;
 import org.slf4j.Logger;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -58,10 +58,13 @@ public class Main {
 
     public static void main(String[] args) {
         Logger logger = MinecraftServer.LOGGER;
-        if (Settings.DEBUG) logger.warn("Debug mode is enabled");
+        if (EnvStatics.DEBUG) logger.warn("Debug mode is enabled");
 
-        boolean useVelocity = Settings.USE_VELOCITY_PROXY;
-        String velocitySecret = Settings.VELOCITY_PROXY_SECRET;
+        ConfigManager configManager = ConfigManager.getInstance();
+        configManager.load();
+
+        boolean useVelocity = configManager.getBoolean("use_velocity_proxy");
+        String velocitySecret = configManager.getString("velocity_proxy_secret");
 
         Auth auth = useVelocity ? new Auth.Velocity(velocitySecret) : new Auth.Online();
         logger.info("Using authentication: {}", useVelocity ? "Velocity" : "Online");

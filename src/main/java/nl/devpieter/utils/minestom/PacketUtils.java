@@ -1,4 +1,4 @@
-package nl.devpieter.utils;
+package nl.devpieter.utils.minestom;
 
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
