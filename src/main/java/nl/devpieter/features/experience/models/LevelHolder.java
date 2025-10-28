@@ -9,7 +9,7 @@ public class LevelHolder {
     public UUID playerId;
     private String categoryId;
 
-//    private double totalExperience;
+    private double totalExperience;
 
     private double experience;
     private int level;
@@ -19,7 +19,7 @@ public class LevelHolder {
         this.playerId = playerId;
         this.categoryId = categoryId;
 
-//        this.totalExperience = 0;
+        this.totalExperience = 0;
 
         this.prestige = 0;
         this.level = 0;
@@ -32,6 +32,10 @@ public class LevelHolder {
 
     public String getCategoryId() {
         return categoryId;
+    }
+
+    public double getTotalExperience() {
+        return totalExperience;
     }
 
     public double getExperience() {
@@ -47,6 +51,7 @@ public class LevelHolder {
     }
 
     public void addExperience(double amount, IExperienceCategory category) {
+        totalExperience += amount;
         experience += amount;
         checkLevelUp(category);
     }

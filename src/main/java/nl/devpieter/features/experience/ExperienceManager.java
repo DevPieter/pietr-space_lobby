@@ -134,6 +134,12 @@ public class ExperienceManager {
 
             player.sendActionBar(message);
         }
+
+        IExperienceCategory.LevelProgress progress = IExperienceCategory.getProgressFromTotalXP(category, 10_000);
+        System.out.println("DEBUG: " + categoryId + " - Prestige: " + progress.prestige() + ", Level: " + progress.level() + ", XP: " + formatDouble(progress.experience()));
+
+        double neededXp = IExperienceCategory.getTotalExperienceUpTo(category, 1, 0);
+        System.out.println("DEBUG: " + categoryId + ": " + formatDouble(neededXp));
     }
 
     public IExperienceCategory getCategoryById(String categoryId) {

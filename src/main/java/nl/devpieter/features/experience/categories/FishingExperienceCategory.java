@@ -32,7 +32,7 @@ public class FishingExperienceCategory implements IExperienceCategory {
 
     @Override
     public double getBaseExperience() {
-        return 10.0;
+        return 20;
     }
 
     @Override
@@ -42,11 +42,13 @@ public class FishingExperienceCategory implements IExperienceCategory {
 
     @Override
     public DoubleFunction<Double> getLevelScaleFunction() {
-        return level -> 10 + Math.pow(level, 2) * 5;
+        // f(x) = 5 + (x^1.5) * 2
+        return level -> 5 + Math.pow(level, 1.5) * 2;
     }
 
     @Override
     public DoubleFunction<Double> getPrestigeScaleFunction() {
-        return prestige -> Math.pow(1.5, prestige);
+        // f(x) = 1.20^x
+        return prestige -> Math.pow(1.20, prestige);
     }
 }
