@@ -2,6 +2,7 @@ package nl.devpieter;
 
 import net.minestom.server.entity.Player;
 import net.minestom.server.inventory.PlayerInventory;
+import net.minestom.server.item.ItemStack;
 import net.minestom.server.network.player.GameProfile;
 import net.minestom.server.network.player.PlayerConnection;
 import nl.devpieter.config.EnvStatics;
@@ -22,10 +23,7 @@ public class LobbyPlayer extends Player {
 
     public LobbyPlayer(PlayerConnection playerConnection, GameProfile gameProfile) {
         super(playerConnection, gameProfile);
-
         inventories.put(MAIN_INVENTORY, getInventory());
-
-        System.out.println("LobbyPlayer created for " + gameProfile.name());
     }
 
     public void switchToMainInventory() {
@@ -36,46 +34,47 @@ public class LobbyPlayer extends Player {
         switchToInventory(DYNAMIC_INVENTORY);
     }
 
-    public void switchToCleanDynamicInventory() {
-        switchToInventory(DYNAMIC_INVENTORY);
-        inventory.clear();
+    public void addItemToMainInventory(@NotNull ItemStack itemStack) {
+        PlayerInventory mainInventory = getOrCreateInventory(MAIN_INVENTORY);
+        mainInventory.addItemStack(itemStack);
     }
 
-    public void fillDynamicInventory(SlotHolder... slots) {
-        PlayerInventory dynamicInventory = inventories.get(DYNAMIC_INVENTORY);
-        if (dynamicInventory == null) {
-            dynamicInventory = new PlayerInventory();
-            inventories.put(DYNAMIC_INVENTORY, dynamicInventory);
-        }
+    public void addItemToMainInventory(@NotNull ItemStack itemStack, int slot) {
+        PlayerInventory mainInventory = getOrCreateInventory(MAIN_INVENTORY);
+        mainInventory.setItemStack(slot, itemStack);
+    }
 
+    public void fillDynamicInventory(SlotHolder @NotNull ... slots) {
+        PlayerInventory dynamicInventory = getOrCreateInventory(DYNAMIC_INVENTORY);
         dynamicInventory.clear();
 
         for (SlotHolder slotHolder : slots) {
-            dynamicInventory.setItemStack(slotHolder.slot(), slotHolder.itemStack());
+            dynamicInventory.setItemStack(slotHolder.slot(), slotHolder.safeItemStack());
         }
     }
 
-    public boolean switchToInventory(@NotNull String key) {
-        if (key.equals(currentInventoryKey)) return true;
+    public void switchToInventory(@NotNull String key) {
+        if (key.equals(currentInventoryKey)) return;
 
-        PlayerInventory inventory = inventories.get(key);
-        if (inventory == null) {
-            inventory = new PlayerInventory();
-            inventories.put(key, inventory);
-        }
-
-        replaceInventory(inventory);
+        replaceInventory(getOrCreateInventory(key));
         currentInventoryKey = key;
 
         if (EnvStatics.DEBUG) {
             sendActionBar(TextUtils.miniText("<dark_gray>Inventory: <green>%s", key));
         }
-
-        return true;
     }
 
     public String getCurrentInventoryKey() {
         return currentInventoryKey;
+    }
+
+    private @NotNull PlayerInventory getOrCreateInventory(@NotNull String key) {
+        PlayerInventory inventory = inventories.get(key);
+        if (inventory != null) return inventory;
+
+        inventory = new PlayerInventory();
+        inventories.put(key, inventory);
+        return inventory;
     }
 
     private void replaceInventory(PlayerInventory newInventory) {

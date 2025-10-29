@@ -6,6 +6,7 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.tag.Tag;
 import nl.devpieter.features.fishing.catchable.*;
 import nl.devpieter.features.fishing.rod.IRod;
+import nl.devpieter.features.fishing.rods.DebugRod;
 import nl.devpieter.features.fishing.rods.DefaultRod;
 import nl.devpieter.features.fishing.rods.ProRod;
 import nl.devpieter.features.fishing.rods.VanillaRod;
@@ -28,6 +29,7 @@ public class FishingManager {
     private FishingManager() {
         rods.addAll(List.of(
                 new VanillaRod(),
+                new DebugRod(),
                 new DefaultRod(),
                 new ProRod()
         ));
