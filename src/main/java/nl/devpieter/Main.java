@@ -7,14 +7,14 @@ import net.minestom.server.command.CommandManager;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.GlobalEventHandler;
-import net.minestom.server.event.inventory.InventoryPreClickEvent;
 import net.minestom.server.event.item.PickupItemEvent;
-import net.minestom.server.event.player.*;
+import net.minestom.server.event.player.PlayerBlockBreakEvent;
+import net.minestom.server.event.player.PlayerBlockInteractEvent;
+import net.minestom.server.event.player.PlayerBlockPlaceEvent;
+import net.minestom.server.event.player.PlayerUseItemEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
-import net.minestom.server.item.ItemStack;
-import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
@@ -47,7 +47,6 @@ import nl.devpieter.listeners.PlayerDisconnectListener;
 import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
 import nl.devpieter.sees.Sees;
-import nl.devpieter.utils.minestom.PacketUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.slf4j.Logger;
@@ -147,49 +146,13 @@ public class Main {
         eventHandler.addListener(new PortalPlayerMoveListener());
         eventHandler.addListener(new ParkourPlayerMoveListener());
 
+        // TODO - Temporary parkour listeners
         MinecraftServer.getGlobalEventHandler().addListener(PlayerUseItemEvent.class, event -> {
             Player player = event.getPlayer();
             int slot = player.getHeldSlot();
 
             if (slot == 0) ParkourManager.getInstance().returnToCheckpoint(player, ParkourFailReason.PlayerRequest);
             else if (slot == 4) ParkourManager.getInstance().cancelParkour(player, ParkourCancelReason.PlayerRequest);
-        });
-
-        MinecraftServer.getGlobalEventHandler().addListener(PlayerPacketEvent.class, event -> {
-            String name = event.getPacket().getClass().getSimpleName();
-//            if (name.equals("ClientTickEndPacket")) return;
-//            if (name.equals("ClientPlayerPositionPacket")) return;
-//            if (name.equals("ClientPlayerPositionAndRotationPacket")) return;
-//            if (name.equals("ClientPlayerRotationPacket")) return;
-//
-//            System.out.println("Received packet: " + event.getPacket().getClass().getSimpleName());
-//
-//            // ClientClickWindowPacket
-
-            if (
-                    name.equals("ClientClickWindowPacket") ||
-                            name.equals("ClientEntityActionPacket") ||
-                            name.equals("ClientCloseWindowPacket")
-            ) {
-                if (!ParkourManager.getInstance().isDoingParkour(event.getPlayer())) return;
-
-                ItemStack cancelItem = ItemStack.of(Material.BARRIER);
-                PacketUtils.setSlot(event.getPlayer(), 40, cancelItem);
-
-                ItemStack checkpointItem = ItemStack.of(Material.SPRUCE_PRESSURE_PLATE);
-                PacketUtils.setSlot(event.getPlayer(), 36, checkpointItem);
-                event.setCancelled(true);
-            }
-        });
-
-        MinecraftServer.getGlobalEventHandler().addListener(InventoryPreClickEvent.class, event -> {
-            event.setCancelled(true);
-
-            ItemStack cancelItem = ItemStack.of(Material.BARRIER);
-            PacketUtils.setSlot(event.getPlayer(), 40, cancelItem);
-
-            ItemStack checkpointItem = ItemStack.of(Material.SPRUCE_PRESSURE_PLATE);
-            PacketUtils.setSlot(event.getPlayer(), 36, checkpointItem);
         });
 
         eventHandler.addListener(PlayerBlockBreakEvent.class, event -> {
@@ -220,6 +183,8 @@ public class Main {
         // Misc
         commandManager.register(new TestCommand());
         commandManager.register(new ServerCommand());
+
+        MinecraftServer.getConnectionManager().setPlayerProvider(LobbyPlayer::new);
 
         ParkourTryManager.getInstance().start();
         server.start("0.0.0.0", 25565);

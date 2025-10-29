@@ -10,6 +10,7 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
+import nl.devpieter.LobbyPlayer;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
@@ -17,6 +18,7 @@ import nl.devpieter.features.parkour.models.*;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.models.GlowingBlockHolder;
+import nl.devpieter.models.SlotHolder;
 import nl.devpieter.utils.minestom.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -364,11 +366,17 @@ public class ParkourManager {
 
         PacketUtils.setWaypoint(player, parkourUuid, nextCheckpoint);
 
-        ItemStack cancelItem = ItemStack.of(Material.BARRIER);
-        PacketUtils.setSlot(player, 40, cancelItem);
+        if (player instanceof LobbyPlayer lobbyPlayer) {
+            ItemStack cancelItem = ItemStack.of(Material.BARRIER);
+            ItemStack checkpointItem = ItemStack.of(Material.SPRUCE_PRESSURE_PLATE);
 
-        ItemStack checkpointItem = ItemStack.of(Material.SPRUCE_PRESSURE_PLATE);
-        PacketUtils.setSlot(player, 36, checkpointItem);
+            lobbyPlayer.fillDynamicInventory(
+                    new SlotHolder(0, checkpointItem),
+                    new SlotHolder(4, cancelItem)
+            );
+
+            lobbyPlayer.switchToDynamicInventory();
+        }
 
         players.put(player.getUuid(), new ParkourTry(
                 parkourUuid,
@@ -544,8 +552,9 @@ public class ParkourManager {
         parkourTryManager.queueParkourTry(parkourTry);
         players.remove(player.getUuid());
 
-        PacketUtils.setSlot(player, 40, ItemStack.of(Material.AIR));
-        PacketUtils.setSlot(player, 36, ItemStack.of(Material.AIR));
+        if (player instanceof LobbyPlayer lobbyPlayer) {
+            lobbyPlayer.switchToMainInventory();
+        }
 
         GlowingBlockHolder holder = glowingHolders.remove(player.getUuid());
         if (holder != null) PacketUtils.revertToOriginalBlock(player, holder);
