@@ -6,6 +6,7 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
+import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.item.PickupItemEvent;
 import net.minestom.server.event.player.PlayerBlockBreakEvent;
@@ -15,6 +16,7 @@ import net.minestom.server.event.player.PlayerUseItemEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
+import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
@@ -148,11 +150,34 @@ public class Main {
 
         // TODO - Temporary parkour listeners
         MinecraftServer.getGlobalEventHandler().addListener(PlayerUseItemEvent.class, event -> {
-            Player player = event.getPlayer();
-            int slot = player.getHeldSlot();
+            if (!(event.getPlayer() instanceof LobbyPlayer lobbyPlayer)) return;
+            if (!lobbyPlayer.isDynamicInventoryActive()) return;
+            event.setCancelled(true);
 
-            if (slot == 0) ParkourManager.getInstance().returnToCheckpoint(player, ParkourFailReason.PlayerRequest);
-            else if (slot == 4) ParkourManager.getInstance().cancelParkour(player, ParkourCancelReason.PlayerRequest);
+            Material material = event.getItemStack().material();
+
+            if (material == Material.SPRUCE_PRESSURE_PLATE) {
+                ParkourManager.getInstance().returnToCheckpoint(lobbyPlayer, ParkourFailReason.PlayerRequest);
+            } else if (material == Material.BARRIER) {
+                ParkourManager.getInstance().cancelParkour(lobbyPlayer, ParkourCancelReason.PlayerRequest);
+            }
+        });
+
+        MinecraftServer.getGlobalEventHandler().addListener(PlayerBlockInteractEvent.class, event -> {
+            if (!(event.getPlayer() instanceof LobbyPlayer lobbyPlayer)) return;
+            if (!lobbyPlayer.isDynamicInventoryActive()) return;
+            event.setCancelled(true);
+
+            PlayerHand hand = event.getHand();
+            if (hand != PlayerHand.MAIN) return;
+
+            Material material = event.getPlayer().getItemInHand(hand).material();
+
+            if (material == Material.SPRUCE_PRESSURE_PLATE) {
+                ParkourManager.getInstance().returnToCheckpoint(lobbyPlayer, ParkourFailReason.PlayerRequest);
+            } else if (material == Material.BARRIER) {
+                ParkourManager.getInstance().cancelParkour(lobbyPlayer, ParkourCancelReason.PlayerRequest);
+            }
         });
 
         eventHandler.addListener(PlayerBlockBreakEvent.class, event -> {

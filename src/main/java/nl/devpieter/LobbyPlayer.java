@@ -26,8 +26,16 @@ public class LobbyPlayer extends Player {
         inventories.put(MAIN_INVENTORY, getInventory());
     }
 
+    public boolean isMainInventoryActive() {
+        return currentInventoryKey.equals(MAIN_INVENTORY);
+    }
+
     public void switchToMainInventory() {
         switchToInventory(MAIN_INVENTORY);
+    }
+
+    public boolean isDynamicInventoryActive() {
+        return currentInventoryKey.equals(DYNAMIC_INVENTORY);
     }
 
     public void switchToDynamicInventory() {
@@ -82,7 +90,9 @@ public class LobbyPlayer extends Player {
         inventory = newInventory;
         inventory.addViewer(this);
 
-        this.refreshActiveHand(true, false, false);
-        this.sendPacketsToViewers(this.getEquipmentsPacket());
+        refreshActiveHand(true, false, false);
+        sendPacketToViewersAndSelf(getEquipmentsPacket());
+
+        inventory.update();
     }
 }
