@@ -5,7 +5,6 @@ import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.instance.Instance;
 import nl.devpieter.features.parkour.ParkourManager;
-import nl.devpieter.features.parkour.models.Parkour;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
 import org.jetbrains.annotations.NotNull;
@@ -29,10 +28,10 @@ public class ParkourPlayerMoveListener implements EventListener<@NotNull PlayerM
         LoadedWorld world = worldManager.getLoadedWorldByInstance(instance);
         if (world == null) return Result.SUCCESS;
 
-        Parkour parkour = this.parkourManager.getParkour(world.world().id(), player);
-        if (parkour != null) this.parkourManager.startParkour(player, parkour.id());
-        this.parkourManager.checkNode(player);
-        this.parkourManager.checkFinish(player);
+//        Parkour parkour = this.parkourManager.getParkour(world.world().id(), player);
+//        if (parkour != null) this.parkourManager.startParkour(player, parkour.id());
+//        this.parkourManager.checkNode(player);
+//        this.parkourManager.checkFinish(player);
 
         return Result.SUCCESS;
     }

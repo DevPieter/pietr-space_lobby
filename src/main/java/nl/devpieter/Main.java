@@ -36,7 +36,6 @@ import nl.devpieter.features.fishing.catchable.ICatchable;
 import nl.devpieter.features.fishing.listeners.PlayerUseItemListener;
 import nl.devpieter.features.fishing.rod.IRod;
 import nl.devpieter.features.parkour.ParkourManager;
-import nl.devpieter.features.parkour.ParkourTryManager;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerMoveListener;
@@ -211,7 +210,7 @@ public class Main {
 
         MinecraftServer.getConnectionManager().setPlayerProvider(LobbyPlayer::new);
 
-        ParkourTryManager.getInstance().start();
+//        ParkourTryManager.getInstance().start();
         server.start("0.0.0.0", 25565);
     }
 

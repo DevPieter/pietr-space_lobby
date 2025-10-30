@@ -22,8 +22,8 @@ public class MainListener implements SListener {
         CreatureManager creatureManager = CreatureManager.getInstance();
         creatureManager.init();
 
-        ParkourManager parkourManager = ParkourManager.getInstance();
-        parkourManager.init();
+//        ParkourManager parkourManager = ParkourManager.getInstance();
+//        parkourManager.init();
 
         PortalManager portalManager = PortalManager.getInstance();
         portalManager.init();
