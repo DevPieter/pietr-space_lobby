@@ -11,7 +11,7 @@ import nl.devpieter.features.world.WorldManager;
 import java.util.HashMap;
 import java.util.List;
 
-public class ParkourDecodable implements ISignDecodable {
+public class ParkourNodeDecodable implements ISignDecodable {
 
     private final WorldManager worldManager = WorldManager.getInstance();
 

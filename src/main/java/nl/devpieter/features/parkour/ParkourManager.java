@@ -1,11 +1,11 @@
 package nl.devpieter.features.parkour;
 
 import net.kyori.adventure.sound.Sound;
-import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
-import net.minestom.server.instance.InstanceContainer;
-import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
@@ -17,15 +17,19 @@ import nl.devpieter.features.parkour.models.parkour.ParkourNode;
 import nl.devpieter.features.parkour.models.parkourTry.FailedNode;
 import nl.devpieter.features.parkour.models.parkourTry.ParkourTry;
 import nl.devpieter.features.parkour.models.parkourTry.ReachedNode;
+import nl.devpieter.features.portals.PortalDecodable;
+import nl.devpieter.features.signs.SignDecoder;
+import nl.devpieter.features.signs.SignManager;
+import nl.devpieter.features.signs.models.SignHolder;
 import nl.devpieter.models.GlowingBlockHolder;
 import nl.devpieter.models.SlotHolder;
 import nl.devpieter.utils.minestom.PacketUtils;
 import nl.devpieter.utils.minestom.PlayerUtils;
 import nl.devpieter.utils.minestom.TextUtils;
-import nl.devpieter.utils.minestom.WorldUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -33,6 +37,12 @@ import java.util.UUID;
 public class ParkourManager {
 
     private static ParkourManager INSTANCE;
+    private static final String SIGN_KEY = "<PARKOUR>";
+
+    private final ComponentLogger logger = MinecraftServer.LOGGER;
+    private final SignManager signManager = SignManager.getInstance();
+
+    private final List<Entity> debugMarkers = new ArrayList<>();
 
     private final HashMap<String, Parkour> parkours = new HashMap<>();
     private final HashMap<String, List<Parkour>> worldParkourLookup = new HashMap<>();
@@ -48,42 +58,83 @@ public class ParkourManager {
         return INSTANCE;
     }
 
-    public void initParkour(@NotNull InstanceContainer instance, @NotNull Parkour parkour) {
-
-        Pos start = parkour.startPos();
-        instance.setBlock(start, Block.HEAVY_WEIGHTED_PRESSURE_PLATE);
-
-        Pos end = parkour.endPos();
-        instance.setBlock(end, Block.LIGHT_WEIGHTED_PRESSURE_PLATE);
-
-        // DEBUG - start
-        Pos debugStart = start.withYaw(0).withPitch(0);
-        WorldUtils.placeMarker(instance, debugStart.add(0.5, 0.5, 0.5), TextUtils.miniText("<b><green>Start</green>"));
-        WorldUtils.placeBoundingBox(instance, debugStart, parkour.startBox());
-
-        Pos debugEnd = end.withYaw(0).withPitch(0);
-        WorldUtils.placeMarker(instance, debugEnd.add(0.5, 0.5, 0.5), TextUtils.miniText("<b><red>End</red>"));
-        WorldUtils.placeBoundingBox(instance, debugEnd, parkour.endBox());
-        // DEBUG - end
-
-        for (ParkourNode node : parkour.nodes()) {
-            Pos pos = node.pos();
-            if (node.isCheckpoint()) instance.setBlock(pos, Block.SPRUCE_PRESSURE_PLATE);
-
-            // DEBUG - start
-            Pos debugPos = pos.withYaw(0).withPitch(0);
-            if (!node.isCheckpoint()) instance.setBlock(debugPos, Block.STONE_PRESSURE_PLATE);
-
-            Component text = TextUtils.miniText("<b><yellow>%s</yellow>", node.index());
-            WorldUtils.placeMarker(instance, debugPos.add(0.5, 0.5, 0.5), text);
-            WorldUtils.placeBoundingBox(instance, debugPos, node.boundingBox());
-            // DEBUG - end
-        }
-
-//        parkours.put(parkour.id(), parkour);
-//        worldParkourLookup.computeIfAbsent(holder.world().id(), k -> new ArrayList<>()).add(parkour);
+    public void init() {
+        scanAndRegisterParkours();
     }
 
+    private void scanAndRegisterParkours() {
+
+        // <KEY>
+        // <Name>
+        // <Node Type>
+        // Optional parameters
+
+        // Types:
+        // spawn = The point the player gets teleported to when ...
+        // leaderboard = The location of the leaderboard
+        // start = The first node of the parkour
+        // node = A normal node (can be a checkpoint)
+        // end = The last node of the parkour
+
+        List<String> foundParkours = new ArrayList<>();
+
+        List<SignHolder> signs = signManager.getMatchedSigns(SIGN_KEY);
+        for (SignHolder sign : signs) {
+            PortalDecodable portalDecodable = new PortalDecodable();
+
+            String name = sign.lines().get(1);
+            String type = sign.lines().get(2).toLowerCase();
+
+            System.out.println("Decoding parkour sign: " + name + " | Type: " + type);
+
+            if (!foundParkours.contains(name)) {
+                foundParkours.add(name);
+                System.out.println("Found parkour: " + name);
+            }
+
+            List<String> lines = sign.lines().subList(3, sign.lines().size());
+            SignDecoder.decodeLines(lines, portalDecodable.getDecoders());
+
+
+        }
+    }
+
+//    public void initParkour(@NotNull InstanceContainer instance, @NotNull Parkour parkour) {
+//
+//        Pos start = parkour.startPos();
+//        instance.setBlock(start, Block.HEAVY_WEIGHTED_PRESSURE_PLATE);
+//
+//        Pos end = parkour.endPos();
+//        instance.setBlock(end, Block.LIGHT_WEIGHTED_PRESSURE_PLATE);
+//
+//        // DEBUG - start
+//        Pos debugStart = start.withYaw(0).withPitch(0);
+//        WorldUtils.placeMarker(instance, debugStart.add(0.5, 0.5, 0.5), TextUtils.miniText("<b><green>Start</green>"));
+//        WorldUtils.placeBoundingBox(instance, debugStart, parkour.startBox());
+//
+//        Pos debugEnd = end.withYaw(0).withPitch(0);
+//        WorldUtils.placeMarker(instance, debugEnd.add(0.5, 0.5, 0.5), TextUtils.miniText("<b><red>End</red>"));
+//        WorldUtils.placeBoundingBox(instance, debugEnd, parkour.endBox());
+//        // DEBUG - end
+//
+//        for (ParkourNode node : parkour.nodes()) {
+//            Pos pos = node.pos();
+//            if (node.isCheckpoint()) instance.setBlock(pos, Block.SPRUCE_PRESSURE_PLATE);
+//
+//            // DEBUG - start
+//            Pos debugPos = pos.withYaw(0).withPitch(0);
+//            if (!node.isCheckpoint()) instance.setBlock(debugPos, Block.STONE_PRESSURE_PLATE);
+//
+//            Component text = TextUtils.miniText("<b><yellow>%s</yellow>", node.index());
+//            WorldUtils.placeMarker(instance, debugPos.add(0.5, 0.5, 0.5), text);
+//            WorldUtils.placeBoundingBox(instance, debugPos, node.boundingBox());
+//            // DEBUG - end
+//        }
+//
+
+    /// /        parkours.put(parkour.id(), parkour);
+    /// /        worldParkourLookup.computeIfAbsent(holder.world().id(), k -> new ArrayList<>()).add(parkour);
+//    }
     public boolean isDoingParkour(@NotNull Player player) {
         return players.containsKey(player.getUuid());
     }
