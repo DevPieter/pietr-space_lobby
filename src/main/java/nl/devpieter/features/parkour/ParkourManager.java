@@ -14,6 +14,7 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
 import nl.devpieter.LobbyPlayer;
+import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.parkour.decodables.*;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
@@ -212,28 +213,33 @@ public class ParkourManager {
         Pos end = parkour.endPos();
         instance.setBlock(end, Block.LIGHT_WEIGHTED_PRESSURE_PLATE);
 
-        // DEBUG - start
-        Pos debugStart = start.withYaw(0).withPitch(0);
-        WorldUtils.placeMarker(instance, debugStart, TextUtils.miniText("<b><green>Start</green>"));
-        WorldUtils.placeBoundingBox(instance, debugStart, parkour.startBox());
+        if (EnvStatics.DEBUG) {
+            Pos debugStart = start.withYaw(0).withPitch(0);
+            WorldUtils.placeMarker(instance, debugStart.add(0, 0.7, 0), TextUtils.miniText("<#cea0d0>%s <gray>Start", parkour.id()));
+            WorldUtils.placeBoundingBox(instance, debugStart, parkour.startBox());
 
-        Pos debugEnd = end.withYaw(0).withPitch(0);
-        WorldUtils.placeMarker(instance, debugEnd, TextUtils.miniText("<b><red>End</red>"));
-        WorldUtils.placeBoundingBox(instance, debugEnd, parkour.endBox());
-        // DEBUG - end
+            Pos debugEnd = end.withYaw(0).withPitch(0);
+            WorldUtils.placeMarker(instance, debugEnd.add(0, 0.7, 0), TextUtils.miniText("<#cea0d0>%s <gray>End", parkour.id()));
+            WorldUtils.placeBoundingBox(instance, debugEnd, parkour.endBox());
+        }
 
         for (ParkourNode node : parkour.nodes()) {
             Pos point = node.pos();
             if (node.isCheckpoint()) instance.setBlock(point, Block.SPRUCE_PRESSURE_PLATE);
 
-            // DEBUG - start
-            Pos debugPos = point.withYaw(0).withPitch(0);
-            if (!node.isCheckpoint()) instance.setBlock(debugPos, Block.STONE_PRESSURE_PLATE);
+            if (EnvStatics.DEBUG) {
+                Pos debugPos = point.withYaw(0).withPitch(0);
+                if (!node.isCheckpoint()) instance.setBlock(debugPos, Block.STONE_PRESSURE_PLATE);
 
-            Component text = TextUtils.miniText("<b><yellow>%s</yellow>", node.index());
-            WorldUtils.placeMarker(instance, debugPos, text);
-            WorldUtils.placeBoundingBox(instance, debugPos, node.boundingBox());
-            // DEBUG - end
+                Component text = TextUtils.miniText("<#cea0d0>%s <gray>%s", parkour.id(), node.index());
+
+                if (node.isCheckpoint()) {
+                    text = TextUtils.miniText("<#cea0d0>%s <gray>%s (checkpoint)", parkour.id(), node.index());
+                }
+
+                WorldUtils.placeMarker(instance, debugPos.add(0, 0.7, 0), text);
+                WorldUtils.placeBoundingBox(instance, debugPos, node.boundingBox());
+            }
         }
 
         parkours.put(parkour.id(), parkour);
@@ -361,8 +367,6 @@ public class ParkourManager {
         if (lastReachedIndex >= 0 && lastReachedIndex < parkour.nodes().size()) {
             currentCheckpointNode = parkour.nodes().get(lastReachedIndex);
 
-            System.out.println(currentCheckpointNode);
-
             if (!currentCheckpointNode.isCheckpoint()) {
                 // TODO - Log this as a warning, this should not happen
                 currentCheckpointNode = null;
@@ -480,7 +484,9 @@ public class ParkourManager {
         parkourTry.setReached(i, isCheckpoint);
         if (isCheckpoint) handleCheckpointReached(player, parkourTry.parkourId());
 
-        player.sendActionBar(TextUtils.miniText("<dark_gray>Node <green>%d</green> reached!", i));
+        if (EnvStatics.DEBUG) {
+            player.sendActionBar(TextUtils.miniText("<dark_gray>Node <green>%d</green> reached!", i));
+        }
     }
 
     private void handleCheckpointReached(@NotNull Player player, @NotNull String parkourId) {
