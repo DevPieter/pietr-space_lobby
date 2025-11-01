@@ -16,6 +16,7 @@ import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.LobbyPlayer;
+import nl.devpieter.Main;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.parkour.decodables.*;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
@@ -317,6 +318,8 @@ public class ParkourManager {
         Parkour parkour = parkours.get(parkourUuid);
         if (parkour == null) return;
 
+        Main.toggleTracking(player);
+
         player.sendMessage(TextUtils.miniText("<green>Parkour started! Go go go!"));
         player.playSound(Sound.sound(SoundEvent.BLOCK_NOTE_BLOCK_PLING, Sound.Source.MASTER, 1.0f, 1.0f));
 
@@ -558,6 +561,8 @@ public class ParkourManager {
         ));
 
         sendTip(player, "<gray>Press <b><key:key.sneak></b> to return to parkour start.");
+
+        Main.toggleTracking(player);
     }
 
     // TODO - Move to TipManager or related
