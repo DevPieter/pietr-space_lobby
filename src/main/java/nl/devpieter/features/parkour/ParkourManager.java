@@ -1,38 +1,41 @@
 package nl.devpieter.features.parkour;
 
 import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
+import net.minestom.server.instance.InstanceContainer;
+import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
 import nl.devpieter.LobbyPlayer;
+import nl.devpieter.features.parkour.decodables.*;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
-import nl.devpieter.features.parkour.models.parkour.Parkour;
-import nl.devpieter.features.parkour.models.parkour.ParkourNode;
+import nl.devpieter.features.parkour.models.parkour.*;
 import nl.devpieter.features.parkour.models.parkourTry.FailedNode;
 import nl.devpieter.features.parkour.models.parkourTry.ParkourTry;
 import nl.devpieter.features.parkour.models.parkourTry.ReachedNode;
-import nl.devpieter.features.portals.PortalDecodable;
 import nl.devpieter.features.signs.SignDecoder;
 import nl.devpieter.features.signs.SignManager;
 import nl.devpieter.features.signs.models.SignHolder;
+import nl.devpieter.features.world.WorldManager;
+import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.models.GlowingBlockHolder;
 import nl.devpieter.models.SlotHolder;
 import nl.devpieter.utils.minestom.PacketUtils;
 import nl.devpieter.utils.minestom.PlayerUtils;
 import nl.devpieter.utils.minestom.TextUtils;
+import nl.devpieter.utils.minestom.WorldUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class ParkourManager {
 
@@ -41,6 +44,7 @@ public class ParkourManager {
 
     private final ComponentLogger logger = MinecraftServer.LOGGER;
     private final SignManager signManager = SignManager.getInstance();
+    private final WorldManager worldManager = WorldManager.getInstance();
 
     private final List<Entity> debugMarkers = new ArrayList<>();
 
@@ -63,78 +67,179 @@ public class ParkourManager {
     }
 
     private void scanAndRegisterParkours() {
+        HashMap<String, SignHolder> foundParkours = new HashMap<>();
+        List<String> incompleteParkours = new ArrayList<>();
 
-        // <KEY>
-        // <Name>
-        // <Node Type>
-        // Optional parameters
+        HashMap<String, ParkourSpawnNode> spawnNodes = new HashMap<>();
+        HashMap<String, ParkourLeaderboardNode> leaderboardNodes = new HashMap<>();
+        HashMap<String, ParkourStartNode> startNodes = new HashMap<>();
+        HashMap<String, ParkourEndNode> endNodes = new HashMap<>();
 
-        // Types:
-        // spawn = The point the player gets teleported to when ...
-        // leaderboard = The location of the leaderboard
-        // start = The first node of the parkour
-        // node = A normal node (can be a checkpoint)
-        // end = The last node of the parkour
-
-        List<String> foundParkours = new ArrayList<>();
+        HashMap<String, List<ParkourNode>> normalNodes = new HashMap<>();
+        HashMap<String, Boolean> containsIndex = new HashMap<>();
 
         List<SignHolder> signs = signManager.getMatchedSigns(SIGN_KEY);
         for (SignHolder sign : signs) {
-            PortalDecodable portalDecodable = new PortalDecodable();
+
+            LoadedWorld world = worldManager.getLoadedWorldByInstance(sign.block().instance());
+            if (world == null) {
+                logger.warn("Sign at {} is in an unknown world, skipping parkour sign", sign.block().position());
+                continue;
+            }
+
+            Point point = sign.block().position();
 
             String name = sign.lines().get(1);
             String type = sign.lines().get(2).toLowerCase();
 
-            System.out.println("Decoding parkour sign: " + name + " | Type: " + type);
-
-            if (!foundParkours.contains(name)) {
-                foundParkours.add(name);
-                System.out.println("Found parkour: " + name);
-            }
+            String identifier = String.format("%s:%s", world.id(), name);
+            foundParkours.putIfAbsent(identifier, sign);
 
             List<String> lines = sign.lines().subList(3, sign.lines().size());
-            SignDecoder.decodeLines(lines, portalDecodable.getDecoders());
 
+            switch (type) {
+                case "spawn" -> {
+                    if (spawnNodes.containsKey(identifier)) {
+                        logger.warn("Duplicate spawn node for parkour: {} on sign at {}", identifier, point);
+                        continue;
+                    }
 
+                    ParkourSpawnNodeDecodable decodable = new ParkourSpawnNodeDecodable();
+                    SignDecoder.decodeLines(lines, decodable.getDecoders());
+
+                    spawnNodes.put(identifier, decodable.getNode(sign));
+                }
+                case "leaderboard" -> {
+                    if (leaderboardNodes.containsKey(identifier)) {
+                        logger.warn("Duplicate leaderboard node for parkour: {} on sign at {}", identifier, point);
+                        continue;
+                    }
+
+                    ParkourLeaderboardNodeDecodable decodable = new ParkourLeaderboardNodeDecodable();
+                    SignDecoder.decodeLines(lines, decodable.getDecoders());
+
+                    leaderboardNodes.put(identifier, decodable.getNode(sign));
+                }
+                case "start" -> {
+                    if (startNodes.containsKey(identifier)) {
+                        logger.warn("Duplicate start node for parkour: {} on sign at {}", identifier, point);
+                        continue;
+                    }
+
+                    ParkourStartNodeDecodable decodable = new ParkourStartNodeDecodable();
+                    SignDecoder.decodeLines(lines, decodable.getDecoders());
+
+                    startNodes.put(identifier, decodable.getNode(sign));
+                }
+                case "node" -> {
+                    ParkourNodeDecodable decodable = new ParkourNodeDecodable();
+                    SignDecoder.decodeLines(lines, decodable.getDecoders());
+
+                    ParkourNode node = decodable.getNode(sign);
+
+                    String indexKey = String.format("%s:%d", identifier, node.index());
+                    if (containsIndex.containsKey(indexKey)) {
+                        logger.warn("Duplicate node index {} for parkour: {} on sign at {}", node.index(), identifier, point);
+                        continue;
+                    }
+
+                    containsIndex.put(indexKey, true);
+                    normalNodes.computeIfAbsent(identifier, _ -> new ArrayList<>()).add(node);
+                }
+                case "end" -> {
+                    if (endNodes.containsKey(identifier)) {
+                        logger.warn("Duplicate end node for parkour: {} on sign at {}", identifier, point);
+                        continue;
+                    }
+
+                    ParkourEndNodeDecodable decodable = new ParkourEndNodeDecodable();
+                    SignDecoder.decodeLines(lines, decodable.getDecoders());
+
+                    endNodes.put(identifier, decodable.getNode(sign));
+                }
+                default -> logger.warn("Unknown parkour sign type: {} on sign at {}", type, point);
+            }
+        }
+
+        for (Map.Entry<String, SignHolder> entry : foundParkours.entrySet()) {
+            String identifier = entry.getKey();
+            SignHolder sign = entry.getValue();
+
+            if (!startNodes.containsKey(identifier) || !normalNodes.containsKey(identifier) || !endNodes.containsKey(identifier)) {
+                incompleteParkours.add(identifier);
+                continue;
+            }
+
+            LoadedWorld world = worldManager.getLoadedWorldByInstance(sign.block().instance());
+            if (world == null) {
+                logger.warn("Parkour {} is in an unknown world, skipping parkour", identifier);
+                incompleteParkours.add(identifier);
+                continue;
+            }
+
+            List<ParkourNode> nodesOrdered = normalNodes.get(identifier);
+            nodesOrdered.sort(Comparator.comparingInt(ParkourNode::index));
+
+            Parkour parkour = new Parkour(
+                    identifier,
+
+                    world.id(),
+                    world.instance(),
+
+                    spawnNodes.get(identifier),
+                    leaderboardNodes.get(identifier),
+
+                    startNodes.get(identifier),
+                    endNodes.get(identifier),
+
+                    nodesOrdered
+            );
+
+            initParkour(world, parkour);
+        }
+
+        if (!incompleteParkours.isEmpty()) {
+            logger.warn("Found {} incomplete parkours: {}", incompleteParkours.size(), String.join(", ", incompleteParkours));
         }
     }
 
-//    public void initParkour(@NotNull InstanceContainer instance, @NotNull Parkour parkour) {
-//
-//        Pos start = parkour.startPos();
-//        instance.setBlock(start, Block.HEAVY_WEIGHTED_PRESSURE_PLATE);
-//
-//        Pos end = parkour.endPos();
-//        instance.setBlock(end, Block.LIGHT_WEIGHTED_PRESSURE_PLATE);
-//
-//        // DEBUG - start
-//        Pos debugStart = start.withYaw(0).withPitch(0);
-//        WorldUtils.placeMarker(instance, debugStart.add(0.5, 0.5, 0.5), TextUtils.miniText("<b><green>Start</green>"));
-//        WorldUtils.placeBoundingBox(instance, debugStart, parkour.startBox());
-//
-//        Pos debugEnd = end.withYaw(0).withPitch(0);
-//        WorldUtils.placeMarker(instance, debugEnd.add(0.5, 0.5, 0.5), TextUtils.miniText("<b><red>End</red>"));
-//        WorldUtils.placeBoundingBox(instance, debugEnd, parkour.endBox());
-//        // DEBUG - end
-//
-//        for (ParkourNode node : parkour.nodes()) {
-//            Pos pos = node.pos();
-//            if (node.isCheckpoint()) instance.setBlock(pos, Block.SPRUCE_PRESSURE_PLATE);
-//
-//            // DEBUG - start
-//            Pos debugPos = pos.withYaw(0).withPitch(0);
-//            if (!node.isCheckpoint()) instance.setBlock(debugPos, Block.STONE_PRESSURE_PLATE);
-//
-//            Component text = TextUtils.miniText("<b><yellow>%s</yellow>", node.index());
-//            WorldUtils.placeMarker(instance, debugPos.add(0.5, 0.5, 0.5), text);
-//            WorldUtils.placeBoundingBox(instance, debugPos, node.boundingBox());
-//            // DEBUG - end
-//        }
-//
+    public void initParkour(@NotNull LoadedWorld world, @NotNull Parkour parkour) {
+        InstanceContainer instance = world.instance();
 
-    /// /        parkours.put(parkour.id(), parkour);
-    /// /        worldParkourLookup.computeIfAbsent(holder.world().id(), k -> new ArrayList<>()).add(parkour);
-//    }
+        Pos start = parkour.startPos();
+        instance.setBlock(start, Block.HEAVY_WEIGHTED_PRESSURE_PLATE);
+
+        Pos end = parkour.endPos();
+        instance.setBlock(end, Block.LIGHT_WEIGHTED_PRESSURE_PLATE);
+
+        // DEBUG - start
+        Pos debugStart = start.withYaw(0).withPitch(0);
+        WorldUtils.placeMarker(instance, debugStart, TextUtils.miniText("<b><green>Start</green>"));
+        WorldUtils.placeBoundingBox(instance, debugStart, parkour.startBox());
+
+        Pos debugEnd = end.withYaw(0).withPitch(0);
+        WorldUtils.placeMarker(instance, debugEnd, TextUtils.miniText("<b><red>End</red>"));
+        WorldUtils.placeBoundingBox(instance, debugEnd, parkour.endBox());
+        // DEBUG - end
+
+        for (ParkourNode node : parkour.nodes()) {
+            Pos point = node.pos();
+            if (node.isCheckpoint()) instance.setBlock(point, Block.SPRUCE_PRESSURE_PLATE);
+
+            // DEBUG - start
+            Pos debugPos = point.withYaw(0).withPitch(0);
+            if (!node.isCheckpoint()) instance.setBlock(debugPos, Block.STONE_PRESSURE_PLATE);
+
+            Component text = TextUtils.miniText("<b><yellow>%s</yellow>", node.index());
+            WorldUtils.placeMarker(instance, debugPos, text);
+            WorldUtils.placeBoundingBox(instance, debugPos, node.boundingBox());
+            // DEBUG - end
+        }
+
+        parkours.put(parkour.id(), parkour);
+        worldParkourLookup.computeIfAbsent(world.id(), _ -> new ArrayList<>()).add(parkour);
+    }
+
     public boolean isDoingParkour(@NotNull Player player) {
         return players.containsKey(player.getUuid());
     }
@@ -199,7 +304,7 @@ public class ParkourManager {
         player.playSound(Sound.sound(SoundEvent.BLOCK_NOTE_BLOCK_PLING, Sound.Source.MASTER, 1.0f, 1.0f));
 
         Pos nextCheckpoint = getFirstCheckpoint(parkour);
-        glowingHolders.put(player.getUuid(), PacketUtils.replaceWithGlowing(player, nextCheckpoint.add(0.5, 0, 0.5)));
+        glowingHolders.put(player.getUuid(), PacketUtils.replaceWithGlowing(player, nextCheckpoint));
         PacketUtils.setWaypoint(player, parkourUuid, nextCheckpoint);
 
         if (player instanceof LobbyPlayer lobbyPlayer) {
@@ -256,6 +361,8 @@ public class ParkourManager {
         if (lastReachedIndex >= 0 && lastReachedIndex < parkour.nodes().size()) {
             currentCheckpointNode = parkour.nodes().get(lastReachedIndex);
 
+            System.out.println(currentCheckpointNode);
+
             if (!currentCheckpointNode.isCheckpoint()) {
                 // TODO - Log this as a warning, this should not happen
                 currentCheckpointNode = null;
@@ -264,10 +371,10 @@ public class ParkourManager {
 
         if (currentCheckpointNode == null) {
             parkourTry.resetProgress();
-            PlayerUtils.teleport(player, parkour.startPos().add(0.5, 0, 0.5));
+            PlayerUtils.teleport(player, parkour.startPos());
         } else {
             parkourTry.rollbackToLastCheckpoint();
-            PlayerUtils.teleport(player, currentCheckpointNode.pos().add(0.5, 0, 0.5));
+            PlayerUtils.teleport(player, currentCheckpointNode.pos());
         }
 
         player.sendMessage(TextUtils.miniText("<red>You failed the jump!"));
@@ -386,7 +493,7 @@ public class ParkourManager {
         Pos nextCheckpoint = getNextCheckpoint(player);
         if (nextCheckpoint == null) return;
 
-        GlowingBlockHolder newHolder = PacketUtils.replaceWithGlowing(player, nextCheckpoint.add(0.5, 0, 0.5));
+        GlowingBlockHolder newHolder = PacketUtils.replaceWithGlowing(player, nextCheckpoint);
         glowingHolders.put(player.getUuid(), newHolder);
 
         PacketUtils.updateWaypoint(player, parkourId, nextCheckpoint);

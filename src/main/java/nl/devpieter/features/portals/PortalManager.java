@@ -59,11 +59,7 @@ public class PortalManager {
             List<String> lines = sign.lines().subList(1, sign.lines().size());
             SignDecoder.decodeLines(lines, portalDecodable.getDecoders());
 
-            Portal portal = portalDecodable.placePortal(
-                    sign.block().instance(),
-                    sign.block().position(),
-                    sign
-            );
+            Portal portal = portalDecodable.placePortal(sign);
             portals.add(portal);
 
             portalLocations.add(new PortalPointHolder(
