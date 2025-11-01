@@ -21,6 +21,15 @@ public record Parkour(
 
         List<ParkourNode> nodes
 ) {
+    public @Nullable Pos spawnPos() {
+        if (spawn == null) return null;
+
+        return spawn.point().asPos()
+                .add(0.5, 0, 0.5)
+                .withYaw(spawn.yawPitch().yaw())
+                .withPitch(spawn.yawPitch().pitch());
+    }
+
     public Pos startPos() {
         return start.point().asPos()
                 .add(0.5, 0, 0.5)

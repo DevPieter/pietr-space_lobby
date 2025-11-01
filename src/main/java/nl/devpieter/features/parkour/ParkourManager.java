@@ -13,6 +13,8 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
+import net.minestom.server.timer.Task;
+import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.LobbyPlayer;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.parkour.decodables.*;
@@ -54,6 +56,15 @@ public class ParkourManager {
 
     private final HashMap<UUID, ParkourTry> players = new HashMap<>();
     private final HashMap<UUID, GlowingBlockHolder> glowingHolders = new HashMap<>();
+
+    private final HashMap<UUID, ParkourReturnHolder> returnHolders = new HashMap<>();
+
+    record ParkourReturnHolder(
+            String parkourId,
+            Task expirationTask
+    ) {
+
+    }
 
     private ParkourManager() {
     }
@@ -461,6 +472,27 @@ public class ParkourManager {
         player.playSound(Sound.sound(SoundEvent.ENTITY_PLAYER_LEVELUP, Sound.Source.MASTER, 1.0f, 1.0f));
     }
 
+    public void tryReturnToStart(@NotNull Player player) {
+        ParkourReturnHolder returnHolder = returnHolders.get(player.getUuid());
+        if (returnHolder == null) return;
+
+        Parkour parkour = getParkour(returnHolder.parkourId());
+        if (parkour == null) return;
+
+        Pos spawn = parkour.spawnPos();
+        if (spawn == null) return;
+
+        player.sendMessage(TextUtils.miniText("<green>Returning to parkour start."));
+        PlayerUtils.teleport(player, spawn);
+
+        returnHolder.expirationTask().cancel();
+        returnHolders.remove(player.getUuid());
+
+        if (!tipCompleted.contains(player.getUuid())) {
+            tipCompleted.add(player.getUuid());
+        }
+    }
+
     private boolean hasReachedAllCheckpoints(@NotNull Player player) {
         ParkourTry parkourTry = players.get(player.getUuid());
         if (parkourTry == null) return false;
@@ -517,5 +549,38 @@ public class ParkourManager {
         if (holder != null) PacketUtils.revertToOriginalBlock(player, holder);
 
         PacketUtils.removeWaypoint(player, parkourTry.parkourId());
+
+        returnHolders.put(player.getUuid(), new ParkourReturnHolder(
+                parkourTry.parkourId(),
+                MinecraftServer.getSchedulerManager().buildTask(() -> {
+                    returnHolders.remove(player.getUuid());
+                }).delay(TaskSchedule.seconds(3)).schedule()
+        ));
+
+        sendTip(player, "<gray>Press <b><key:key.sneak></b> to return to parkour start.");
+    }
+
+    // TODO - Move to TipManager or related
+    private final HashMap<UUID, Long> tipCooldowns = new HashMap<>();
+    private final List<UUID> tipCompleted = new ArrayList<>();
+
+    private void sendTip(@NotNull Player player, @NotNull String message) {
+        if (tipCompleted.contains(player.getUuid())) return;
+
+        long currentTime = System.currentTimeMillis();
+        Long lastSentTime = tipCooldowns.get(player.getUuid());
+
+        if (lastSentTime != null && (currentTime - lastSentTime) < 10_000) {
+            return;
+        }
+
+        tipCooldowns.put(player.getUuid(), currentTime);
+
+        player.sendMessage(Component.text()
+                .append(TextUtils.miniText("<gray>["))
+                .append(TextUtils.miniText("<yellow>Parkour Tip"))
+                .append(TextUtils.miniText("<gray>] "))
+                .append(TextUtils.miniText(message))
+        );
     }
 }
