@@ -9,10 +9,7 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.item.PickupItemEvent;
-import net.minestom.server.event.player.PlayerBlockBreakEvent;
-import net.minestom.server.event.player.PlayerBlockInteractEvent;
-import net.minestom.server.event.player.PlayerBlockPlaceEvent;
-import net.minestom.server.event.player.PlayerUseItemEvent;
+import net.minestom.server.event.player.*;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
@@ -29,7 +26,7 @@ import nl.devpieter.commands.player.GamemodeCommand;
 import nl.devpieter.commands.world.*;
 import nl.devpieter.config.ConfigManager;
 import nl.devpieter.config.EnvStatics;
-import nl.devpieter.features.farming.listeners.PlayerBlockBreakListener;
+import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.FishingReferenceHolder;
 import nl.devpieter.features.fishing.catchable.ICatchable;
@@ -48,6 +45,7 @@ import nl.devpieter.listeners.PlayerConfigurationListener;
 import nl.devpieter.listeners.PlayerDisconnectListener;
 import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
+import nl.devpieter.models.BlockHolder;
 import nl.devpieter.sees.Sees;
 import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
@@ -137,7 +135,6 @@ public class Main {
         eventHandler.addListener(new PlayerConfigurationListener());
         eventHandler.addListener(new PlayerMoveListener());
 
-        eventHandler.addListener(new PlayerBlockBreakListener());
         eventHandler.addListener(new PlayerBlockInteractListener());
         eventHandler.addListener(new PlayerStartSneakingListener());
         eventHandler.addListener(new PlayerUseItemListener());
@@ -178,6 +175,30 @@ public class Main {
             } else if (material == Material.BARRIER) {
                 ParkourManager.getInstance().cancelParkour(lobbyPlayer, ParkourCancelReason.PlayerRequest);
             }
+        });
+
+        // TODO - Temporary farming replanting listener
+        MinecraftServer.getGlobalEventHandler().addListener(PlayerStartDiggingEvent.class, event -> {
+            Player player = event.getPlayer();
+            if (player.getGameMode() == GameMode.CREATIVE) return;
+            event.setCancelled(true);
+
+            Block block = event.getBlock();
+            BlockHandler handler = block.handler();
+            Instance instance = event.getInstance();
+
+            if (!(handler instanceof FarmBlockHandler farmHandler)) return;
+
+            BlockHolder holder = new BlockHolder(instance, event.getBlockPosition(), block);
+            if (!farmHandler.canBeHarvested(holder)) return;
+
+            farmHandler.replant(holder, event.getPlayer());
+        });
+
+        MinecraftServer.getGlobalEventHandler().addListener(PlayerStartDiggingEvent.class, event -> {
+            Player player = event.getPlayer();
+            if (player.getGameMode() == GameMode.CREATIVE) return;
+            event.setCancelled(true);
         });
 
         eventHandler.addListener(PlayerBlockBreakEvent.class, event -> {
