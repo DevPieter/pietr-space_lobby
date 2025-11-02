@@ -22,6 +22,7 @@ import nl.devpieter.blockHandler.DoorBlockHandler;
 import nl.devpieter.blockHandler.SignBlockHandler;
 import nl.devpieter.commands.ServerCommand;
 import nl.devpieter.commands.TestCommand;
+import nl.devpieter.commands.TipCommand;
 import nl.devpieter.commands.player.GamemodeCommand;
 import nl.devpieter.commands.world.*;
 import nl.devpieter.config.ConfigManager;
@@ -227,6 +228,7 @@ public class Main {
         commandManager.register(new WeatherCommand());
 
         // Misc
+        commandManager.register(new TipCommand());
         commandManager.register(new TestCommand());
         commandManager.register(new ServerCommand());
 
