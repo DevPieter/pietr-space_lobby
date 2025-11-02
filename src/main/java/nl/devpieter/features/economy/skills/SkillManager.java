@@ -1,5 +1,6 @@
 package nl.devpieter.features.economy.skills;
 
+import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.minestom.server.entity.Player;
@@ -8,11 +9,13 @@ import nl.devpieter.features.economy.skills.categories.FishingExperienceCategory
 import nl.devpieter.features.economy.skills.categories.TestExperienceCategory;
 import nl.devpieter.features.economy.skills.category.IExperienceCategory;
 import nl.devpieter.features.economy.skills.models.ExperienceHolder;
+import nl.devpieter.helpers.BossBarHelper;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,9 +24,9 @@ import java.util.UUID;
 public class SkillManager {
 
     private static SkillManager INSTANCE;
+    private final BossBarHelper bossBarHelper = BossBarHelper.getInstance();
 
     private final List<IExperienceCategory> categories = new ArrayList<>();
-
     private final HashMap<UUID, List<ExperienceHolder>> experienceHolders = new HashMap<>();
 
     private SkillManager() {
@@ -141,6 +144,7 @@ public class SkillManager {
         );
 
         player.sendActionBar(message);
+        showBossBar(player, category, experience);
     }
 
     private void notifyPlayerRevoke(Player player, IExperienceCategory category, double amount, @Nullable String reason) {
@@ -162,5 +166,42 @@ public class SkillManager {
                 category.getName(),
                 Component.space(), TextUtils.miniText("<#576272>XP!")
         ));
+    }
+
+    private void showBossBar(Player player, IExperienceCategory category, ExperienceHolder experience) {
+        Color plusColor = category.getColor();
+        String plusHex = TextColor.color(plusColor.getRGB()).asHexString();
+
+        Component text = TextUtils.combine(
+                category.getName(),
+                Component.space(),
+                TextUtils.miniText("<%s>Level", plusHex),
+                Component.space(),
+                TextUtils.miniText("<%s><b>%d", plusHex, experience.cachedLevel())
+        );
+
+        if (experience.cachedPrestige() > 0) {
+            text = TextUtils.combine(
+                    text,
+                    Component.space(),
+                    TextUtils.miniText("<%s>Prestige", plusHex),
+                    Component.space(),
+                    TextUtils.miniText("<%s><b>%d", plusHex, experience.cachedPrestige())
+            );
+        }
+
+        BossBar bossBar = BossBar.bossBar(
+                text,
+                (float) (experience.cachedProgressPercentage() / 100f),
+                category.getBossBarColor(),
+                BossBar.Overlay.PROGRESS
+        );
+
+        bossBarHelper.showTempBossBar(
+                player,
+                "skill_experience",
+                bossBar,
+                Duration.ofSeconds(5)
+        );
     }
 }

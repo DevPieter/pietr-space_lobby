@@ -87,7 +87,10 @@ public class FishingBobber extends EntityCreature implements IBobber {
             currentCatchable.onCatch(thrower, rod, this);
             currentCatchable = null;
         } else {
-            SkillManager.getInstance().revokeExperience(thrower, "fishing", 1, "You reeled in an empty hook");
+            Random random = new Random();
+            if (random.nextFloat() < 0.25f) {
+                SkillManager.getInstance().revokeExperience(thrower, "fishing", 1, "You reeled in an empty hook");
+            }
         }
 
         remove();
