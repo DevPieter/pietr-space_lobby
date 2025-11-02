@@ -62,35 +62,14 @@ public class CampfireBlockHandler implements BlockHandler {
     public boolean onInteract(Interaction interaction) {
         Player player = interaction.getPlayer();
 
+        String lit = interaction.getBlock().getProperty("lit");
+        if (lit == null || lit.equals("false")) return false;
+
         BlockHolder campfireHolder = new BlockHolder(
                 interaction.getInstance(),
                 interaction.getBlockPosition(),
                 interaction.getBlock()
         );
-
-//        campfireItems.put(0, new CampfireItem(
-//                ItemStack.of(Material.BEEF),
-//                0,
-//                600
-//        ));
-//
-//        campfireItems.put(1, new CampfireItem(
-//                ItemStack.of(Material.PORKCHOP),
-//                0,
-//                600
-//        ));
-//
-//        campfireItems.put(2, new CampfireItem(
-//                ItemStack.of(Material.CHICKEN),
-//                0,
-//                600
-//        ));
-//
-//        campfireItems.put(3, new CampfireItem(
-//                ItemStack.of(Material.MUTTON),
-//                0,
-//                600
-//        ));
 
         Inventory inventory = new Inventory(InventoryType.CHEST_1_ROW, Component.text("Campfire"));
         inventory.addItemStack(ItemStack.of(Material.BEEF));
@@ -149,6 +128,9 @@ public class CampfireBlockHandler implements BlockHandler {
 
     @Override
     public void tick(Tick tick) {
+        String lit = tick.getBlock().getProperty("lit");
+        if (lit == null || lit.equals("false")) return;
+
         for (Map.Entry<Integer, CampfireItem> entry : campfireItems.entrySet()) {
             CampfireItem campfireItem = entry.getValue();
 
