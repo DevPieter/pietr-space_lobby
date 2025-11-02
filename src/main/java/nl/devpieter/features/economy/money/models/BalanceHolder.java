@@ -1,12 +1,21 @@
 package nl.devpieter.features.economy.money.models;
 
+import java.util.UUID;
+
 public class BalanceHolder {
 
+    private final UUID playerId;
     public final String balanceId;
+
     public double amount;
 
-    public BalanceHolder(String balanceId) {
+    public BalanceHolder(UUID playerId, String balanceId) {
+        this.playerId = playerId;
         this.balanceId = balanceId;
+    }
+
+    public UUID playerId() {
+        return playerId;
     }
 
     public String balanceId() {
@@ -21,11 +30,12 @@ public class BalanceHolder {
         this.amount = amount;
     }
 
-    public void addAmount(double amount) {
+    public void grantBalance(double amount) {
+        if (amount <= 0) return;
         this.amount += amount;
     }
 
-    public boolean subtractAmount(double amount, boolean allowNegative) {
+    public boolean subtractBalance(double amount, boolean allowNegative) {
         if (!allowNegative && this.amount - amount < 0) return false;
 
         this.amount -= amount;

@@ -50,6 +50,7 @@ import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
 import nl.devpieter.models.BlockHolder;
 import nl.devpieter.sees.Sees;
+import nl.devpieter.utils.common.MathUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.slf4j.Logger;
@@ -127,12 +128,15 @@ public class Main {
             boolean isSitting = SitManager.getInstance().isSitting(player);
             boolean isRaining = player.getInstance() != null && player.getInstance().getWeather().isRaining();
 
-            int bonus = isRaining ? 1 : 0;
-            bonus += isSitting ? 2 : 0;
+            int bonus = isRaining ? MathUtils.randomInt(1, 3) : 0;
 
-            SkillManager.getInstance().grantExperience(player, "fishing", 3, bonus);
-            MoneyManager.getInstance().grantBalance(player, "shard", 2 + bonus);
-            playSoundEffect(player);
+            /* The bonus is not going to be negative, it just makes it less likely to get a bonus */
+            bonus += isSitting ? MathUtils.randomInt(-3, 3) : 0;
+
+            SkillManager.getInstance().grantExperience(player, "fishing", MathUtils.randomInt(1, 4), bonus);
+            MoneyManager.getInstance().grantBalance(player, "shard", 2 + bonus); // Just for testing
+
+            if (bonus > 0) playSoundEffect(player);
         });
 
         Sees sees = Sees.getInstance();

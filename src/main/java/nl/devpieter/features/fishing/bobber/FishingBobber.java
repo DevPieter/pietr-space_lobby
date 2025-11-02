@@ -86,6 +86,8 @@ public class FishingBobber extends EntityCreature implements IBobber {
         if (caught) {
             currentCatchable.onCatch(thrower, rod, this);
             currentCatchable = null;
+        } else {
+            SkillManager.getInstance().revokeExperience(thrower, "fishing", 1, "You reeled in an empty hook");
         }
 
         remove();
@@ -183,6 +185,11 @@ public class FishingBobber extends EntityCreature implements IBobber {
             tickStep += 1;
         }
 
+        // Raining speeds up fishing a bit
+        if (rng.nextFloat() < 0.25f && instance.getWeather().isRaining()) {
+            tickStep += 1;
+        }
+
         if (hookBiteTimer > 0) {
             --hookBiteTimer;
 
@@ -192,7 +199,7 @@ public class FishingBobber extends EntityCreature implements IBobber {
 
                 caught = false;
 
-//                ExperienceManager.getInstance().revokeExperience(thrower, "fishing", 3);
+                SkillManager.getInstance().revokeExperience(thrower, "fishing", 3, "The fish got away");
                 currentCatchable.onFail(thrower, rod, this);
                 currentCatchable = null;
             }
