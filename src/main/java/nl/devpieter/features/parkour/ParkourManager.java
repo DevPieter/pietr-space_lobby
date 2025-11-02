@@ -27,6 +27,7 @@ import nl.devpieter.features.parkour.models.parkourTry.ReachedNode;
 import nl.devpieter.features.signs.SignDecoder;
 import nl.devpieter.features.signs.SignManager;
 import nl.devpieter.features.signs.models.SignHolder;
+import nl.devpieter.features.tips.TipManager;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.models.GlowingBlockHolder;
@@ -46,6 +47,8 @@ public class ParkourManager {
     private static final String SIGN_KEY = "<PARKOUR>";
 
     private final ComponentLogger logger = MinecraftServer.LOGGER;
+
+    private final TipManager tipManager = TipManager.getInstance();
     private final SignManager signManager = SignManager.getInstance();
     private final WorldManager worldManager = WorldManager.getInstance();
 
@@ -488,9 +491,7 @@ public class ParkourManager {
         returnHolder.expirationTask().cancel();
         returnHolders.remove(player.getUuid());
 
-        if (!tipCompleted.contains(player.getUuid())) {
-            tipCompleted.add(player.getUuid());
-        }
+        tipManager.completeTip(player, "parkour_sneak_return_to_start");
     }
 
     private boolean hasReachedAllCheckpoints(@NotNull Player player) {
@@ -557,30 +558,6 @@ public class ParkourManager {
                 }).delay(TaskSchedule.seconds(3)).schedule()
         ));
 
-        sendTip(player, "<gray>Press <b><key:key.sneak></b> to return to parkour start.");
-    }
-
-    // TODO - Move to TipManager or related
-    private final HashMap<UUID, Long> tipCooldowns = new HashMap<>();
-    private final List<UUID> tipCompleted = new ArrayList<>();
-
-    private void sendTip(@NotNull Player player, @NotNull String message) {
-        if (tipCompleted.contains(player.getUuid())) return;
-
-        long currentTime = System.currentTimeMillis();
-        Long lastSentTime = tipCooldowns.get(player.getUuid());
-
-        if (lastSentTime != null && (currentTime - lastSentTime) < 10_000) {
-            return;
-        }
-
-        tipCooldowns.put(player.getUuid(), currentTime);
-
-        player.sendMessage(Component.text()
-                .append(TextUtils.miniText("<gray>["))
-                .append(TextUtils.miniText("<yellow>Parkour Tip"))
-                .append(TextUtils.miniText("<gray>] "))
-                .append(TextUtils.miniText(message))
-        );
+        tipManager.showTip(player, "parkour_sneak_return_to_start", "Press <b><key:key.sneak></b> to quickly return to the parkour starting point.");
     }
 }
