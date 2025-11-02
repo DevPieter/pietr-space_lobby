@@ -15,7 +15,7 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.particle.Particle;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.utils.chunk.ChunkCache;
-import nl.devpieter.features.experience.ExperienceManager;
+import nl.devpieter.features.economy.skills.SkillManager;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.catchable.ICatchable;
 import nl.devpieter.features.fishing.enums.BobberState;
@@ -245,7 +245,7 @@ public class FishingBobber extends EntityCreature implements IBobber {
                     );
                 }
             } else {
-                ExperienceManager.getInstance().grantExperience(thrower, "fishing", 2);
+                SkillManager.getInstance().grantExperience(thrower, "fishing", 2);
                 currentCatchable.onBite(thrower, rod, this);
                 hookBiteTimer = rng.nextInt(settings.minBiteTime(), settings.maxBiteTime());
 

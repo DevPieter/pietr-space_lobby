@@ -8,7 +8,7 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.particle.Particle;
 import net.minestom.server.sound.SoundEvent;
-import nl.devpieter.features.experience.ExperienceManager;
+import nl.devpieter.features.economy.skills.SkillManager;
 import nl.devpieter.models.BlockHolder;
 import nl.devpieter.utils.minestom.ParticleUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
@@ -114,7 +114,7 @@ public abstract class FarmBlockHandler implements BlockHandler {
 
         if (replanter instanceof Player player) {
             int exp = getExperienceOnHarvest(holder, replanter, getAge(holder));
-            ExperienceManager.getInstance().grantExperience(player, "farming", exp);
+            SkillManager.getInstance().grantExperience(player, "farming", exp);
         }
     }
 

@@ -1,6 +1,6 @@
-package nl.devpieter.features.experience.models;
+package nl.devpieter.features.economy.skills.models;
 
-import nl.devpieter.features.experience.category.IExperienceCategory;
+import nl.devpieter.features.economy.skills.category.IExperienceCategory;
 
 import java.util.UUID;
 
@@ -26,27 +26,27 @@ public class LevelHolder {
         this.experience = 0;
     }
 
-    public UUID getPlayerId() {
+    public UUID playerId() {
         return playerId;
     }
 
-    public String getCategoryId() {
+    public String categoryId() {
         return categoryId;
     }
 
-    public double getTotalExperience() {
+    public double totalExperience() {
         return totalExperience;
     }
 
-    public double getExperience() {
+    public double experience() {
         return experience;
     }
 
-    public int getLevel() {
+    public int level() {
         return level;
     }
 
-    public int getPrestige() {
+    public int prestige() {
         return prestige;
     }
 

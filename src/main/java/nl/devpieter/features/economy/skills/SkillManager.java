@@ -1,4 +1,4 @@
-package nl.devpieter.features.experience;
+package nl.devpieter.features.economy.skills;
 
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
@@ -9,11 +9,11 @@ import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
-import nl.devpieter.features.experience.categories.FarmingExperienceCategory;
-import nl.devpieter.features.experience.categories.FishingExperienceCategory;
-import nl.devpieter.features.experience.categories.TestExperienceCategory;
-import nl.devpieter.features.experience.category.IExperienceCategory;
-import nl.devpieter.features.experience.models.LevelHolder;
+import nl.devpieter.features.economy.skills.categories.FarmingExperienceCategory;
+import nl.devpieter.features.economy.skills.categories.FishingExperienceCategory;
+import nl.devpieter.features.economy.skills.categories.TestExperienceCategory;
+import nl.devpieter.features.economy.skills.category.IExperienceCategory;
+import nl.devpieter.features.economy.skills.models.LevelHolder;
 import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
@@ -24,9 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-public class ExperienceManager {
+public class SkillManager {
 
-    private static ExperienceManager INSTANCE;
+    private static SkillManager INSTANCE;
 
     private final List<IExperienceCategory> categories = new ArrayList<>();
 
@@ -34,7 +34,7 @@ public class ExperienceManager {
     private final HashMap<String, BossBar> bossBars = new HashMap<>();
     private final HashMap<String, Task> hideTasks = new HashMap<>();
 
-    private ExperienceManager() {
+    private SkillManager() {
         categories.addAll(List.of(
                 new TestExperienceCategory(),
                 new FarmingExperienceCategory(),
@@ -42,8 +42,8 @@ public class ExperienceManager {
         ));
     }
 
-    public static ExperienceManager getInstance() {
-        if (INSTANCE == null) INSTANCE = new ExperienceManager();
+    public static SkillManager getInstance() {
+        if (INSTANCE == null) INSTANCE = new SkillManager();
         return INSTANCE;
     }
 
@@ -57,9 +57,9 @@ public class ExperienceManager {
 
         LevelHolder levelHolder = levels.computeIfAbsent(player.getUuid(), id -> new LevelHolder(id, categoryId));
 
-        int currentLevel = levelHolder.getLevel();
+        int currentLevel = levelHolder.level();
         levelHolder.addExperience(amount + bonus, category);
-        int newLevel = levelHolder.getLevel();
+        int newLevel = levelHolder.level();
 
         Color plusColor = category.getColor();
         String plusHex = TextColor.color(plusColor.getRGB()).asHexString();
@@ -90,8 +90,8 @@ public class ExperienceManager {
         }
 
         BossBar bossBar = BossBar.bossBar(
-                category.getName().append(TextUtils.miniText(" Level " + levelHolder.getLevel() + " Prestige " + levelHolder.getPrestige())),
-                (float) (levelHolder.getExperience() / levelHolder.getTotalRequiredExperienceForNextLevel(category)),
+                category.getName().append(TextUtils.miniText(" Level " + levelHolder.level() + " Prestige " + levelHolder.prestige())),
+                (float) (levelHolder.experience() / levelHolder.getTotalRequiredExperienceForNextLevel(category)),
                 category.getBossBarColor(),
                 BossBar.Overlay.PROGRESS
         );

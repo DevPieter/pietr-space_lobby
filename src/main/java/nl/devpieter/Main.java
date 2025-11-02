@@ -26,7 +26,8 @@ import nl.devpieter.commands.player.GamemodeCommand;
 import nl.devpieter.commands.world.*;
 import nl.devpieter.config.ConfigManager;
 import nl.devpieter.config.EnvStatics;
-import nl.devpieter.features.experience.ExperienceManager;
+import nl.devpieter.features.economy.money.MoneyManager;
+import nl.devpieter.features.economy.skills.SkillManager;
 import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.FishingReferenceHolder;
@@ -129,7 +130,8 @@ public class Main {
             int bonus = isRaining ? 1 : 0;
             bonus += isSitting ? 2 : 0;
 
-            ExperienceManager.getInstance().grantExperience(player, "fishing", 3, bonus);
+            SkillManager.getInstance().grantExperience(player, "fishing", 3, bonus);
+            MoneyManager.getInstance().grantBalance(player, "shard", 2 + bonus);
             playSoundEffect(player);
         });
 
