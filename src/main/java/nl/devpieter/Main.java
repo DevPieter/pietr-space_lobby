@@ -225,6 +225,7 @@ public class Main {
         commandManager.register(new SignCommand());
         commandManager.register(new CreatureCommand());
         commandManager.register(new FarmCommand());
+        commandManager.register(new ParkourCommand());
         commandManager.register(new PortalCommand());
 
         commandManager.register(new TimeCommand());

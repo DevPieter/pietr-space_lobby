@@ -263,7 +263,7 @@ public class ParkourManager {
         worldParkourLookup.computeIfAbsent(world.id(), _ -> new ArrayList<>()).add(parkour);
     }
 
-    private void revertParkours() {
+    public void revertParkours() {
         spawnNodes.clear();
         leaderboardNodes.clear();
         startNodes.clear();
@@ -382,7 +382,7 @@ public class ParkourManager {
         return parkours.get(worldParkourKey);
     }
 
-    public @Nullable Parkour getParkour(@NotNull String world, @NotNull Player player) {
+    public @Nullable Parkour getParkourAtPlayerPosition(@NotNull String world, @NotNull Player player) {
         List<Parkour> parkoursInWorld = worldParkourLookup.get(world);
         if (parkoursInWorld == null) return null;
 

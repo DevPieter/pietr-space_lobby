@@ -29,7 +29,7 @@ public class ParkourPlayerMoveListener implements EventListener<@NotNull PlayerM
         LoadedWorld world = worldManager.getLoadedWorldByInstance(instance);
         if (world == null) return Result.SUCCESS;
 
-        Parkour parkour = parkourManager.getParkour(world.world().id(), player);
+        Parkour parkour = parkourManager.getParkourAtPlayerPosition(world.world().id(), player);
         if (parkour != null) parkourManager.startParkour(player, parkour.id());
 
         parkourManager.checkFinish(player);
