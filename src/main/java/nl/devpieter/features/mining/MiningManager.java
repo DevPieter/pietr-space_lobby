@@ -108,13 +108,13 @@ public class MiningManager {
                 return;
             }
 
-            long elapsedTime = System.currentTimeMillis() - currentHolder.startTime();
-            long totalBreakTime = currentHolder.totalBreakTicks() * 50;
+            int stage = currentHolder.stage();
+            if (stage == currentHolder.previousStage()) return;
 
-            int stage = (int) ((elapsedTime * 10) / totalBreakTime);
-
+            currentHolder.updatePreviousStage();
             sendCrackPackets(player, currentHolder.holder(), stage);
-            if (elapsedTime < totalBreakTime) return;
+
+            if (!currentHolder.isComplete()) return;
 
             Instance instance = blockHolder.instance();
             Point point = blockHolder.position();
