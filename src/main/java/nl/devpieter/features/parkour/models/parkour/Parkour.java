@@ -2,53 +2,125 @@ package nl.devpieter.features.parkour.models.parkour;
 
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.entity.Entity;
 import net.minestom.server.instance.Instance;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public record Parkour(
+public class Parkour/*(
         String id,
 
         String worldId,
         Instance instance,
 
-        @Nullable ParkourSpawnNode spawn,
-        @Nullable ParkourLeaderboardNode leaderboard,
+        @Nullable ParkourSpawnNode spawnNode,
+        @Nullable ParkourLeaderboardNode leaderboardNode,
 
-        ParkourStartNode start,
-        ParkourEndNode end,
+        ParkourStartNode startNode,
+        ParkourEndNode endNode,
 
         List<ParkourNode> nodes
-) {
-    public @Nullable Pos spawnPos() {
-        if (spawn == null) return null;
+)*/ {
 
-        return spawn.point().asPos()
+    private final String id;
+
+    private final String worldId;
+    private final Instance instance;
+
+    private final @Nullable ParkourSpawnNode spawnNode;
+    private final @Nullable ParkourLeaderboardNode leaderboardNode;
+
+    private final ParkourStartNode startNode;
+    private final ParkourEndNode endNode;
+
+    private final List<ParkourNode> nodes;
+
+    private Entity leaderboardEntity;
+
+    public Parkour(String id, String worldId, Instance instance, @Nullable ParkourSpawnNode spawnNode, @Nullable ParkourLeaderboardNode leaderboardNode, ParkourStartNode startNode, ParkourEndNode endNode, List<ParkourNode> nodes) {
+        this.id = id;
+
+        this.worldId = worldId;
+        this.instance = instance;
+
+        this.spawnNode = spawnNode;
+        this.leaderboardNode = leaderboardNode;
+
+        this.startNode = startNode;
+        this.endNode = endNode;
+
+        this.nodes = nodes;
+    }
+
+    public String id() {
+        return id;
+    }
+
+    public String worldId() {
+        return worldId;
+    }
+
+    public Instance instance() {
+        return instance;
+    }
+
+    public @Nullable ParkourSpawnNode spawnNode() {
+        return spawnNode;
+    }
+
+    public @Nullable ParkourLeaderboardNode leaderboardNode() {
+        return leaderboardNode;
+    }
+
+    public ParkourStartNode startNode() {
+        return startNode;
+    }
+
+    public ParkourEndNode endNode() {
+        return endNode;
+    }
+
+    public List<ParkourNode> nodes() {
+        return nodes;
+    }
+
+    public Entity leaderboardEntity() {
+        return leaderboardEntity;
+    }
+
+    public void setLeaderboardEntity(Entity leaderboardEntity) {
+        this.leaderboardEntity = leaderboardEntity;
+    }
+
+    public @Nullable Pos spawnPos() {
+        if (spawnNode == null) return null;
+
+        return spawnNode.point().asPos()
                 .add(0.5, 0, 0.5)
-                .withYaw(spawn.yawPitch().yaw())
-                .withPitch(spawn.yawPitch().pitch());
+                .withYaw(spawnNode.yawPitch().yaw())
+                .withPitch(spawnNode.yawPitch().pitch());
     }
 
     public Pos startPos() {
-        return start.point().asPos()
+        return startNode.point().asPos()
                 .add(0.5, 0, 0.5)
-                .withYaw(start.yawPitch().yaw())
-                .withPitch(start.yawPitch().pitch());
+                .withYaw(startNode.yawPitch().yaw())
+                .withPitch(startNode.yawPitch().pitch());
     }
 
     public BoundingBox startBox() {
-        return start.boundingBox();
+        return startNode.boundingBox();
     }
 
     public Pos endPos() {
-        return end.point().asPos()
+        return endNode.point().asPos()
                 .add(0.5, 0, 0.5)
-                .withYaw(end.yawPitch().yaw())
-                .withPitch(end.yawPitch().pitch());
+                .withYaw(endNode.yawPitch().yaw())
+                .withPitch(endNode.yawPitch().pitch());
     }
 
     public BoundingBox endBox() {
-        return end.boundingBox();
+        return endNode.boundingBox();
     }
 }

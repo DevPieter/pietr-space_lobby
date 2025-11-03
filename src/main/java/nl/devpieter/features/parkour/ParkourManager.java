@@ -1,12 +1,17 @@
 package nl.devpieter.features.parkour;
 
 import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
+import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.Player;
+import net.minestom.server.entity.metadata.display.AbstractDisplayMeta;
+import net.minestom.server.entity.metadata.display.TextDisplayMeta;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
@@ -212,7 +217,7 @@ public class ParkourManager {
         }
     }
 
-    public void initParkour(@NotNull LoadedWorld world, @NotNull Parkour parkour) {
+    private void initParkour(@NotNull LoadedWorld world, @NotNull Parkour parkour) {
         Instance instance = world.instance();
 
         Pos start = parkour.startPos();
@@ -224,6 +229,34 @@ public class ParkourManager {
         for (ParkourNode node : parkour.nodes()) {
             Pos point = node.pos();
             if (node.isCheckpoint()) instance.setBlock(point, Block.SPRUCE_PRESSURE_PLATE);
+        }
+
+        ParkourLeaderboardNode leaderboardNode = parkour.leaderboardNode();
+        if (leaderboardNode != null) {
+            Pos leaderboardPos = leaderboardNode.point().asPos().add(0.5, 1, 0.5);
+
+            Component text = TextUtils.combine(
+                    TextUtils.miniText("<#fcba03><b>Leaderboard"),
+                    Component.newline(),
+                    TextUtils.miniText("<gray>Coming Soon!"),
+                    Component.newline(),
+                    Component.newline(),
+                    TextUtils.miniText("<gray><i>Stats are currently <b><red>NOT</red></b> saved!")
+            );
+
+            Entity entity = new Entity(EntityType.TEXT_DISPLAY);
+            entity.setInstance(instance, leaderboardPos);
+
+            entity.editEntityMeta(TextDisplayMeta.class, textDisplayMeta -> {
+                textDisplayMeta.setText(text);
+                textDisplayMeta.setScale(new Vec(0.9, 0.9, 0.9));
+
+                textDisplayMeta.setBillboardRenderConstraints(AbstractDisplayMeta.BillboardConstraints.CENTER);
+                textDisplayMeta.setAlignment(TextDisplayMeta.Alignment.CENTER);
+                textDisplayMeta.setHasNoGravity(true);
+            });
+
+            parkour.setLeaderboardEntity(entity);
         }
 
         parkours.put(parkour.id(), parkour);
@@ -250,6 +283,9 @@ public class ParkourManager {
                 Pos point = node.pos();
                 if (node.isCheckpoint()) instance.setBlock(point, Block.AIR);
             }
+
+            Entity leaderboardEntity = parkour.leaderboardEntity();
+            if (leaderboardEntity != null) leaderboardEntity.remove();
         }
 
         parkours.clear();
