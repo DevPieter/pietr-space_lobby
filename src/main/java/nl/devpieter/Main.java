@@ -35,10 +35,10 @@ import nl.devpieter.features.fishing.catchable.ICatchable;
 import nl.devpieter.features.fishing.listeners.PlayerUseItemListener;
 import nl.devpieter.features.fishing.rod.IRod;
 import nl.devpieter.features.parkour.ParkourManager;
-import nl.devpieter.features.parkour.ParkourTryManager;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerMoveListener;
+import nl.devpieter.features.parkour.listeners.ParkourPlayerSneakListener;
 import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
@@ -147,6 +147,7 @@ public class Main {
 
         eventHandler.addListener(new PortalPlayerMoveListener());
         eventHandler.addListener(new ParkourPlayerMoveListener());
+        eventHandler.addListener(new ParkourPlayerSneakListener());
 
         // TODO - Temporary parkour listeners
         MinecraftServer.getGlobalEventHandler().addListener(PlayerUseItemEvent.class, event -> {
@@ -224,6 +225,7 @@ public class Main {
         commandManager.register(new SignCommand());
         commandManager.register(new CreatureCommand());
         commandManager.register(new FarmCommand());
+        commandManager.register(new ParkourCommand());
         commandManager.register(new PortalCommand());
 
         commandManager.register(new TimeCommand());
@@ -236,7 +238,7 @@ public class Main {
 
         MinecraftServer.getConnectionManager().setPlayerProvider(LobbyPlayer::new);
 
-        ParkourTryManager.getInstance().start();
+//        ParkourTryManager.getInstance().start();
         server.start("0.0.0.0", 25565);
     }
 

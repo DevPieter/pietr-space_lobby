@@ -1,4 +1,4 @@
-package nl.devpieter.features.parkour.models;
+package nl.devpieter.features.parkour.models.parkourTry;
 
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 
@@ -8,16 +8,17 @@ import java.util.List;
 import java.util.UUID;
 
 public class ParkourTry {
+
     private final BitSet reached = new BitSet();
 
-    private final UUID parkourId;
+    private final String parkourId;
     private final UUID playerUuid;
 
     private final long startTime;
     private long endTime;
 
     private boolean isCancelled;
-    private ParkourCancelReason cancelReason = ParkourCancelReason.Unknown;
+    private ParkourCancelReason cancelReason;
 
     private final List<ReachedNode> reachedNodes;
     private final List<FailedNode> failedNodes;
@@ -25,12 +26,15 @@ public class ParkourTry {
     private int lastReachedNode;
     private int lastCheckpoint;
 
-    public ParkourTry(UUID parkourId, UUID playerUuid) {
+    public ParkourTry(String parkourId, UUID playerUuid) {
         this.parkourId = parkourId;
         this.playerUuid = playerUuid;
 
         this.startTime = System.currentTimeMillis();
         this.endTime = 0;
+
+        this.isCancelled = false;
+        this.cancelReason = ParkourCancelReason.None;
 
         this.reachedNodes = new ArrayList<>();
         this.failedNodes = new ArrayList<>();
@@ -47,18 +51,15 @@ public class ParkourTry {
         reached.clear();
     }
 
-    public void rollbackToCheckpoint(int checkpointIndex) {
-        if (checkpointIndex < 0 || checkpointIndex >= reachedNodes.size()) {
-            throw new IndexOutOfBoundsException("Checkpoint index out of bounds: " + checkpointIndex);
-        }
+    public void rollbackToLastCheckpoint() {
+        if (lastCheckpoint < 0) return;
 
         for (int i = 0; i < reachedNodes.size(); i++) {
-            if (i <= checkpointIndex) reached.set(i);
+            if (i <= lastCheckpoint) reached.set(i);
             else reached.clear(i);
         }
 
-        lastReachedNode = checkpointIndex;
-        lastCheckpoint = checkpointIndex;
+        lastReachedNode = lastCheckpoint;
     }
 
     public void finish() {
@@ -76,7 +77,7 @@ public class ParkourTry {
         this.cancelReason = reason;
     }
 
-    public UUID parkourId() {
+    public String parkourId() {
         return parkourId;
     }
 

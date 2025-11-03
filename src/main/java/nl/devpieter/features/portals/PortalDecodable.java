@@ -4,7 +4,6 @@ import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
-import net.minestom.server.instance.Instance;
 import nl.devpieter.features.portals.models.Portal;
 import nl.devpieter.features.signs.interfaces.ISignDecodable;
 import nl.devpieter.features.signs.models.SignHolder;
@@ -29,17 +28,17 @@ public class PortalDecodable implements ISignDecodable {
     private YawPitch destinationRotation = YawPitch.ZERO;
 
     private Point originOffset = Vec.ZERO;
-    private BoundingBox boundingBox = new BoundingBox(1, 2, 1);
+    private BoundingBox boundingBox = new BoundingBox(Vec.ZERO, Vec.ZERO);
 
-    public Portal placePortal(Instance instance, Point point, SignHolder signHolder) {
-        Point originPos = point.add(originOffset).add(0.5, 0, 0.5);
+    public Portal placePortal(SignHolder signHolder) {
+        Point originPos = signHolder.block().position().add(originOffset).add(0.5, 0, 0.5);
 
         Pos destinationPos = destinationPoint.asPos()
                 .withYaw(destinationRotation.yaw())
                 .withPitch(destinationRotation.pitch());
 
         return new Portal(
-                instance,
+                signHolder.block().instance(),
                 destinationWorld,
                 destinationPos,
                 originPos,
@@ -63,7 +62,7 @@ public class PortalDecodable implements ISignDecodable {
                     new PointPartDecoder(Vec.ZERO, p -> originOffset = p)
             ));
             put(5, List.of(
-                    new BoundingBoxPartDecoder(new BoundingBox(1, 2, 1), bb -> boundingBox = bb)
+                    new BoundingBoxPartDecoder(bb -> boundingBox = bb)
             ));
         }};
     }
