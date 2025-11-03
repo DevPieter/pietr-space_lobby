@@ -1,4 +1,4 @@
-package nl.devpieter.blockHandler;
+package nl.devpieter.features.cooking.blockHandlers;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
@@ -6,6 +6,7 @@ import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.ListBinaryTag;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.component.DataComponents;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventNode;
@@ -17,43 +18,15 @@ import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.InventoryType;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
+import net.minestom.server.item.component.TooltipDisplay;
 import net.minestom.server.tag.Tag;
+import nl.devpieter.features.cooking.models.CampfireItem;
 import nl.devpieter.models.BlockHolder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class CampfireBlockHandler implements BlockHandler {
-
-    class CampfireItem {
-        private final ItemStack item;
-        private final int totalCookingTime;
-
-        private int cookingTime;
-
-        public CampfireItem(ItemStack item, int cookingTime, int totalCookingTime) {
-            this.item = item;
-            this.totalCookingTime = totalCookingTime;
-
-            this.cookingTime = cookingTime;
-        }
-
-        public ItemStack item() {
-            return item;
-        }
-
-        public int cookingTime() {
-            return cookingTime;
-        }
-
-        public int totalCookingTime() {
-            return totalCookingTime;
-        }
-
-        public void setCookingTime(int cookingTime) {
-            this.cookingTime = cookingTime;
-        }
-    }
 
     private static final int MAX_SLOTS = 4;
     private final HashMap<Integer, CampfireItem> campfireItems = new HashMap<>();
@@ -71,19 +44,36 @@ public class CampfireBlockHandler implements BlockHandler {
                 interaction.getBlock()
         );
 
-        Inventory inventory = new Inventory(InventoryType.CHEST_1_ROW, Component.text("Campfire"));
+        Inventory inventory = new Inventory(InventoryType.CHEST_2_ROW, Component.text("Campfire"));
         inventory.addItemStack(ItemStack.of(Material.BEEF));
         inventory.addItemStack(ItemStack.of(Material.PORKCHOP));
         inventory.addItemStack(ItemStack.of(Material.CHICKEN));
         inventory.addItemStack(ItemStack.of(Material.MUTTON));
+        inventory.addItemStack(ItemStack.of(Material.RABBIT));
+        inventory.addItemStack(ItemStack.of(Material.COD));
+        inventory.addItemStack(ItemStack.of(Material.SALMON));
+        inventory.addItemStack(ItemStack.of(Material.TROPICAL_FISH));
+        inventory.addItemStack(ItemStack.of(Material.PUFFERFISH));
         inventory.addItemStack(ItemStack.of(Material.POTATO));
+        inventory.addItemStack(ItemStack.of(Material.CARROT));
+        inventory.addItemStack(ItemStack.of(Material.BEETROOT));
+
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            if (inventory.getItemStack(slot).material() == Material.AIR) {
+                inventory.setItemStack(slot, ItemStack.of(Material.GRAY_STAINED_GLASS_PANE).with(builder -> {
+                    builder.set(DataComponents.CUSTOM_NAME, Component.text(""));
+                }));
+            }
+        }
 
         EventNode<@NotNull InventoryEvent> node = EventNode.type("click", EventFilter.INVENTORY, (event, inv) -> inventory == inv)
                 .addListener(InventoryPreClickEvent.class, event -> {
                     event.setCancelled(true);
 
                     ItemStack clickedItem = event.getClickedItem();
-                    if (clickedItem.material() == Material.AIR) return;
+                    if (clickedItem.material() == Material.AIR || clickedItem.material() == Material.GRAY_STAINED_GLASS_PANE) {
+                        return;
+                    }
 
                     if (campfireItems.size() >= MAX_SLOTS) {
                         event.getPlayer().sendMessage(Component.text("Campfire is full!"));
