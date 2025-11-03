@@ -18,7 +18,7 @@ import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
-import nl.devpieter.blockHandler.CampfireBlockHandler;
+import nl.devpieter.features.cooking.blockHandlers.CampfireBlockHandler;
 import nl.devpieter.blockHandler.DoorBlockHandler;
 import nl.devpieter.blockHandler.SignBlockHandler;
 import nl.devpieter.commands.ServerCommand;
