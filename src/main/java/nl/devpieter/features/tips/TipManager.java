@@ -21,6 +21,8 @@ import java.util.UUID;
 public class TipManager {
 
     private static TipManager INSTANCE;
+
+    private static final String DEFAULT_TIP_PREFIX = "TIP";
     private static final Duration TIP_COOLDOWN = Duration.ofMinutes(20);
 
     private static final Scheduler scheduler = MinecraftServer.getSchedulerManager();
@@ -40,8 +42,16 @@ public class TipManager {
         return INSTANCE;
     }
 
+    public void showTipLater(@NotNull Player player, @NotNull String id, Duration delay, @NotNull String message) {
+        showTipLater(player, id, delay, DEFAULT_TIP_PREFIX, message);
+    }
+
+    public void showTipLater(@NotNull Player player, @NotNull String id, Duration delay, @NotNull String prefix, @NotNull String message) {
+        scheduler.buildTask(() -> showTip(player, id, prefix, message)).delay(delay).schedule();
+    }
+
     public void showTip(@NotNull Player player, @NotNull String id, @NotNull String message) {
-        showTip(player, id, "TIP", message);
+        showTip(player, id, DEFAULT_TIP_PREFIX, message);
     }
 
     public void showTip(@NotNull Player player, @NotNull String id, @NotNull String prefix, @NotNull String message) {
