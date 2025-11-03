@@ -13,6 +13,7 @@ RUN ./gradlew --no-daemon shadowJar
 
 EXPOSE 25565
 
-ENV WORLD_PATH=/app/world
+ENV APP_CONFIG_PATH=/app/data/config.json
+ENV WORLD_DATA_PATH=/app/data/worlds
 
 CMD ["java", "-jar", "build/libs/PietrSpaceLobby-1.1.0.jar"]

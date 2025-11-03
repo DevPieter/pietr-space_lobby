@@ -4,7 +4,7 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Entity;
-import nl.devpieter.Settings;
+import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.farming.crops.berryBush.BerryBushPlaceable;
 import nl.devpieter.features.farming.crops.genericCrop.GenericCropPlaceable;
 import nl.devpieter.features.farming.crops.sugarCane.SugarCanePlaceable;
@@ -15,8 +15,8 @@ import nl.devpieter.features.signs.models.SignHolder;
 import nl.devpieter.models.BlockChangeHolder;
 import nl.devpieter.models.BlockHolder;
 import nl.devpieter.models.PointHolder;
-import nl.devpieter.utils.TextUtils;
-import nl.devpieter.utils.WorldUtils;
+import nl.devpieter.utils.minestom.TextUtils;
+import nl.devpieter.utils.minestom.WorldUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,7 +54,7 @@ public class FarmManager {
         revertFarms();
         scanAndPlaceFarms();
 
-        if (Settings.DEBUG) placeDebugMarkers();
+        if (EnvStatics.DEBUG) placeDebugMarkers();
     }
 
     private void scanAndPlaceFarms() {

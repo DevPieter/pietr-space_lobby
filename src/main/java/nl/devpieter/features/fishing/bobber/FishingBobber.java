@@ -21,8 +21,8 @@ import nl.devpieter.features.fishing.enums.BobberState;
 import nl.devpieter.features.fishing.models.BobberSettings;
 import nl.devpieter.features.fishing.rod.IRod;
 import nl.devpieter.features.sitting.SitManager;
-import nl.devpieter.utils.MathUtils;
-import nl.devpieter.utils.ParticleUtils;
+import nl.devpieter.utils.common.MathUtils;
+import nl.devpieter.utils.minestom.ParticleUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

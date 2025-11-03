@@ -9,8 +9,8 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.particle.Particle;
 import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.models.BlockHolder;
-import nl.devpieter.utils.ParticleUtils;
-import nl.devpieter.utils.SoundUtils;
+import nl.devpieter.utils.minestom.ParticleUtils;
+import nl.devpieter.utils.minestom.SoundUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

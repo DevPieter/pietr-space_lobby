@@ -1,4 +1,4 @@
-package nl.devpieter.utils;
+package nl.devpieter.utils.minestom;
 
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
@@ -53,33 +53,33 @@ public class PacketUtils {
         player.sendPacket(new DestroyEntitiesPacket(entityId));
     }
 
-    public static void setWaypoint(@NotNull Player player, UUID waypointId, @NotNull Pos pos) {
+    public static void setWaypoint(@NotNull Player player, String waypointId, @NotNull Pos pos) {
         player.sendPacket(new TrackedWaypointPacket(
                 TrackedWaypointPacket.Operation.TRACK,
                 new TrackedWaypointPacket.Waypoint(
-                        Either.left(waypointId),
+                        Either.right(waypointId),
                         TrackedWaypointPacket.Icon.DEFAULT,
                         new TrackedWaypointPacket.Target.Vec3i(pos)
                 )
         ));
     }
 
-    public static void updateWaypoint(@NotNull Player player, UUID waypointId, @NotNull Pos pos) {
+    public static void updateWaypoint(@NotNull Player player, String waypointId, @NotNull Pos pos) {
         player.sendPacket(new TrackedWaypointPacket(
                 TrackedWaypointPacket.Operation.UPDATE,
                 new TrackedWaypointPacket.Waypoint(
-                        Either.left(waypointId),
+                        Either.right(waypointId),
                         TrackedWaypointPacket.Icon.DEFAULT,
                         new TrackedWaypointPacket.Target.Vec3i(pos)
                 )
         ));
     }
 
-    public static void removeWaypoint(@NotNull Player player, UUID waypointId) {
+    public static void removeWaypoint(@NotNull Player player, String waypointId) {
         player.sendPacket(new TrackedWaypointPacket(
                 TrackedWaypointPacket.Operation.UNTRACK,
                 new TrackedWaypointPacket.Waypoint(
-                        Either.left(waypointId),
+                        Either.right(waypointId),
                         TrackedWaypointPacket.Icon.DEFAULT,
                         new TrackedWaypointPacket.Target.Vec3i(new Pos(0, 0, 0))
                 )

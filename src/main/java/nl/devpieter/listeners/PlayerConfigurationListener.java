@@ -5,7 +5,8 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.instance.InstanceContainer;
-import nl.devpieter.Settings;
+import nl.devpieter.LobbyPlayer;
+import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.rod.IRod;
 import nl.devpieter.features.world.WorldManager;
@@ -35,12 +36,14 @@ public class PlayerConfigurationListener implements EventListener<@NotNull Async
         player.setGameMode(GameMode.SURVIVAL);
         player.setRespawnPoint(world.world().settings().spawn().toPoint().asPos());
 
-        if (Settings.DEBUG) {
-            List<IRod> rods = FishingManager.getInstance().getRods();
-            for (IRod rod : rods) player.getInventory().addItemStack(rod.buildItem());
-        } else {
-            IRod rod = FishingManager.getInstance().getRods().getLast();
-            player.getInventory().addItemStack(rod.buildItem());
+        if (player instanceof LobbyPlayer lobbyPlayer) {
+            if (EnvStatics.DEBUG) {
+                List<IRod> rods = FishingManager.getInstance().getRods();
+                for (IRod rod : rods) lobbyPlayer.addItemToMainInventory(rod.buildItem());
+            } else {
+                IRod rod = FishingManager.getInstance().getRods().getLast();
+                lobbyPlayer.addItemToMainInventory(rod.buildItem());
+            }
         }
 
         return Result.SUCCESS;

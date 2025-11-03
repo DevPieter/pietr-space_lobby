@@ -1,4 +1,4 @@
-package nl.devpieter.utils;
+package nl.devpieter.utils.common;
 
 import java.util.Random;
 

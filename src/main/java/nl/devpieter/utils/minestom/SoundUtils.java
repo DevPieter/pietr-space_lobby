@@ -1,4 +1,4 @@
-package nl.devpieter.utils;
+package nl.devpieter.utils.minestom;
 
 import net.kyori.adventure.sound.Sound;
 import net.minestom.server.coordinate.Point;

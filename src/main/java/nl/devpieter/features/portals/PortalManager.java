@@ -7,15 +7,15 @@ import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
-import nl.devpieter.Settings;
+import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.portals.models.Portal;
 import nl.devpieter.features.portals.models.PortalPointHolder;
 import nl.devpieter.features.signs.SignDecoder;
 import nl.devpieter.features.signs.SignManager;
 import nl.devpieter.features.signs.models.SignHolder;
 import nl.devpieter.models.PointHolder;
-import nl.devpieter.utils.TextUtils;
-import nl.devpieter.utils.WorldUtils;
+import nl.devpieter.utils.minestom.TextUtils;
+import nl.devpieter.utils.minestom.WorldUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +48,7 @@ public class PortalManager {
         revertPortals();
         scanAndRegisterPortals();
 
-        if (Settings.DEBUG) placeDebugMarkers();
+        if (EnvStatics.DEBUG) placeDebugMarkers();
     }
 
     private void scanAndRegisterPortals() {
@@ -59,11 +59,7 @@ public class PortalManager {
             List<String> lines = sign.lines().subList(1, sign.lines().size());
             SignDecoder.decodeLines(lines, portalDecodable.getDecoders());
 
-            Portal portal = portalDecodable.placePortal(
-                    sign.block().instance(),
-                    sign.block().position(),
-                    sign
-            );
+            Portal portal = portalDecodable.placePortal(sign);
             portals.add(portal);
 
             portalLocations.add(new PortalPointHolder(

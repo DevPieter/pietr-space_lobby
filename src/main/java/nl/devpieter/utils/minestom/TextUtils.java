@@ -1,4 +1,4 @@
-package nl.devpieter.utils;
+package nl.devpieter.utils.minestom;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;
@@ -25,6 +25,18 @@ public class TextUtils {
 
     public static @NotNull Component miniText(String minimessageString, Object... args) {
         return CLEAR.append(MiniMessage.miniMessage().deserialize(String.format(minimessageString, args)));
+    }
+
+    public static @NotNull Component combine(@NotNull Component... components) {
+        Component combined = CLEAR;
+        for (Component component : components) combined = combined.append(component);
+
+        return combined;
+    }
+
+    public static @NotNull String getFormattedDouble(double value) {
+        if (value % 1 == 0) return String.format("%,.0f", value);
+        else return String.format("%,.2f", value);
     }
 
     public static @NotNull String getFormattedTime(long timeMs, boolean includeMillis, boolean small) {

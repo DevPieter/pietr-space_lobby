@@ -4,7 +4,7 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Entity;
-import nl.devpieter.Settings;
+import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.creatures.entities.cuteCat.CuteCatSpawnable;
 import nl.devpieter.features.creatures.entities.cuteFox.CuteFoxSpawnable;
 import nl.devpieter.features.creatures.models.CreaturePointHolder;
@@ -13,8 +13,8 @@ import nl.devpieter.features.signs.SignManager;
 import nl.devpieter.features.signs.interfaces.ISignSpawnable;
 import nl.devpieter.features.signs.models.SignHolder;
 import nl.devpieter.models.PointHolder;
-import nl.devpieter.utils.TextUtils;
-import nl.devpieter.utils.WorldUtils;
+import nl.devpieter.utils.minestom.TextUtils;
+import nl.devpieter.utils.minestom.WorldUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +51,7 @@ public class CreatureManager {
         revertCreatures();
         scanAndPlaceCreatures();
 
-        if (Settings.DEBUG) placeDebugMarkers();
+        if (EnvStatics.DEBUG) placeDebugMarkers();
     }
 
     private void scanAndPlaceCreatures() {

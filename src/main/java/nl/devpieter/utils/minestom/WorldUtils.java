@@ -1,9 +1,8 @@
-package nl.devpieter.utils;
+package nl.devpieter.utils.minestom;
 
 import net.kyori.adventure.text.Component;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
-import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;

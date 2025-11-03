@@ -6,36 +6,39 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
+import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.event.GlobalEventHandler;
-import net.minestom.server.event.inventory.InventoryPreClickEvent;
 import net.minestom.server.event.item.PickupItemEvent;
 import net.minestom.server.event.player.*;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
-import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
+import nl.devpieter.features.cooking.blockHandlers.CampfireBlockHandler;
 import nl.devpieter.blockHandler.DoorBlockHandler;
 import nl.devpieter.blockHandler.SignBlockHandler;
 import nl.devpieter.commands.ServerCommand;
 import nl.devpieter.commands.TestCommand;
+import nl.devpieter.commands.TipCommand;
 import nl.devpieter.commands.player.GamemodeCommand;
 import nl.devpieter.commands.world.*;
-import nl.devpieter.features.farming.listeners.PlayerBlockBreakListener;
+import nl.devpieter.config.ConfigManager;
+import nl.devpieter.config.EnvStatics;
+import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.FishingReferenceHolder;
 import nl.devpieter.features.fishing.catchable.ICatchable;
 import nl.devpieter.features.fishing.listeners.PlayerUseItemListener;
 import nl.devpieter.features.fishing.rod.IRod;
 import nl.devpieter.features.parkour.ParkourManager;
-import nl.devpieter.features.parkour.ParkourTryManager;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerMoveListener;
+import nl.devpieter.features.parkour.listeners.ParkourPlayerSneakListener;
 import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
@@ -44,10 +47,10 @@ import nl.devpieter.listeners.PlayerConfigurationListener;
 import nl.devpieter.listeners.PlayerDisconnectListener;
 import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
+import nl.devpieter.models.BlockHolder;
 import nl.devpieter.sees.Sees;
-import nl.devpieter.utils.PacketUtils;
-import nl.devpieter.utils.SoundUtils;
-import nl.devpieter.utils.TextUtils;
+import nl.devpieter.utils.minestom.SoundUtils;
+import nl.devpieter.utils.minestom.TextUtils;
 import org.slf4j.Logger;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -56,10 +59,13 @@ public class Main {
 
     public static void main(String[] args) {
         Logger logger = MinecraftServer.LOGGER;
-        if (Settings.DEBUG) logger.warn("Debug mode is enabled");
+        if (EnvStatics.DEBUG) logger.warn("Debug mode is enabled");
 
-        boolean useVelocity = Settings.USE_VELOCITY_PROXY;
-        String velocitySecret = Settings.VELOCITY_PROXY_SECRET;
+        ConfigManager configManager = ConfigManager.getInstance();
+        configManager.load();
+
+        boolean useVelocity = configManager.getBoolean("use_velocity_proxy");
+        String velocitySecret = configManager.getString("velocity_proxy_secret");
 
         Auth auth = useVelocity ? new Auth.Velocity(velocitySecret) : new Auth.Online();
         logger.info("Using authentication: {}", useVelocity ? "Velocity" : "Online");
@@ -67,6 +73,7 @@ public class Main {
         MinecraftServer server = MinecraftServer.init(auth);
         MinecraftServer.setBrandName("Pieter Space Lobby");
 
+        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:campfire"), CampfireBlockHandler::new);
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:sign"), SignBlockHandler::new);
 
         // TODO - A bit hacky, but I don't know a better way yet
@@ -131,7 +138,6 @@ public class Main {
         eventHandler.addListener(new PlayerConfigurationListener());
         eventHandler.addListener(new PlayerMoveListener());
 
-        eventHandler.addListener(new PlayerBlockBreakListener());
         eventHandler.addListener(new PlayerBlockInteractListener());
         eventHandler.addListener(new PlayerStartSneakingListener());
         eventHandler.addListener(new PlayerUseItemListener());
@@ -141,50 +147,62 @@ public class Main {
 
         eventHandler.addListener(new PortalPlayerMoveListener());
         eventHandler.addListener(new ParkourPlayerMoveListener());
+        eventHandler.addListener(new ParkourPlayerSneakListener());
 
+        // TODO - Temporary parkour listeners
         MinecraftServer.getGlobalEventHandler().addListener(PlayerUseItemEvent.class, event -> {
-            Player player = event.getPlayer();
-            int slot = player.getHeldSlot();
+            if (!(event.getPlayer() instanceof LobbyPlayer lobbyPlayer)) return;
+            if (!lobbyPlayer.isDynamicInventoryActive()) return;
+            event.setCancelled(true);
 
-            if (slot == 0) ParkourManager.getInstance().returnToCheckpoint(player, ParkourFailReason.PlayerRequest);
-            else if (slot == 4) ParkourManager.getInstance().cancelParkour(player, ParkourCancelReason.PlayerRequest);
-        });
+            Material material = event.getItemStack().material();
 
-        MinecraftServer.getGlobalEventHandler().addListener(PlayerPacketEvent.class, event -> {
-            String name = event.getPacket().getClass().getSimpleName();
-//            if (name.equals("ClientTickEndPacket")) return;
-//            if (name.equals("ClientPlayerPositionPacket")) return;
-//            if (name.equals("ClientPlayerPositionAndRotationPacket")) return;
-//            if (name.equals("ClientPlayerRotationPacket")) return;
-//
-//            System.out.println("Received packet: " + event.getPacket().getClass().getSimpleName());
-//
-//            // ClientClickWindowPacket
-
-            if (
-                    name.equals("ClientClickWindowPacket") ||
-                            name.equals("ClientEntityActionPacket") ||
-                            name.equals("ClientCloseWindowPacket")
-            ) {
-                if (!ParkourManager.getInstance().isDoingParkour(event.getPlayer())) return;
-
-                ItemStack cancelItem = ItemStack.of(Material.BARRIER);
-                PacketUtils.setSlot(event.getPlayer(), 40, cancelItem);
-
-                ItemStack checkpointItem = ItemStack.of(Material.SPRUCE_PRESSURE_PLATE);
-                PacketUtils.setSlot(event.getPlayer(), 36, checkpointItem);
-                event.setCancelled(true);
+            if (material == Material.SPRUCE_PRESSURE_PLATE) {
+                ParkourManager.getInstance().returnToCheckpoint(lobbyPlayer, ParkourFailReason.PlayerRequest);
+            } else if (material == Material.BARRIER) {
+                ParkourManager.getInstance().cancelParkour(lobbyPlayer, ParkourCancelReason.PlayerRequest);
             }
         });
 
-        MinecraftServer.getGlobalEventHandler().addListener(InventoryPreClickEvent.class, event -> {
+        MinecraftServer.getGlobalEventHandler().addListener(PlayerBlockInteractEvent.class, event -> {
+            if (!(event.getPlayer() instanceof LobbyPlayer lobbyPlayer)) return;
+            if (!lobbyPlayer.isDynamicInventoryActive()) return;
             event.setCancelled(true);
 
-            ItemStack cancelItem = ItemStack.of(Material.BARRIER);
-            PacketUtils.setSlot(event.getPlayer(), 40, cancelItem);
+            PlayerHand hand = event.getHand();
+            if (hand != PlayerHand.MAIN) return;
 
-            ItemStack checkpointItem = ItemStack.of(Material.SPRUCE_PRESSURE_PLATE);
-            PacketUtils.setSlot(event.getPlayer(), 36, checkpointItem);
+            Material material = event.getPlayer().getItemInHand(hand).material();
+
+            if (material == Material.SPRUCE_PRESSURE_PLATE) {
+                ParkourManager.getInstance().returnToCheckpoint(lobbyPlayer, ParkourFailReason.PlayerRequest);
+            } else if (material == Material.BARRIER) {
+                ParkourManager.getInstance().cancelParkour(lobbyPlayer, ParkourCancelReason.PlayerRequest);
+            }
+        });
+
+        // TODO - Temporary farming replanting listener
+        MinecraftServer.getGlobalEventHandler().addListener(PlayerStartDiggingEvent.class, event -> {
+            Player player = event.getPlayer();
+            if (player.getGameMode() == GameMode.CREATIVE) return;
+            event.setCancelled(true);
+
+            Block block = event.getBlock();
+            BlockHandler handler = block.handler();
+            Instance instance = event.getInstance();
+
+            if (!(handler instanceof FarmBlockHandler farmHandler)) return;
+
+            BlockHolder holder = new BlockHolder(instance, event.getBlockPosition(), block);
+            if (!farmHandler.canBeHarvested(holder)) return;
+
+            farmHandler.replant(holder, event.getPlayer());
+        });
+
+        MinecraftServer.getGlobalEventHandler().addListener(PlayerStartDiggingEvent.class, event -> {
+            Player player = event.getPlayer();
+            if (player.getGameMode() == GameMode.CREATIVE) return;
+            event.setCancelled(true);
         });
 
         eventHandler.addListener(PlayerBlockBreakEvent.class, event -> {
@@ -207,16 +225,20 @@ public class Main {
         commandManager.register(new SignCommand());
         commandManager.register(new CreatureCommand());
         commandManager.register(new FarmCommand());
+        commandManager.register(new ParkourCommand());
         commandManager.register(new PortalCommand());
 
         commandManager.register(new TimeCommand());
         commandManager.register(new WeatherCommand());
 
         // Misc
+        commandManager.register(new TipCommand());
         commandManager.register(new TestCommand());
         commandManager.register(new ServerCommand());
 
-        ParkourTryManager.getInstance().start();
+        MinecraftServer.getConnectionManager().setPlayerProvider(LobbyPlayer::new);
+
+//        ParkourTryManager.getInstance().start();
         server.start("0.0.0.0", 25565);
     }
 

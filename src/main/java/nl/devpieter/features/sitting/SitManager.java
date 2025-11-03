@@ -8,8 +8,8 @@ import net.minestom.server.entity.LivingEntity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.instance.block.Block;
 import nl.devpieter.features.parkour.ParkourManager;
-import nl.devpieter.utils.PlayerUtils;
-import nl.devpieter.utils.TextUtils;
+import nl.devpieter.utils.minestom.PlayerUtils;
+import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;

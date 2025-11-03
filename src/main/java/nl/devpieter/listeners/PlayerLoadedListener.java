@@ -2,9 +2,11 @@ package nl.devpieter.listeners;
 
 import net.kyori.adventure.text.Component;
 import net.minestom.server.entity.Player;
+import net.minestom.server.entity.attribute.Attribute;
+import net.minestom.server.entity.attribute.AttributeInstance;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerLoadedEvent;
-import nl.devpieter.utils.TextUtils;
+import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class PlayerLoadedListener implements EventListener<@NotNull PlayerLoadedEvent> {
@@ -23,6 +25,10 @@ public class PlayerLoadedListener implements EventListener<@NotNull PlayerLoaded
     public @NotNull Result run(@NotNull PlayerLoadedEvent event) {
         Player player = event.getPlayer();
         player.sendMessage(this.welcome);
+
+        AttributeInstance attribute = player.getAttribute(Attribute.BLOCK_BREAK_SPEED);
+        attribute.setBaseValue(0);
+        attribute.clearModifiers();
 
         return Result.SUCCESS;
     }
