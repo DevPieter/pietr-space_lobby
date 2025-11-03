@@ -38,6 +38,7 @@ import nl.devpieter.utils.minestom.WorldUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.util.*;
 
 public class ParkourManager {
@@ -644,9 +645,14 @@ public class ParkourManager {
                 parkourTry.parkourId(),
                 MinecraftServer.getSchedulerManager().buildTask(() -> {
                     returnHolders.remove(player.getUuid());
-                }).delay(TaskSchedule.seconds(3)).schedule()
+                }).delay(TaskSchedule.seconds(5)).schedule()
         ));
 
-        tipManager.showTip(player, "parkour_sneak_return_to_start", "Press <b><key:key.sneak></b> to quickly return to the parkour starting point.");
+        tipManager.showTipLater(
+                player,
+                "parkour_sneak_return_to_start",
+                Duration.ofSeconds(2),
+                "Press <b><key:key.sneak></b> to quickly return to the parkour starting point. <gray>(3 seconds left)"
+        );
     }
 }
