@@ -1,5 +1,6 @@
 package nl.devpieter.utils.minestom;
 
+import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
@@ -10,10 +11,9 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.network.packet.server.play.*;
 import net.minestom.server.utils.Either;
+import nl.devpieter.models.BlockHolder;
 import nl.devpieter.models.GlowingBlockHolder;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.UUID;
 
 public class PacketUtils {
 
@@ -93,5 +93,22 @@ public class PacketUtils {
                 (short) slot,
                 item
         ));
+    }
+
+    public static void sendCrackPackets(Player player, BlockHolder holder, int stage) {
+        if (stage < 0) stage = -1;
+        if (stage > 9) stage = 9;
+
+        int entityId = generateEntityId(holder.position());
+
+        player.sendPacketToViewersAndSelf(new BlockBreakAnimationPacket(
+                entityId,
+                holder.position(),
+                (byte) stage
+        ));
+    }
+
+    private static int generateEntityId(Point point) {
+        return (int) (point.x() * 1000000 + point.y() * 1000 + point.z());
     }
 }

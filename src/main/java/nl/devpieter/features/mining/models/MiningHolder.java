@@ -6,11 +6,11 @@ public class MiningHolder {
 
     private final BlockHolder holder;
     private final long startTime;
-    private final long totalBreakTicks;
+    private final int totalBreakTicks;
 
     private int previousStage = -1;
 
-    public MiningHolder(BlockHolder holder, long startTime, long totalBreakTicks) {
+    public MiningHolder(BlockHolder holder, long startTime, int totalBreakTicks) {
         this.holder = holder;
         this.startTime = startTime;
         this.totalBreakTicks = totalBreakTicks;
@@ -24,7 +24,7 @@ public class MiningHolder {
         return startTime;
     }
 
-    public long totalBreakTicks() {
+    public int totalBreakTicks() {
         return totalBreakTicks;
     }
 
@@ -44,7 +44,7 @@ public class MiningHolder {
         return System.currentTimeMillis() - startTime;
     }
 
-    public long totalBreakTime() {
+    public int totalBreakTime() {
         return totalBreakTicks * 50;
     }
 

@@ -9,6 +9,8 @@ import nl.devpieter.LobbyPlayer;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.rod.IRod;
+import nl.devpieter.features.mining.MiningManager;
+import nl.devpieter.features.mining.tool.ITool;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
 import org.jetbrains.annotations.NotNull;
@@ -40,9 +42,15 @@ public class PlayerConfigurationListener implements EventListener<@NotNull Async
             if (EnvStatics.DEBUG) {
                 List<IRod> rods = FishingManager.getInstance().getRods();
                 for (IRod rod : rods) lobbyPlayer.addItemToMainInventory(rod.buildItem());
+
+                List<ITool> tools = MiningManager.getInstance().getTools();
+                for (ITool tool : tools) lobbyPlayer.addItemToMainInventory(tool.buildItem());
             } else {
                 IRod rod = FishingManager.getInstance().getRods().getLast();
                 lobbyPlayer.addItemToMainInventory(rod.buildItem());
+
+                ITool tool = MiningManager.getInstance().getTools().getLast();
+                lobbyPlayer.addItemToMainInventory(tool.buildItem());
             }
         }
 
