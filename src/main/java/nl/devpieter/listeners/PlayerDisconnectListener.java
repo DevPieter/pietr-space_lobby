@@ -6,10 +6,12 @@ import nl.devpieter.features.fishing.listeners.PlayerUseItemListener;
 import nl.devpieter.features.parkour.ParkourManager;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.sitting.SitManager;
+import nl.devpieter.features.tips.TipManager;
 import org.jetbrains.annotations.NotNull;
 
 public class PlayerDisconnectListener implements EventListener<@NotNull PlayerDisconnectEvent> {
 
+    private final TipManager tipManager = TipManager.getInstance();
     private final SitManager sitManager = SitManager.getInstance();
     private final ParkourManager parkourManager = ParkourManager.getInstance();
 
@@ -20,8 +22,9 @@ public class PlayerDisconnectListener implements EventListener<@NotNull PlayerDi
 
     @Override
     public @NotNull Result run(@NotNull PlayerDisconnectEvent event) {
-        this.sitManager.standPlayer(event.getPlayer());
-        this.parkourManager.cancelParkour(event.getPlayer(), ParkourCancelReason.PlayerQuit);
+        tipManager.resetTips(event.getPlayer());
+        sitManager.standPlayer(event.getPlayer());
+        parkourManager.cancelParkour(event.getPlayer(), ParkourCancelReason.PlayerQuit);
 
         PlayerUseItemListener.reelInFishingRod(event.getPlayer());
         return Result.SUCCESS;
