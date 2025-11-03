@@ -11,7 +11,7 @@ import java.util.List;
 public class ParkourLeaderboardNodeDecodable implements ISignDecodable {
 
     public ParkourLeaderboardNode getNode(SignHolder signHolder) {
-        return new ParkourLeaderboardNode(signHolder.block().position());
+        return new ParkourLeaderboardNode(signHolder.block().instance(), signHolder.block().position());
     }
 
     @Override

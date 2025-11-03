@@ -15,7 +15,7 @@ public class ParkourSpawnNodeDecodable implements ISignDecodable {
     private YawPitch rotation = YawPitch.ZERO;
 
     public ParkourSpawnNode getNode(SignHolder signHolder) {
-        return new ParkourSpawnNode(signHolder.block().position(), rotation);
+        return new ParkourSpawnNode(signHolder.block().instance(), signHolder.block().position(), rotation);
     }
 
     @Override

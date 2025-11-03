@@ -3,12 +3,14 @@ package nl.devpieter.features.parkour.models.parkour;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.instance.Instance;
 import nl.devpieter.models.YawPitch;
 
 public record ParkourNode(
         int index,
         boolean isCheckpoint,
 
+        Instance instance,
         Point point,
         YawPitch yawPitch,
         BoundingBox boundingBox

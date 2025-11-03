@@ -1,25 +1,24 @@
 package nl.devpieter.features.parkour;
 
 import net.kyori.adventure.sound.Sound;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
-import net.minestom.server.instance.InstanceContainer;
+import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
-import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.LobbyPlayer;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.parkour.decodables.*;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
+import nl.devpieter.features.parkour.models.ParkourReturnHolder;
 import nl.devpieter.features.parkour.models.parkour.*;
 import nl.devpieter.features.parkour.models.parkourTry.FailedNode;
 import nl.devpieter.features.parkour.models.parkourTry.ParkourTry;
@@ -53,21 +52,18 @@ public class ParkourManager {
     private final WorldManager worldManager = WorldManager.getInstance();
 
     private final List<Entity> debugMarkers = new ArrayList<>();
+    private final HashMap<String, ParkourSpawnNode> spawnNodes = new HashMap<>();
+    private final HashMap<String, ParkourLeaderboardNode> leaderboardNodes = new HashMap<>();
+    private final HashMap<String, ParkourStartNode> startNodes = new HashMap<>();
+    private final HashMap<String, ParkourEndNode> endNodes = new HashMap<>();
+    private final HashMap<String, List<ParkourNode>> normalNodes = new HashMap<>();
 
     private final HashMap<String, Parkour> parkours = new HashMap<>();
     private final HashMap<String, List<Parkour>> worldParkourLookup = new HashMap<>();
 
     private final HashMap<UUID, ParkourTry> players = new HashMap<>();
-    private final HashMap<UUID, GlowingBlockHolder> glowingHolders = new HashMap<>();
-
     private final HashMap<UUID, ParkourReturnHolder> returnHolders = new HashMap<>();
-
-    record ParkourReturnHolder(
-            String parkourId,
-            Task expirationTask
-    ) {
-
-    }
+    private final HashMap<UUID, GlowingBlockHolder> glowingHolders = new HashMap<>();
 
     private ParkourManager() {
     }
@@ -78,19 +74,16 @@ public class ParkourManager {
     }
 
     public void init() {
+        revertParkours();
         scanAndRegisterParkours();
+
+        if (EnvStatics.DEBUG) placeDebugMarkers();
     }
 
     private void scanAndRegisterParkours() {
         HashMap<String, SignHolder> foundParkours = new HashMap<>();
         List<String> incompleteParkours = new ArrayList<>();
 
-        HashMap<String, ParkourSpawnNode> spawnNodes = new HashMap<>();
-        HashMap<String, ParkourLeaderboardNode> leaderboardNodes = new HashMap<>();
-        HashMap<String, ParkourStartNode> startNodes = new HashMap<>();
-        HashMap<String, ParkourEndNode> endNodes = new HashMap<>();
-
-        HashMap<String, List<ParkourNode>> normalNodes = new HashMap<>();
         HashMap<String, Boolean> containsIndex = new HashMap<>();
 
         List<SignHolder> signs = signManager.getMatchedSigns(SIGN_KEY);
@@ -107,7 +100,7 @@ public class ParkourManager {
             String name = sign.lines().get(1);
             String type = sign.lines().get(2).toLowerCase();
 
-            String identifier = String.format("%s:%s", world.id(), name);
+            String identifier = getWorldParkourKey(world, name);
             foundParkours.putIfAbsent(identifier, sign);
 
             List<String> lines = sign.lines().subList(3, sign.lines().size());
@@ -219,7 +212,7 @@ public class ParkourManager {
     }
 
     public void initParkour(@NotNull LoadedWorld world, @NotNull Parkour parkour) {
-        InstanceContainer instance = world.instance();
+        Instance instance = world.instance();
 
         Pos start = parkour.startPos();
         instance.setBlock(start, Block.HEAVY_WEIGHTED_PRESSURE_PLATE);
@@ -227,45 +220,129 @@ public class ParkourManager {
         Pos end = parkour.endPos();
         instance.setBlock(end, Block.LIGHT_WEIGHTED_PRESSURE_PLATE);
 
-        if (EnvStatics.DEBUG) {
-            Pos debugStart = start.withYaw(0).withPitch(0);
-            WorldUtils.placeMarker(instance, debugStart.add(0, 0.7, 0), TextUtils.miniText("<#cea0d0>%s <gray>Start", parkour.id()));
-            WorldUtils.placeBoundingBox(instance, debugStart, parkour.startBox());
-
-            Pos debugEnd = end.withYaw(0).withPitch(0);
-            WorldUtils.placeMarker(instance, debugEnd.add(0, 0.7, 0), TextUtils.miniText("<#cea0d0>%s <gray>End", parkour.id()));
-            WorldUtils.placeBoundingBox(instance, debugEnd, parkour.endBox());
-        }
-
         for (ParkourNode node : parkour.nodes()) {
             Pos point = node.pos();
             if (node.isCheckpoint()) instance.setBlock(point, Block.SPRUCE_PRESSURE_PLATE);
-
-            if (EnvStatics.DEBUG) {
-                Pos debugPos = point.withYaw(0).withPitch(0);
-                if (!node.isCheckpoint()) instance.setBlock(debugPos, Block.STONE_PRESSURE_PLATE);
-
-                Component text = TextUtils.miniText("<#cea0d0>%s <gray>%s", parkour.id(), node.index());
-
-                if (node.isCheckpoint()) {
-                    text = TextUtils.miniText("<#cea0d0>%s <gray>%s (checkpoint)", parkour.id(), node.index());
-                }
-
-                WorldUtils.placeMarker(instance, debugPos.add(0, 0.7, 0), text);
-                WorldUtils.placeBoundingBox(instance, debugPos, node.boundingBox());
-            }
         }
 
         parkours.put(parkour.id(), parkour);
         worldParkourLookup.computeIfAbsent(world.id(), _ -> new ArrayList<>()).add(parkour);
     }
 
+    private void revertParkours() {
+        spawnNodes.clear();
+        leaderboardNodes.clear();
+        startNodes.clear();
+        endNodes.clear();
+        normalNodes.clear();
+
+        for (Parkour parkour : parkours.values()) {
+            Instance instance = parkour.instance();
+
+            Pos start = parkour.startPos();
+            instance.setBlock(start, Block.AIR);
+
+            Pos end = parkour.endPos();
+            instance.setBlock(end, Block.AIR);
+
+            for (ParkourNode node : parkour.nodes()) {
+                Pos point = node.pos();
+                if (node.isCheckpoint()) instance.setBlock(point, Block.AIR);
+            }
+        }
+
+        parkours.clear();
+        worldParkourLookup.clear();
+
+        players.clear();
+        returnHolders.clear();
+        glowingHolders.clear();
+    }
+
+    public void placeDebugMarkers() {
+        clearDebugMarkers();
+
+        /* Spawn Nodes */
+        for (Map.Entry<String, ParkourSpawnNode> entry : spawnNodes.entrySet()) {
+            ParkourSpawnNode node = entry.getValue();
+
+            debugMarkers.add(WorldUtils.placeMarker(
+                    node.instance(),
+                    node.point().add(0.5, 0.7, 0.5),
+                    TextUtils.miniText("<#4bcffa>Spawn <gray>%s", entry.getKey())
+            ));
+        }
+
+        /* Leaderboard Nodes */
+        for (Map.Entry<String, ParkourLeaderboardNode> entry : leaderboardNodes.entrySet()) {
+            ParkourLeaderboardNode node = entry.getValue();
+
+            debugMarkers.add(WorldUtils.placeMarker(
+                    node.instance(),
+                    node.point().add(0.5, 0.7, 0.5),
+                    TextUtils.miniText("<#ff4b4b>Leaderboard <gray>%s", entry.getKey())
+            ));
+        }
+
+        /* Start Nodes */
+        for (Map.Entry<String, ParkourStartNode> entry : startNodes.entrySet()) {
+            ParkourStartNode node = entry.getValue();
+
+            debugMarkers.add(WorldUtils.placeMarker(
+                    node.instance(),
+                    node.point().add(0.5, 0.7, 0.5),
+                    TextUtils.miniText("<#4bff66>Start <gray>%s", entry.getKey())
+            ));
+        }
+
+        /* End Nodes */
+        for (Map.Entry<String, ParkourEndNode> entry : endNodes.entrySet()) {
+            ParkourEndNode node = entry.getValue();
+
+            debugMarkers.add(WorldUtils.placeMarker(
+                    node.instance(),
+                    node.point().add(0.5, 0.7, 0.5),
+                    TextUtils.miniText("<#ffb84b>End <gray>%s", entry.getKey())
+            ));
+        }
+
+        /* Normal Nodes */
+        for (Map.Entry<String, List<ParkourNode>> entry : normalNodes.entrySet()) {
+            String parkourId = entry.getKey();
+            List<ParkourNode> nodes = entry.getValue();
+
+            for (ParkourNode node : nodes) {
+                Pos point = node.pos();
+
+                debugMarkers.add(WorldUtils.placeMarker(
+                        node.instance(),
+                        point.add(0, 0.7, 0),
+                        TextUtils.miniText(node.isCheckpoint() ?
+                                        "<#ffa84b>Checkpoint <gray>%s %d" :
+                                        "<#ffffff>Node <gray>%s %d",
+                                parkourId,
+                                node.index()
+                        )
+                ));
+            }
+        }
+    }
+
+    public void clearDebugMarkers() {
+        for (Entity marker : debugMarkers) marker.remove();
+        debugMarkers.clear();
+    }
+
+    private String getWorldParkourKey(@NotNull LoadedWorld world, @NotNull String parkourName) {
+        return String.format("%s:%s", world.id(), parkourName);
+    }
+
     public boolean isDoingParkour(@NotNull Player player) {
         return players.containsKey(player.getUuid());
     }
 
-    private @Nullable Parkour getParkour(@NotNull String uuid) {
-        return parkours.get(uuid);
+    private @Nullable Parkour getParkour(@NotNull String worldParkourKey) {
+        return parkours.get(worldParkourKey);
     }
 
     public @Nullable Parkour getParkour(@NotNull String world, @NotNull Player player) {
@@ -319,6 +396,8 @@ public class ParkourManager {
 
         Parkour parkour = parkours.get(parkourUuid);
         if (parkour == null) return;
+
+        invalidateReturnToStart(player);
 
         player.sendMessage(TextUtils.miniText("<green>Parkour started! Go go go!"));
         player.playSound(Sound.sound(SoundEvent.BLOCK_NOTE_BLOCK_PLING, Sound.Source.MASTER, 1.0f, 1.0f));
@@ -475,9 +554,11 @@ public class ParkourManager {
         player.playSound(Sound.sound(SoundEvent.ENTITY_PLAYER_LEVELUP, Sound.Source.MASTER, 1.0f, 1.0f));
     }
 
-    public void tryReturnToStart(@NotNull Player player) {
+    public void useReturnToStart(@NotNull Player player) {
         ParkourReturnHolder returnHolder = returnHolders.get(player.getUuid());
         if (returnHolder == null) return;
+
+        invalidateReturnToStart(player);
 
         Parkour parkour = getParkour(returnHolder.parkourId());
         if (parkour == null) return;
@@ -488,10 +569,15 @@ public class ParkourManager {
         player.sendMessage(TextUtils.miniText("<green>Returning to parkour start."));
         PlayerUtils.teleport(player, spawn);
 
+        tipManager.completeTip(player, "parkour_sneak_return_to_start");
+    }
+
+    public void invalidateReturnToStart(@NotNull Player player) {
+        ParkourReturnHolder returnHolder = returnHolders.get(player.getUuid());
+        if (returnHolder == null) return;
+
         returnHolder.expirationTask().cancel();
         returnHolders.remove(player.getUuid());
-
-        tipManager.completeTip(player, "parkour_sneak_return_to_start");
     }
 
     private boolean hasReachedAllCheckpoints(@NotNull Player player) {
@@ -550,6 +636,9 @@ public class ParkourManager {
         if (holder != null) PacketUtils.revertToOriginalBlock(player, holder);
 
         PacketUtils.removeWaypoint(player, parkourTry.parkourId());
+
+        Parkour parkour = getParkour(parkourTry.parkourId());
+        if (parkour == null || parkour.spawnPos() == null) return;
 
         returnHolders.put(player.getUuid(), new ParkourReturnHolder(
                 parkourTry.parkourId(),

@@ -27,6 +27,7 @@ public class ParkourNodeDecodable implements ISignDecodable {
         return new ParkourNode(
                 index,
                 isCheckpoint,
+                signHolder.block().instance(),
                 signHolder.block().position(),
                 rotation,
                 boundingBox
