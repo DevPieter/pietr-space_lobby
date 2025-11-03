@@ -119,7 +119,6 @@ public class SignManager {
             BlockHolder block = signHolder.block();
 
             String cleanedFirstLine = signHolder.lines().getFirst().substring(MARKED_SIGN_PREFIX.length()).trim();
-            signHolderMap.computeIfAbsent(cleanedFirstLine, k -> new ArrayList<>()).add(signHolder);
 
             debugMarkers.add(WorldUtils.placeMarker(
                     block.instance(),

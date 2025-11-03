@@ -18,10 +18,12 @@ import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
+import nl.devpieter.features.cooking.blockHandlers.CampfireBlockHandler;
 import nl.devpieter.blockHandler.DoorBlockHandler;
 import nl.devpieter.blockHandler.SignBlockHandler;
 import nl.devpieter.commands.ServerCommand;
 import nl.devpieter.commands.TestCommand;
+import nl.devpieter.commands.TipCommand;
 import nl.devpieter.commands.player.GamemodeCommand;
 import nl.devpieter.commands.world.*;
 import nl.devpieter.config.ConfigManager;
@@ -35,10 +37,10 @@ import nl.devpieter.features.fishing.catchable.ICatchable;
 import nl.devpieter.features.fishing.listeners.PlayerUseItemListener;
 import nl.devpieter.features.fishing.rod.IRod;
 import nl.devpieter.features.parkour.ParkourManager;
-import nl.devpieter.features.parkour.ParkourTryManager;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerMoveListener;
+import nl.devpieter.features.parkour.listeners.ParkourPlayerSneakListener;
 import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
 import nl.devpieter.features.sitting.SitManager;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
@@ -75,6 +77,7 @@ public class Main {
         MinecraftServer server = MinecraftServer.init(auth);
         MinecraftServer.setBrandName("Pieter Space Lobby");
 
+        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:campfire"), CampfireBlockHandler::new);
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:sign"), SignBlockHandler::new);
 
         // TODO - A bit hacky, but I don't know a better way yet
@@ -159,6 +162,7 @@ public class Main {
 
         eventHandler.addListener(new PortalPlayerMoveListener());
         eventHandler.addListener(new ParkourPlayerMoveListener());
+        eventHandler.addListener(new ParkourPlayerSneakListener());
 
         // TODO - Temporary parkour listeners
         MinecraftServer.getGlobalEventHandler().addListener(PlayerUseItemEvent.class, event -> {
@@ -236,18 +240,20 @@ public class Main {
         commandManager.register(new SignCommand());
         commandManager.register(new CreatureCommand());
         commandManager.register(new FarmCommand());
+        commandManager.register(new ParkourCommand());
         commandManager.register(new PortalCommand());
 
         commandManager.register(new TimeCommand());
         commandManager.register(new WeatherCommand());
 
         // Misc
+        commandManager.register(new TipCommand());
         commandManager.register(new TestCommand());
         commandManager.register(new ServerCommand());
 
         MinecraftServer.getConnectionManager().setPlayerProvider(LobbyPlayer::new);
 
-        ParkourTryManager.getInstance().start();
+//        ParkourTryManager.getInstance().start();
         server.start("0.0.0.0", 25565);
     }
 

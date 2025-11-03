@@ -4,7 +4,6 @@ import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
-import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,15 +14,7 @@ public class PlayerUtils {
         player.setVelocity(new Vec(0));
     }
 
-    public static boolean isInsideBlock(@NotNull Entity player, @NotNull Point blockPos) {
-        return isInsideBlock(player, blockPos, 1.0, 1.0, 1.0);
-    }
-
-    public static boolean isInsideBlock(@NotNull Entity player, @NotNull Point blockPos, double blockHeight) {
-        return isInsideBlock(player, blockPos, 1.0, blockHeight, 1.0);
-    }
-
-    public static boolean isInsideBlock(@NotNull Entity player, @NotNull Point blockPos, double blockWidth, double blockHeight, double blockDepth) {
+    public static boolean isInsideBox(@NotNull Player player, @NotNull Point origin, @NotNull BoundingBox box) {
         BoundingBox playerBB = player.getBoundingBox();
         Pos playerPos = player.getPosition();
 
@@ -37,15 +28,20 @@ public class PlayerUtils {
         double playerMinZ = playerPos.z() - halfWidth;
         double playerMaxZ = playerPos.z() + halfWidth;
 
-        double blockMinX = blockPos.blockX();
-        double blockMaxX = blockPos.blockX() + blockWidth;
-        double blockMinY = blockPos.blockY();
-        double blockMaxY = blockPos.blockY() + blockHeight;
-        double blockMinZ = blockPos.blockZ();
-        double blockMaxZ = blockPos.blockZ() + blockDepth;
+        Vec relativeStart = box.relativeStart();
+        Vec relativeEnd = box.relativeEnd();
 
-        return (playerMinX < blockMaxX && playerMaxX > blockMinX) &&
-                (playerMinY < blockMaxY && playerMaxY > blockMinY) &&
-                (playerMinZ < blockMaxZ && playerMaxZ > blockMinZ);
+        double boxMinX = origin.x() + Math.min(relativeStart.x(), relativeEnd.x());
+        double boxMaxX = origin.x() + Math.max(relativeStart.x(), relativeEnd.x());
+
+        double boxMinY = origin.y() + Math.min(relativeStart.y(), relativeEnd.y());
+        double boxMaxY = origin.y() + Math.max(relativeStart.y(), relativeEnd.y());
+
+        double boxMinZ = origin.z() + Math.min(relativeStart.z(), relativeEnd.z());
+        double boxMaxZ = origin.z() + Math.max(relativeStart.z(), relativeEnd.z());
+
+        return (playerMinX < boxMaxX && playerMaxX > boxMinX) &&
+                (playerMinY < boxMaxY && playerMaxY > boxMinY) &&
+                (playerMinZ < boxMaxZ && playerMaxZ > boxMinZ);
     }
 }

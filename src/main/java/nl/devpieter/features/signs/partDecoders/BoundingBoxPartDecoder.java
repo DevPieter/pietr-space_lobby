@@ -9,6 +9,11 @@ public class BoundingBoxPartDecoder extends PartDecoder<BoundingBox> {
 
     private final BoundingBox fallback;
 
+    public BoundingBoxPartDecoder(Consumer<BoundingBox> onDecodedCallback) {
+        super(onDecodedCallback);
+        this.fallback = new BoundingBox(1, 1, 1);
+    }
+
     public BoundingBoxPartDecoder(BoundingBox fallback, Consumer<BoundingBox> onDecodedCallback) {
         super(onDecodedCallback);
         this.fallback = fallback;
