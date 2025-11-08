@@ -18,6 +18,8 @@ import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.features.mining.blockHandlers.MinableBlockHandler;
+import nl.devpieter.features.mining.miningSequence.IMiningSequence;
+import nl.devpieter.features.mining.models.MiningStep;
 import nl.devpieter.features.mining.models.MiningHolder;
 import nl.devpieter.features.mining.tool.ITool;
 import nl.devpieter.features.mining.tools.FastNetheritePickaxe;
@@ -28,6 +30,7 @@ import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.models.BlockChangeHolder;
 import nl.devpieter.models.BlockHolder;
+import nl.devpieter.models.HashPoint;
 import nl.devpieter.utils.minestom.PacketUtils;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
@@ -45,10 +48,12 @@ public class MiningManager {
 
     private final Scheduler scheduler = MinecraftServer.getSchedulerManager();
 
+    private final HashMap<HashPoint, IMiningSequence> miningSequences = new HashMap<>();
     private final List<ITool> tools = new ArrayList<>();
 
-    private static final HashMap<UUID, Task> miningTasks = new HashMap<>();
-    private static final HashMap<UUID, MiningHolder> miningPlayers = new HashMap<>();
+    private final HashMap<UUID, Task> miningTasks = new HashMap<>();
+    private final HashMap<HashPoint, Task> revertTasks = new HashMap<>();
+    private final HashMap<UUID, MiningHolder> miningPlayers = new HashMap<>();
 
     private MiningManager() {
         tools.addAll(List.of(
@@ -63,16 +68,25 @@ public class MiningManager {
         if (mainWorld == null) return;
 
         Instance instance = mainWorld.instance();
-        instance.setBlock(-6, 66, 1, Block.COAL_ORE.withHandler(new MinableBlockHandler(1, 20 * 2)));
-        instance.setBlock(-6, 66, 0, Block.COAL_ORE.withHandler(new MinableBlockHandler(1, 20 * 2)));
-        instance.setBlock(-6, 66, -1, Block.COAL_ORE.withHandler(new MinableBlockHandler(1, 20 * 2)));
-        instance.setBlock(-6, 67, 1, Block.IRON_BLOCK.withHandler(new MinableBlockHandler(2, 20 * 4)));
-        instance.setBlock(-6, 67, 0, Block.IRON_BLOCK.withHandler(new MinableBlockHandler(2, 20 * 4)));
-        instance.setBlock(-6, 67, -1, Block.IRON_BLOCK.withHandler(new MinableBlockHandler(2, 20 * 4)));
 
-        instance.setBlock(-2, 66, -2, Block.DIAMOND_BLOCK.withHandler(new MinableBlockHandler(4, 20 * 8)));
-        instance.setBlock(-1, 66, -2, Block.DIAMOND_BLOCK.withHandler(new MinableBlockHandler(4, 20 * 8)));
-        instance.setBlock(0, 66, -2, Block.DIAMOND_BLOCK.withHandler(new MinableBlockHandler(4, 20 * 8)));
+        IMiningSequence testSequence1 = new TestMiningSequence();
+        miningSequences.put(new HashPoint(-6, 66, 1), testSequence1);
+        instance.setBlock(-6, 66, 1, testSequence1.buildBlockFromCurrentStep());
+
+        IMiningSequence testSequence2 = new TestMiningSequence();
+        miningSequences.put(new HashPoint(-6, 66, 0), testSequence2);
+        instance.setBlock(-6, 66, 0, testSequence2.buildBlockFromCurrentStep());
+
+//        instance.setBlock(-6, 66, 1, Block.STONE.withHandler(new MinableBlockHandler(1, 20 * 2)));
+//        instance.setBlock(-6, 66, 0, Block.COAL_ORE.withHandler(new MinableBlockHandler(1, 20 * 2)));
+//        instance.setBlock(-6, 66, -1, Block.COAL_ORE.withHandler(new MinableBlockHandler(1, 20 * 2)));
+//        instance.setBlock(-6, 67, 1, Block.IRON_BLOCK.withHandler(new MinableBlockHandler(2, 20 * 4)));
+//        instance.setBlock(-6, 67, 0, Block.IRON_BLOCK.withHandler(new MinableBlockHandler(2, 20 * 4)));
+//        instance.setBlock(-6, 67, -1, Block.IRON_BLOCK.withHandler(new MinableBlockHandler(2, 20 * 4)));
+
+//        instance.setBlock(-2, 66, -2, Block.DIAMOND_BLOCK.withHandler(new MinableBlockHandler(4, 20 * 8)));
+//        instance.setBlock(-1, 66, -2, Block.DIAMOND_BLOCK.withHandler(new MinableBlockHandler(4, 20 * 8)));
+//        instance.setBlock(0, 66, -2, Block.DIAMOND_BLOCK.withHandler(new MinableBlockHandler(4, 20 * 8)));
     }
 
     public static MiningManager getInstance() {
@@ -107,38 +121,8 @@ public class MiningManager {
         mainNode.addListener(PlayerStartDiggingEvent.class, event -> {
             event.setCancelled(true);
 
-            Block block = event.getBlock();
-            Player player = event.getPlayer();
-            BlockHolder holder = new BlockHolder(event.getInstance(), event.getBlockPosition(), block);
-
-            if (block.handler() instanceof FarmBlockHandler farmHandler) {
-                if (farmHandler.canBeHarvested(holder)) farmHandler.replant(holder, player);
-                return;
-            }
-
-            if (block.handler() instanceof MinableBlockHandler minableHandler) {
-                ItemStack itemInHand = player.getItemInHand(PlayerHand.MAIN);
-
-                ITool tool = getToolByItem(itemInHand);
-                if (tool == null) {
-                    player.sendMessage(TextUtils.miniText("<red>Eek! You need a proper tool to mine this block."));
-                    return;
-                }
-
-                if (tool.getMiningStrength() < minableHandler.hardness()) {
-                    player.sendMessage(TextUtils.miniText("<red>Eek! Your tool is too weak to mine this block."));
-                    return;
-                }
-
-                double speedMul = tool.getMiningSpeedMultiplier();
-                double strengthMul = Math.max(0, tool.getMiningStrength() - minableHandler.hardness()) * 0.3;
-                double totalMultiplier = speedMul + strengthMul;
-
-                int adjustedBreakTicks = (int) Math.ceil(minableHandler.totalBreakTicks() / totalMultiplier);
-                System.out.println("SpeedMul: " + speedMul + ", StrengthMul: " + strengthMul + ", TotalMul: " + totalMultiplier + ", AdjustedBreakTicks: " + adjustedBreakTicks);
-
-                startMining(player, holder, adjustedBreakTicks);
-            }
+            BlockHolder holder = new BlockHolder(event.getInstance(), event.getBlockPosition(), event.getBlock());
+            tryMing(event.getPlayer(), holder);
         });
 
         mainNode.addListener(PlayerCancelDiggingEvent.class, event -> {
@@ -161,8 +145,45 @@ public class MiningManager {
         return EVENT_NODE;
     }
 
+    private IMiningSequence getSequenceAt(Point point) {
+        return miningSequences.get(new HashPoint(point));
+    }
+
     private MiningHolder getMiningHolder(UUID uuid) {
         return miningPlayers.get(uuid);
+    }
+
+    private void tryMing(Player player, BlockHolder holder) {
+        Block block = holder.block();
+
+        if (block.handler() instanceof FarmBlockHandler farmHandler) {
+            if (farmHandler.canBeHarvested(holder)) farmHandler.replant(holder, player);
+            return;
+        }
+
+        if (block.handler() instanceof MinableBlockHandler(double hardness, int totalBreakTicks)) {
+            ItemStack itemInHand = player.getItemInHand(PlayerHand.MAIN);
+
+            ITool tool = getToolByItem(itemInHand);
+            if (tool == null) {
+                player.sendMessage(TextUtils.miniText("<red>Eek! You need a proper tool to mine this block."));
+                return;
+            }
+
+            if (tool.getMiningStrength() < hardness) {
+                player.sendMessage(TextUtils.miniText("<red>Eek! Your tool is too weak to mine this block."));
+                return;
+            }
+
+            double speedMul = tool.getMiningSpeedMultiplier();
+            double strengthMul = Math.max(0, tool.getMiningStrength() - hardness) * 0.3;
+            double totalMultiplier = speedMul + strengthMul;
+
+            int adjustedBreakTicks = (int) Math.ceil(totalBreakTicks / totalMultiplier);
+            System.out.println("SpeedMul: " + speedMul + ", StrengthMul: " + strengthMul + ", TotalMul: " + totalMultiplier + ", AdjustedBreakTicks: " + adjustedBreakTicks);
+
+            startMining(player, holder, adjustedBreakTicks);
+        }
     }
 
     private void startMining(Player player, BlockHolder blockHolder, int totalBreakTicks) {
@@ -189,6 +210,17 @@ public class MiningManager {
             Instance instance = blockHolder.instance();
             Point point = blockHolder.position();
 
+            IMiningSequence miningSequence = getSequenceAt(point);
+            if (miningSequence == null) {
+                stopMining(player);
+                miningTasks.remove(player.getUuid());
+                return;
+            }
+
+            Block newBlock = miningSequence.increment() != null
+                    ? miningSequence.buildBlockFromCurrentStep()
+                    : Block.BEDROCK;
+
             BlockChangeHolder changeHolder = new BlockChangeHolder(
                     instance,
                     new BlockHolder(
@@ -199,14 +231,16 @@ public class MiningManager {
                     new BlockHolder(
                             instance,
                             point,
-                            Block.BEDROCK
+                            newBlock
                     )
             );
 
-            instance.setBlock(point, Block.BEDROCK);
-            initRevertTask(changeHolder);
+            instance.setBlock(point, newBlock);
+            initRevertTask(miningSequence, changeHolder);
 
             stopMining(player);
+            if (!miningSequence.isAtEnd()) tryMing(player, changeHolder.replacement());
+
             miningTasks.remove(player.getUuid());
         }, TaskSchedule.immediate(), TaskSchedule.tick(1)));
     }
@@ -219,10 +253,27 @@ public class MiningManager {
         if (task != null) task.cancel();
     }
 
-    private void initRevertTask(BlockChangeHolder holder) {
-        scheduler.buildTask(() -> {
-            BlockHolder original = holder.original();
-            holder.instance().setBlock(original.position(), original.block());
-        }).delay(TaskSchedule.seconds(8)).schedule();
+    private void initRevertTask(IMiningSequence miningSequence, BlockChangeHolder holder) {
+        HashPoint point = new HashPoint(holder.original().position());
+
+        Task existingTask = revertTasks.get(point);
+        if (existingTask != null) existingTask.cancel();
+
+        Task task = scheduler.buildTask(() -> {
+            MiningStep step = miningSequence.decrement();
+            if (step == null) {
+                revertTasks.remove(point);
+                return;
+            }
+
+            Block newBlock = miningSequence.buildBlockFromCurrentStep();
+            holder.instance().setBlock(holder.original().position(), newBlock);
+
+            if (miningSequence.isAtBeginning()) revertTasks.remove(point);
+            else initRevertTask(miningSequence, holder);
+
+        }).delay(TaskSchedule.tick(miningSequence.getRevertTicks())).schedule();
+
+        revertTasks.put(point, task);
     }
 }
