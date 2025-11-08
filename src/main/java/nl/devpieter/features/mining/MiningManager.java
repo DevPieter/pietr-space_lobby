@@ -19,8 +19,8 @@ import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.features.mining.blockHandlers.MinableBlockHandler;
 import nl.devpieter.features.mining.miningSequence.IMiningSequence;
-import nl.devpieter.features.mining.models.MiningStep;
 import nl.devpieter.features.mining.models.MiningHolder;
+import nl.devpieter.features.mining.models.MiningStep;
 import nl.devpieter.features.mining.tool.ITool;
 import nl.devpieter.features.mining.tools.FastNetheritePickaxe;
 import nl.devpieter.features.mining.tools.IronPickaxe;
@@ -53,6 +53,7 @@ public class MiningManager {
 
     private final HashMap<UUID, Task> miningTasks = new HashMap<>();
     private final HashMap<HashPoint, Task> revertTasks = new HashMap<>();
+
     private final HashMap<UUID, MiningHolder> miningPlayers = new HashMap<>();
 
     private MiningManager() {
@@ -239,9 +240,9 @@ public class MiningManager {
             initRevertTask(miningSequence, changeHolder);
 
             stopMining(player);
-            if (!miningSequence.isAtEnd()) tryMing(player, changeHolder.replacement());
+            if (miningSequence.isAtEnd()) return;
 
-            miningTasks.remove(player.getUuid());
+            tryMing(player, changeHolder.replacement());
         }, TaskSchedule.immediate(), TaskSchedule.tick(1)));
     }
 
