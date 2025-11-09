@@ -2,6 +2,7 @@ package nl.devpieter.features.mining;
 
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Point;
+import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerHand;
@@ -11,6 +12,7 @@ import net.minestom.server.event.player.*;
 import net.minestom.server.event.trait.PlayerEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
+import net.minestom.server.instance.block.BlockSoundType;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.tag.Tag;
 import net.minestom.server.timer.Scheduler;
@@ -19,6 +21,8 @@ import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.features.mining.blockHandlers.MinableBlockHandler;
 import nl.devpieter.features.mining.miningSequence.IMiningSequence;
+import nl.devpieter.features.mining.miningSequences.CobblestoneMiningSequence;
+import nl.devpieter.features.mining.miningSequences.StoneMiningSequence;
 import nl.devpieter.features.mining.models.MiningHolder;
 import nl.devpieter.features.mining.models.MiningStep;
 import nl.devpieter.features.mining.tool.ITool;
@@ -30,16 +34,15 @@ import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.models.BlockChangeHolder;
 import nl.devpieter.models.BlockHolder;
-import nl.devpieter.models.HashPoint;
+import nl.devpieter.models.PointHolder;
 import nl.devpieter.utils.minestom.PacketUtils;
+import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
+import nl.devpieter.utils.minestom.WorldUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class MiningManager {
 
@@ -48,11 +51,11 @@ public class MiningManager {
 
     private final Scheduler scheduler = MinecraftServer.getSchedulerManager();
 
-    private final HashMap<HashPoint, IMiningSequence> miningSequences = new HashMap<>();
+    private final HashMap<PointHolder, IMiningSequence> miningSequences = new HashMap<>();
     private final List<ITool> tools = new ArrayList<>();
 
     private final HashMap<UUID, Task> miningTasks = new HashMap<>();
-    private final HashMap<HashPoint, Task> revertTasks = new HashMap<>();
+    private final HashMap<PointHolder, Task> revertTasks = new HashMap<>();
 
     private final HashMap<UUID, MiningHolder> miningPlayers = new HashMap<>();
 
@@ -64,30 +67,7 @@ public class MiningManager {
                 new IronPickaxe()
         ));
 
-        // TODO - Testing only, remove later
-        LoadedWorld mainWorld = WorldManager.getInstance().getLoadedWorldById("main");
-        if (mainWorld == null) return;
-
-        Instance instance = mainWorld.instance();
-
-        IMiningSequence testSequence1 = new TestMiningSequence();
-        miningSequences.put(new HashPoint(-6, 66, 1), testSequence1);
-        instance.setBlock(-6, 66, 1, testSequence1.buildBlockFromCurrentStep());
-
-        IMiningSequence testSequence2 = new TestMiningSequence();
-        miningSequences.put(new HashPoint(-6, 66, 0), testSequence2);
-        instance.setBlock(-6, 66, 0, testSequence2.buildBlockFromCurrentStep());
-
-//        instance.setBlock(-6, 66, 1, Block.STONE.withHandler(new MinableBlockHandler(1, 20 * 2)));
-//        instance.setBlock(-6, 66, 0, Block.COAL_ORE.withHandler(new MinableBlockHandler(1, 20 * 2)));
-//        instance.setBlock(-6, 66, -1, Block.COAL_ORE.withHandler(new MinableBlockHandler(1, 20 * 2)));
-//        instance.setBlock(-6, 67, 1, Block.IRON_BLOCK.withHandler(new MinableBlockHandler(2, 20 * 4)));
-//        instance.setBlock(-6, 67, 0, Block.IRON_BLOCK.withHandler(new MinableBlockHandler(2, 20 * 4)));
-//        instance.setBlock(-6, 67, -1, Block.IRON_BLOCK.withHandler(new MinableBlockHandler(2, 20 * 4)));
-
-//        instance.setBlock(-2, 66, -2, Block.DIAMOND_BLOCK.withHandler(new MinableBlockHandler(4, 20 * 8)));
-//        instance.setBlock(-1, 66, -2, Block.DIAMOND_BLOCK.withHandler(new MinableBlockHandler(4, 20 * 8)));
-//        instance.setBlock(0, 66, -2, Block.DIAMOND_BLOCK.withHandler(new MinableBlockHandler(4, 20 * 8)));
+        init();
     }
 
     public static MiningManager getInstance() {
@@ -123,7 +103,7 @@ public class MiningManager {
             event.setCancelled(true);
 
             BlockHolder holder = new BlockHolder(event.getInstance(), event.getBlockPosition(), event.getBlock());
-            tryMing(event.getPlayer(), holder);
+            tryMine(event.getPlayer(), holder);
         });
 
         mainNode.addListener(PlayerCancelDiggingEvent.class, event -> {
@@ -146,15 +126,37 @@ public class MiningManager {
         return EVENT_NODE;
     }
 
-    private IMiningSequence getSequenceAt(Point point) {
-        return miningSequences.get(new HashPoint(point));
+    private void init() {
+        // TODO - Testing only, remove later
+        LoadedWorld mainWorld = WorldManager.getInstance().getLoadedWorldById("main");
+        if (mainWorld == null) return;
+
+        WorldUtils.findBlocks(mainWorld.instance(), new Vec(0, 64, 0), 100, Block.INFESTED_STONE).forEach(point -> {
+            PointHolder pointHolder = new PointHolder(mainWorld.instance(), point);
+            miningSequences.put(pointHolder, new StoneMiningSequence());
+        });
+
+
+        WorldUtils.findBlocks(mainWorld.instance(), new Vec(0, 64, 0), 100, Block.INFESTED_COBBLESTONE).forEach(point -> {
+            PointHolder pointHolder = new PointHolder(mainWorld.instance(), point);
+            miningSequences.put(pointHolder, new CobblestoneMiningSequence());
+        });
+
+        for (Map.Entry<PointHolder, IMiningSequence> entry : miningSequences.entrySet()) {
+            PointHolder pointHolder = entry.getKey();
+            pointHolder.instance().setBlock(pointHolder.position(), entry.getValue().buildBlockFromCurrentStep());
+        }
+    }
+
+    private IMiningSequence getSequenceAt(PointHolder point) {
+        return miningSequences.get(point);
     }
 
     private MiningHolder getMiningHolder(UUID uuid) {
         return miningPlayers.get(uuid);
     }
 
-    private void tryMing(Player player, BlockHolder holder) {
+    private void tryMine(Player player, BlockHolder holder) {
         Block block = holder.block();
 
         if (block.handler() instanceof FarmBlockHandler farmHandler) {
@@ -211,7 +213,7 @@ public class MiningManager {
             Instance instance = blockHolder.instance();
             Point point = blockHolder.position();
 
-            IMiningSequence miningSequence = getSequenceAt(point);
+            IMiningSequence miningSequence = getSequenceAt(new PointHolder(instance, point));
             if (miningSequence == null) {
                 stopMining(player);
                 miningTasks.remove(player.getUuid());
@@ -239,10 +241,20 @@ public class MiningManager {
             instance.setBlock(point, newBlock);
             initRevertTask(miningSequence, changeHolder);
 
+            BlockSoundType soundType = blockHolder.block().registry().getBlockSoundType();
+            if (soundType != null) SoundUtils.playSoundInWorld(
+                    instance,
+                    point.add(0.5, 0.5, 0.5),
+                    soundType.breakSound(),
+                    soundType.volume(), soundType.pitch()
+            );
+
+            // TODO - Award XP, drops, etc.
+
             stopMining(player);
             if (miningSequence.isAtEnd()) return;
 
-            tryMing(player, changeHolder.replacement());
+            tryMine(player, changeHolder.replacement());
         }, TaskSchedule.immediate(), TaskSchedule.tick(1)));
     }
 
@@ -255,7 +267,7 @@ public class MiningManager {
     }
 
     private void initRevertTask(IMiningSequence miningSequence, BlockChangeHolder holder) {
-        HashPoint point = new HashPoint(holder.original().position());
+        PointHolder point = holder.replacement().asPointHolder();
 
         Task existingTask = revertTasks.get(point);
         if (existingTask != null) existingTask.cancel();
