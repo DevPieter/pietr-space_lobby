@@ -21,15 +21,19 @@ import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.features.mining.blockHandlers.MinableBlockHandler;
 import nl.devpieter.features.mining.miningSequence.IMiningSequence;
-import nl.devpieter.features.mining.miningSequences.CobblestoneMiningSequence;
-import nl.devpieter.features.mining.miningSequences.StoneMiningSequence;
+import nl.devpieter.features.mining.miningSequence.sequences.BaseMiningSequence;
+import nl.devpieter.features.mining.miningSequence.sequences.CobblestoneMiningSequence;
+import nl.devpieter.features.mining.miningSequence.sequences.StoneMiningSequence;
+import nl.devpieter.features.mining.miningSequence.sequences.mithril.CoreMithrilMiningSequence;
+import nl.devpieter.features.mining.miningSequence.sequences.mithril.InnerMithrilMiningSequence;
+import nl.devpieter.features.mining.miningSequence.sequences.mithril.OuterMithrilMiningSequence;
 import nl.devpieter.features.mining.models.MiningHolder;
 import nl.devpieter.features.mining.models.MiningStep;
 import nl.devpieter.features.mining.tool.ITool;
-import nl.devpieter.features.mining.tools.FastNetheritePickaxe;
-import nl.devpieter.features.mining.tools.IronPickaxe;
-import nl.devpieter.features.mining.tools.NetheritePickaxe;
-import nl.devpieter.features.mining.tools.WoodenPickaxe;
+import nl.devpieter.features.mining.tool.tools.FastNetheritePickaxe;
+import nl.devpieter.features.mining.tool.tools.IronPickaxe;
+import nl.devpieter.features.mining.tool.tools.NetheritePickaxe;
+import nl.devpieter.features.mining.tool.tools.WoodenPickaxe;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.models.BlockChangeHolder;
@@ -142,6 +146,27 @@ public class MiningManager {
             miningSequences.put(pointHolder, new CobblestoneMiningSequence());
         });
 
+        WorldUtils.findBlocks(mainWorld.instance(), new Vec(0, 64, 0), 100, Block.DIAMOND_ORE).forEach(point -> {
+            PointHolder pointHolder = new PointHolder(mainWorld.instance(), point);
+            miningSequences.put(pointHolder, new BaseMiningSequence(MiningSteps.DIAMOND_ORE));
+//            miningSequences.put(pointHolder, new OuterMithrilMiningSequence());
+        });
+
+        WorldUtils.findBlocks(mainWorld.instance(), new Vec(0, 64, 0), 100, Block.GRAY_WOOL).forEach(point -> {
+            PointHolder pointHolder = new PointHolder(mainWorld.instance(), point);
+            miningSequences.put(pointHolder, new OuterMithrilMiningSequence());
+        });
+
+        WorldUtils.findBlocks(mainWorld.instance(), new Vec(0, 64, 0), 100, Block.PRISMARINE).forEach(point -> {
+            PointHolder pointHolder = new PointHolder(mainWorld.instance(), point);
+            miningSequences.put(pointHolder, new InnerMithrilMiningSequence());
+        });
+
+        WorldUtils.findBlocks(mainWorld.instance(), new Vec(0, 64, 0), 100, Block.LIGHT_BLUE_WOOL).forEach(point -> {
+            PointHolder pointHolder = new PointHolder(mainWorld.instance(), point);
+            miningSequences.put(pointHolder, new CoreMithrilMiningSequence());
+        });
+
         for (Map.Entry<PointHolder, IMiningSequence> entry : miningSequences.entrySet()) {
             PointHolder pointHolder = entry.getKey();
             pointHolder.instance().setBlock(pointHolder.position(), entry.getValue().buildBlockFromCurrentStep());
@@ -164,7 +189,7 @@ public class MiningManager {
             return;
         }
 
-        if (block.handler() instanceof MinableBlockHandler(double hardness, int totalBreakTicks)) {
+        if (block.handler() instanceof MinableBlockHandler(double hardness, int baseBreakTicks)) {
             ItemStack itemInHand = player.getItemInHand(PlayerHand.MAIN);
 
             ITool tool = getToolByItem(itemInHand);
@@ -179,10 +204,10 @@ public class MiningManager {
             }
 
             double speedMul = tool.getMiningSpeedMultiplier();
-            double strengthMul = Math.max(0, tool.getMiningStrength() - hardness) * 0.3;
+            double strengthMul = Math.max(0, tool.getMiningStrength() - hardness) * 0.4;
             double totalMultiplier = speedMul + strengthMul;
 
-            int adjustedBreakTicks = (int) Math.ceil(totalBreakTicks / totalMultiplier);
+            int adjustedBreakTicks = (int) Math.ceil(baseBreakTicks / totalMultiplier);
             System.out.println("SpeedMul: " + speedMul + ", StrengthMul: " + strengthMul + ", TotalMul: " + totalMultiplier + ", AdjustedBreakTicks: " + adjustedBreakTicks);
 
             startMining(player, holder, adjustedBreakTicks);
@@ -272,6 +297,9 @@ public class MiningManager {
         Task existingTask = revertTasks.get(point);
         if (existingTask != null) existingTask.cancel();
 
+        MiningStep previousStep = miningSequence.getPreviousStep();
+        int revertTicks = miningSequence.getRevertTicks() + (previousStep != null ? previousStep.extraRevertTicks() : 0);
+
         Task task = scheduler.buildTask(() -> {
             MiningStep step = miningSequence.decrement();
             if (step == null) {
@@ -285,7 +313,7 @@ public class MiningManager {
             if (miningSequence.isAtBeginning()) revertTasks.remove(point);
             else initRevertTask(miningSequence, holder);
 
-        }).delay(TaskSchedule.tick(miningSequence.getRevertTicks())).schedule();
+        }).delay(TaskSchedule.tick(revertTicks)).schedule();
 
         revertTasks.put(point, task);
     }

@@ -20,6 +20,8 @@ public interface IMiningSequence {
 
     @Nullable MiningStep decrement();
 
+    @Nullable MiningStep getPreviousStep();
+
     MiningStep getCurrentStep();
 
     Block buildBlockFromCurrentStep();

@@ -1,4 +1,4 @@
-package nl.devpieter.features.mining.tools;
+package nl.devpieter.features.mining.tool.tools;
 
 import net.kyori.adventure.text.Component;
 import net.minestom.server.item.ItemStack;
@@ -8,30 +8,30 @@ import nl.devpieter.utils.minestom.TextUtils;
 
 import java.util.UUID;
 
-public class FastNetheritePickaxe extends Tool {
+public class IronPickaxe extends Tool {
 
     @Override
     protected ItemStack getBaseItem() {
-        return ItemStack.of(Material.NETHERITE_PICKAXE);
+        return ItemStack.of(Material.IRON_PICKAXE);
     }
 
     @Override
     public UUID getId() {
-        return UUID.fromString("9df7e0d6-d546-4842-867d-7c2ac5836559");
+        return UUID.fromString("ab483f28-aa2d-44a3-9b8e-80a64e250706");
     }
 
     @Override
     public Component getName() {
-        return TextUtils.miniText("Fast Netherite Pickaxe");
+        return TextUtils.miniText("Iron Pickaxe");
     }
 
     @Override
     public double getMiningStrength() {
-        return 6;
+        return 2;
     }
 
     @Override
     public double getMiningSpeedMultiplier() {
-        return 3;
+        return 1;
     }
 }

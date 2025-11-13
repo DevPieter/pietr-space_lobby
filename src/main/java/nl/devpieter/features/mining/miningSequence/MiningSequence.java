@@ -35,6 +35,12 @@ public abstract class MiningSequence implements IMiningSequence {
     }
 
     @Override
+    public @Nullable MiningStep getPreviousStep() {
+        if (isAtBeginning()) return null;
+        return getSteps().get(currentIndex - 1);
+    }
+
+    @Override
     public MiningStep getCurrentStep() {
         return getSteps().get(currentIndex);
     }
