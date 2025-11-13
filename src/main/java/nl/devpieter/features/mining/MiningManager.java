@@ -1,6 +1,7 @@
 package nl.devpieter.features.mining;
 
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.GameMode;
@@ -21,6 +22,7 @@ import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.features.mining.blockHandlers.MinableBlockHandler;
 import nl.devpieter.features.mining.miningSequence.IMiningSequence;
+import nl.devpieter.features.mining.miningSequence.sequences.AirMiningSequence;
 import nl.devpieter.features.mining.miningSequence.sequences.BaseMiningSequence;
 import nl.devpieter.features.mining.miningSequence.sequences.CobblestoneMiningSequence;
 import nl.devpieter.features.mining.miningSequence.sequences.StoneMiningSequence;
@@ -39,10 +41,7 @@ import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.models.BlockChangeHolder;
 import nl.devpieter.models.BlockHolder;
 import nl.devpieter.models.PointHolder;
-import nl.devpieter.utils.minestom.PacketUtils;
-import nl.devpieter.utils.minestom.SoundUtils;
-import nl.devpieter.utils.minestom.TextUtils;
-import nl.devpieter.utils.minestom.WorldUtils;
+import nl.devpieter.utils.minestom.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -140,6 +139,10 @@ public class MiningManager {
             miningSequences.put(pointHolder, new StoneMiningSequence());
         });
 
+        WorldUtils.findBlocks(mainWorld.instance(), new Vec(0, 64, 0), 100, Block.INFESTED_CRACKED_STONE_BRICKS).forEach(point -> {
+            PointHolder pointHolder = new PointHolder(mainWorld.instance(), point);
+            miningSequences.put(pointHolder, new AirMiningSequence());
+        });
 
         WorldUtils.findBlocks(mainWorld.instance(), new Vec(0, 64, 0), 100, Block.INFESTED_COBBLESTONE).forEach(point -> {
             PointHolder pointHolder = new PointHolder(mainWorld.instance(), point);
@@ -150,6 +153,7 @@ public class MiningManager {
             PointHolder pointHolder = new PointHolder(mainWorld.instance(), point);
             miningSequences.put(pointHolder, new BaseMiningSequence(MiningSteps.DIAMOND_ORE));
 //            miningSequences.put(pointHolder, new OuterMithrilMiningSequence());
+//            miningSequences.put(pointHolder, new AirMiningSequence());
         });
 
         WorldUtils.findBlocks(mainWorld.instance(), new Vec(0, 64, 0), 100, Block.GRAY_WOOL).forEach(point -> {
@@ -301,6 +305,17 @@ public class MiningManager {
         int revertTicks = miningSequence.getRevertTicks() + (previousStep != null ? previousStep.extraRevertTicks() : 0);
 
         Task task = scheduler.buildTask(() -> {
+            boolean canReplace = point.instance().getPlayers().stream()
+                    .noneMatch(player -> PlayerUtils.isInsideBox(player, point.position(), new BoundingBox(
+                            new Vec(0, 0, 0),
+                            new Vec(1, 1, 1)
+                    )));
+
+            if (!canReplace) {
+                initRevertTask(miningSequence, holder);
+                return;
+            }
+
             MiningStep step = miningSequence.decrement();
             if (step == null) {
                 revertTasks.remove(point);

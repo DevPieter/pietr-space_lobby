@@ -8,7 +8,8 @@ public class MiningSteps {
     public static final MiningStep FINAL_STEP = new MiningStep(Block.BEDROCK);
 
     /* Basic Blocks */
-    public static final MiningStep STONE = new MiningStep(Block.STONE, 1, 10);
+    public static final MiningStep STONE = new MiningStep(Block.STONE, 1, 15);
+    public static final MiningStep CRACKED_STONE = new MiningStep(Block.CRACKED_STONE_BRICKS, 1, 10);
     public static final MiningStep COBBLESTONE = new MiningStep(Block.COBBLESTONE, 1, 20);
 
     /* Ores */
