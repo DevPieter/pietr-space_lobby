@@ -23,7 +23,7 @@ public class PlayerMoveListener implements EventListener<@NotNull PlayerMoveEven
     @Override
     public @NotNull Result run(@NotNull PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        if (player.getPosition().y() > 50) return Result.SUCCESS;
+        if (player.getPosition().y() > 35) return Result.SUCCESS;
 
         if (this.parkourManager.isDoingParkour(player)) {
             this.parkourManager.returnToCheckpoint(player, ParkourFailReason.PlayerFell);
