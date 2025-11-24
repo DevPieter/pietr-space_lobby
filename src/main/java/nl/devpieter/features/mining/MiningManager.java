@@ -21,9 +21,10 @@ import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.features.mining.blockHandlers.MinableBlockHandler;
+import nl.devpieter.features.mining.enums.ToolType;
 import nl.devpieter.features.mining.miningSequence.IMiningSequence;
 import nl.devpieter.features.mining.miningSequence.sequences.AirMiningSequence;
-import nl.devpieter.features.mining.miningSequence.sequences.BaseMiningSequence;
+import nl.devpieter.features.mining.miningSequence.sequences.BaseOreMiningSequence;
 import nl.devpieter.features.mining.miningSequence.sequences.CobblestoneMiningSequence;
 import nl.devpieter.features.mining.miningSequence.sequences.StoneMiningSequence;
 import nl.devpieter.features.mining.miningSequence.sequences.mithril.CoreMithrilMiningSequence;
@@ -151,7 +152,7 @@ public class MiningManager {
 
         WorldUtils.findBlocks(mainWorld.instance(), new Vec(0, 64, 0), 100, Block.DIAMOND_ORE).forEach(point -> {
             PointHolder pointHolder = new PointHolder(mainWorld.instance(), point);
-            miningSequences.put(pointHolder, new BaseMiningSequence(MiningSteps.DIAMOND_ORE));
+            miningSequences.put(pointHolder, new BaseOreMiningSequence(MiningSteps.DIAMOND_ORE));
 //            miningSequences.put(pointHolder, new OuterMithrilMiningSequence());
 //            miningSequences.put(pointHolder, new AirMiningSequence());
         });
@@ -193,7 +194,7 @@ public class MiningManager {
             return;
         }
 
-        if (block.handler() instanceof MinableBlockHandler(double hardness, int baseBreakTicks)) {
+        if (block.handler() instanceof MinableBlockHandler minableHandler) {
             ItemStack itemInHand = player.getItemInHand(PlayerHand.MAIN);
 
             ITool tool = getToolByItem(itemInHand);
@@ -202,16 +203,21 @@ public class MiningManager {
                 return;
             }
 
-            if (tool.getMiningStrength() < hardness) {
+            if (!canMineUsingTool(minableHandler, tool)) {
+                player.sendMessage(TextUtils.miniText("<red>Eek! Your tool is not suitable for mining this block."));
+                return;
+            }
+
+            if (tool.getMiningStrength() < minableHandler.hardness()) {
                 player.sendMessage(TextUtils.miniText("<red>Eek! Your tool is too weak to mine this block."));
                 return;
             }
 
             double speedMul = tool.getMiningSpeedMultiplier();
-            double strengthMul = Math.max(0, tool.getMiningStrength() - hardness) * 0.4;
+            double strengthMul = Math.max(0, tool.getMiningStrength() - minableHandler.hardness()) * 0.4;
             double totalMultiplier = speedMul + strengthMul;
 
-            int adjustedBreakTicks = (int) Math.ceil(baseBreakTicks / totalMultiplier);
+            int adjustedBreakTicks = (int) Math.ceil(minableHandler.baseBreakTicks() / totalMultiplier);
             System.out.println("SpeedMul: " + speedMul + ", StrengthMul: " + strengthMul + ", TotalMul: " + totalMultiplier + ", AdjustedBreakTicks: " + adjustedBreakTicks);
 
             startMining(player, holder, adjustedBreakTicks);
@@ -331,5 +337,19 @@ public class MiningManager {
         }).delay(TaskSchedule.tick(revertTicks)).schedule();
 
         revertTasks.put(point, task);
+    }
+
+    private boolean canMineUsingTool(MinableBlockHandler handler, ITool tool) {
+        List<ToolType> handlerToolTypes = handler.toolTypes();
+
+        if (handlerToolTypes.contains(ToolType.NONE)) return false;
+        if (handlerToolTypes.contains(ToolType.ANY)) return true;
+        if (handlerToolTypes.contains(ToolType.HAND)) return true;
+
+        for (ToolType toolType : handlerToolTypes) {
+            if (tool.getToolTypes().contains(toolType)) return true;
+        }
+
+        return false;
     }
 }

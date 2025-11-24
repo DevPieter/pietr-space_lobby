@@ -2,6 +2,7 @@ package nl.devpieter.features.mining.miningSequence.sequences.mithril;
 
 import net.minestom.server.instance.block.Block;
 import nl.devpieter.features.mining.MiningSteps;
+import nl.devpieter.features.mining.enums.ToolType;
 import nl.devpieter.features.mining.miningSequence.MiningSequence;
 import nl.devpieter.features.mining.models.MiningStep;
 
@@ -10,9 +11,9 @@ import java.util.List;
 public class InnerMithrilMiningSequence extends MiningSequence {
 
     private final List<MiningStep> possibleSteps = List.of(
-            new MiningStep(Block.PRISMARINE, 3, 70, 70),
-            new MiningStep(Block.PRISMARINE_BRICKS, 3, 70, 70),
-            new MiningStep(Block.DARK_PRISMARINE, 3, 70, 70)
+            new MiningStep(Block.PRISMARINE, ToolType.PICKAXE, 3, 70, 70),
+            new MiningStep(Block.PRISMARINE_BRICKS, ToolType.PICKAXE, 3, 70, 70),
+            new MiningStep(Block.DARK_PRISMARINE, ToolType.PICKAXE, 3, 70, 70)
     );
 
     @Override

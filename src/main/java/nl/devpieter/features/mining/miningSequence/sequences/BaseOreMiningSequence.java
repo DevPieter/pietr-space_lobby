@@ -6,11 +6,11 @@ import nl.devpieter.features.mining.models.MiningStep;
 
 import java.util.List;
 
-public class BaseMiningSequence extends MiningSequence {
+public class BaseOreMiningSequence extends MiningSequence {
 
     private final MiningStep initialStep;
 
-    public BaseMiningSequence(MiningStep initialStep) {
+    public BaseOreMiningSequence(MiningStep initialStep) {
         this.initialStep = initialStep;
     }
 

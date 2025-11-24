@@ -3,9 +3,11 @@ package nl.devpieter.features.mining.tool.tools;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
+import nl.devpieter.features.mining.enums.ToolType;
 import nl.devpieter.features.mining.tool.Tool;
 import nl.devpieter.utils.minestom.TextUtils;
 
+import java.util.List;
 import java.util.UUID;
 
 public class NetheritePickaxe extends Tool {
@@ -23,6 +25,11 @@ public class NetheritePickaxe extends Tool {
     @Override
     public Component getName() {
         return TextUtils.miniText("Netherite Pickaxe");
+    }
+
+    @Override
+    public List<ToolType> getToolTypes() {
+        return List.of(ToolType.PICKAXE);
     }
 
     @Override
