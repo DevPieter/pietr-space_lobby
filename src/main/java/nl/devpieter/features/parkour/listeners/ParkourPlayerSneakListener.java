@@ -28,7 +28,7 @@ public class ParkourPlayerSneakListener implements EventListener<@NotNull Player
         LoadedWorld world = worldManager.getLoadedWorldByInstance(instance);
         if (world == null) return Result.SUCCESS;
 
-        parkourManager.tryReturnToStart(player);
+        parkourManager.useReturnToStart(player);
         return Result.SUCCESS;
     }
 }

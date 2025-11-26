@@ -20,6 +20,7 @@ public class ParkourStartNodeDecodable implements ISignDecodable {
 
     public ParkourStartNode getNode(SignHolder signHolder) {
         return new ParkourStartNode(
+                signHolder.block().instance(),
                 signHolder.block().position(),
                 boundingBox,
                 rotation

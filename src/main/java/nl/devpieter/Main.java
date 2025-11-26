@@ -24,10 +24,12 @@ import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
+import nl.devpieter.features.cooking.blockHandlers.CampfireBlockHandler;
 import nl.devpieter.blockHandler.DoorBlockHandler;
 import nl.devpieter.blockHandler.SignBlockHandler;
 import nl.devpieter.commands.ServerCommand;
 import nl.devpieter.commands.TestCommand;
+import nl.devpieter.commands.TipCommand;
 import nl.devpieter.commands.player.GamemodeCommand;
 import nl.devpieter.commands.world.*;
 import nl.devpieter.config.ConfigManager;
@@ -79,6 +81,7 @@ public class Main {
         MinecraftServer server = MinecraftServer.init(auth);
         MinecraftServer.setBrandName("Pieter Space Lobby");
 
+        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:campfire"), CampfireBlockHandler::new);
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:sign"), SignBlockHandler::new);
 
         // TODO - A bit hacky, but I don't know a better way yet
@@ -243,12 +246,14 @@ public class Main {
         commandManager.register(new SignCommand());
         commandManager.register(new CreatureCommand());
         commandManager.register(new FarmCommand());
+        commandManager.register(new ParkourCommand());
         commandManager.register(new PortalCommand());
 
         commandManager.register(new TimeCommand());
         commandManager.register(new WeatherCommand());
 
         // Misc
+        commandManager.register(new TipCommand());
         commandManager.register(new TestCommand());
         commandManager.register(new ServerCommand());
 

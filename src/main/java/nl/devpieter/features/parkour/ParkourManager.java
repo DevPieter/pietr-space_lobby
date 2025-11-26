@@ -6,21 +6,24 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
+import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.Player;
-import net.minestom.server.instance.InstanceContainer;
+import net.minestom.server.entity.metadata.display.AbstractDisplayMeta;
+import net.minestom.server.entity.metadata.display.TextDisplayMeta;
+import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
-import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.LobbyPlayer;
-import nl.devpieter.Main;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.parkour.decodables.*;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
+import nl.devpieter.features.parkour.models.ParkourReturnHolder;
 import nl.devpieter.features.parkour.models.parkour.*;
 import nl.devpieter.features.parkour.models.parkourTry.FailedNode;
 import nl.devpieter.features.parkour.models.parkourTry.ParkourTry;
@@ -28,6 +31,7 @@ import nl.devpieter.features.parkour.models.parkourTry.ReachedNode;
 import nl.devpieter.features.signs.SignDecoder;
 import nl.devpieter.features.signs.SignManager;
 import nl.devpieter.features.signs.models.SignHolder;
+import nl.devpieter.features.tips.TipManager;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.models.GlowingBlockHolder;
@@ -39,6 +43,7 @@ import nl.devpieter.utils.minestom.WorldUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.util.*;
 
 public class ParkourManager {
@@ -47,25 +52,24 @@ public class ParkourManager {
     private static final String SIGN_KEY = "<PARKOUR>";
 
     private final ComponentLogger logger = MinecraftServer.LOGGER;
+
+    private final TipManager tipManager = TipManager.getInstance();
     private final SignManager signManager = SignManager.getInstance();
     private final WorldManager worldManager = WorldManager.getInstance();
 
     private final List<Entity> debugMarkers = new ArrayList<>();
+    private final HashMap<String, ParkourSpawnNode> spawnNodes = new HashMap<>();
+    private final HashMap<String, ParkourLeaderboardNode> leaderboardNodes = new HashMap<>();
+    private final HashMap<String, ParkourStartNode> startNodes = new HashMap<>();
+    private final HashMap<String, ParkourEndNode> endNodes = new HashMap<>();
+    private final HashMap<String, List<ParkourNode>> normalNodes = new HashMap<>();
 
     private final HashMap<String, Parkour> parkours = new HashMap<>();
     private final HashMap<String, List<Parkour>> worldParkourLookup = new HashMap<>();
 
     private final HashMap<UUID, ParkourTry> players = new HashMap<>();
-    private final HashMap<UUID, GlowingBlockHolder> glowingHolders = new HashMap<>();
-
     private final HashMap<UUID, ParkourReturnHolder> returnHolders = new HashMap<>();
-
-    record ParkourReturnHolder(
-            String parkourId,
-            Task expirationTask
-    ) {
-
-    }
+    private final HashMap<UUID, GlowingBlockHolder> glowingHolders = new HashMap<>();
 
     private ParkourManager() {
     }
@@ -76,19 +80,16 @@ public class ParkourManager {
     }
 
     public void init() {
+        revertParkours();
         scanAndRegisterParkours();
+
+        if (EnvStatics.DEBUG) placeDebugMarkers();
     }
 
     private void scanAndRegisterParkours() {
         HashMap<String, SignHolder> foundParkours = new HashMap<>();
         List<String> incompleteParkours = new ArrayList<>();
 
-        HashMap<String, ParkourSpawnNode> spawnNodes = new HashMap<>();
-        HashMap<String, ParkourLeaderboardNode> leaderboardNodes = new HashMap<>();
-        HashMap<String, ParkourStartNode> startNodes = new HashMap<>();
-        HashMap<String, ParkourEndNode> endNodes = new HashMap<>();
-
-        HashMap<String, List<ParkourNode>> normalNodes = new HashMap<>();
         HashMap<String, Boolean> containsIndex = new HashMap<>();
 
         List<SignHolder> signs = signManager.getMatchedSigns(SIGN_KEY);
@@ -105,7 +106,7 @@ public class ParkourManager {
             String name = sign.lines().get(1);
             String type = sign.lines().get(2).toLowerCase();
 
-            String identifier = String.format("%s:%s", world.id(), name);
+            String identifier = getWorldParkourKey(world, name);
             foundParkours.putIfAbsent(identifier, sign);
 
             List<String> lines = sign.lines().subList(3, sign.lines().size());
@@ -216,8 +217,8 @@ public class ParkourManager {
         }
     }
 
-    public void initParkour(@NotNull LoadedWorld world, @NotNull Parkour parkour) {
-        InstanceContainer instance = world.instance();
+    private void initParkour(@NotNull LoadedWorld world, @NotNull Parkour parkour) {
+        Instance instance = world.instance();
 
         Pos start = parkour.startPos();
         instance.setBlock(start, Block.HEAVY_WEIGHTED_PRESSURE_PLATE);
@@ -225,48 +226,163 @@ public class ParkourManager {
         Pos end = parkour.endPos();
         instance.setBlock(end, Block.LIGHT_WEIGHTED_PRESSURE_PLATE);
 
-        if (EnvStatics.DEBUG) {
-            Pos debugStart = start.withYaw(0).withPitch(0);
-            WorldUtils.placeMarker(instance, debugStart.add(0, 0.7, 0), TextUtils.miniText("<#cea0d0>%s <gray>Start", parkour.id()));
-            WorldUtils.placeBoundingBox(instance, debugStart, parkour.startBox());
-
-            Pos debugEnd = end.withYaw(0).withPitch(0);
-            WorldUtils.placeMarker(instance, debugEnd.add(0, 0.7, 0), TextUtils.miniText("<#cea0d0>%s <gray>End", parkour.id()));
-            WorldUtils.placeBoundingBox(instance, debugEnd, parkour.endBox());
-        }
-
         for (ParkourNode node : parkour.nodes()) {
             Pos point = node.pos();
             if (node.isCheckpoint()) instance.setBlock(point, Block.SPRUCE_PRESSURE_PLATE);
+        }
 
-            if (EnvStatics.DEBUG) {
-                Pos debugPos = point.withYaw(0).withPitch(0);
-                if (!node.isCheckpoint()) instance.setBlock(debugPos, Block.STONE_PRESSURE_PLATE);
+        ParkourLeaderboardNode leaderboardNode = parkour.leaderboardNode();
+        if (leaderboardNode != null) {
+            Pos leaderboardPos = leaderboardNode.point().asPos().add(0.5, 1, 0.5);
 
-                Component text = TextUtils.miniText("<#cea0d0>%s <gray>%s", parkour.id(), node.index());
+            Component text = TextUtils.combine(
+                    TextUtils.miniText("<#fcba03><b>Leaderboard"),
+                    Component.newline(),
+                    TextUtils.miniText("<gray>Coming Soon!"),
+                    Component.newline(),
+                    Component.newline(),
+                    TextUtils.miniText("<gray><i>Stats are currently <b><red>NOT</red></b> saved!")
+            );
 
-                if (node.isCheckpoint()) {
-                    text = TextUtils.miniText("<#cea0d0>%s <gray>%s (checkpoint)", parkour.id(), node.index());
-                }
+            Entity entity = new Entity(EntityType.TEXT_DISPLAY);
+            entity.setInstance(instance, leaderboardPos);
 
-                WorldUtils.placeMarker(instance, debugPos.add(0, 0.7, 0), text);
-                WorldUtils.placeBoundingBox(instance, debugPos, node.boundingBox());
-            }
+            entity.editEntityMeta(TextDisplayMeta.class, textDisplayMeta -> {
+                textDisplayMeta.setText(text);
+                textDisplayMeta.setScale(new Vec(0.9, 0.9, 0.9));
+
+                textDisplayMeta.setBillboardRenderConstraints(AbstractDisplayMeta.BillboardConstraints.CENTER);
+                textDisplayMeta.setAlignment(TextDisplayMeta.Alignment.CENTER);
+                textDisplayMeta.setHasNoGravity(true);
+            });
+
+            parkour.setLeaderboardEntity(entity);
         }
 
         parkours.put(parkour.id(), parkour);
         worldParkourLookup.computeIfAbsent(world.id(), _ -> new ArrayList<>()).add(parkour);
     }
 
+    public void revertParkours() {
+        spawnNodes.clear();
+        leaderboardNodes.clear();
+        startNodes.clear();
+        endNodes.clear();
+        normalNodes.clear();
+
+        for (Parkour parkour : parkours.values()) {
+            Instance instance = parkour.instance();
+
+            Pos start = parkour.startPos();
+            instance.setBlock(start, Block.AIR);
+
+            Pos end = parkour.endPos();
+            instance.setBlock(end, Block.AIR);
+
+            for (ParkourNode node : parkour.nodes()) {
+                Pos point = node.pos();
+                if (node.isCheckpoint()) instance.setBlock(point, Block.AIR);
+            }
+
+            Entity leaderboardEntity = parkour.leaderboardEntity();
+            if (leaderboardEntity != null) leaderboardEntity.remove();
+        }
+
+        parkours.clear();
+        worldParkourLookup.clear();
+
+        players.clear();
+        returnHolders.clear();
+        glowingHolders.clear();
+    }
+
+    public void placeDebugMarkers() {
+        clearDebugMarkers();
+
+        /* Spawn Nodes */
+        for (Map.Entry<String, ParkourSpawnNode> entry : spawnNodes.entrySet()) {
+            ParkourSpawnNode node = entry.getValue();
+
+            debugMarkers.add(WorldUtils.placeMarker(
+                    node.instance(),
+                    node.point().add(0.5, 0.7, 0.5),
+                    TextUtils.miniText("<#4bcffa>Spawn <gray>%s", entry.getKey())
+            ));
+        }
+
+        /* Leaderboard Nodes */
+        for (Map.Entry<String, ParkourLeaderboardNode> entry : leaderboardNodes.entrySet()) {
+            ParkourLeaderboardNode node = entry.getValue();
+
+            debugMarkers.add(WorldUtils.placeMarker(
+                    node.instance(),
+                    node.point().add(0.5, 0.7, 0.5),
+                    TextUtils.miniText("<#ff4b4b>Leaderboard <gray>%s", entry.getKey())
+            ));
+        }
+
+        /* Start Nodes */
+        for (Map.Entry<String, ParkourStartNode> entry : startNodes.entrySet()) {
+            ParkourStartNode node = entry.getValue();
+
+            debugMarkers.add(WorldUtils.placeMarker(
+                    node.instance(),
+                    node.point().add(0.5, 0.7, 0.5),
+                    TextUtils.miniText("<#4bff66>Start <gray>%s", entry.getKey())
+            ));
+        }
+
+        /* End Nodes */
+        for (Map.Entry<String, ParkourEndNode> entry : endNodes.entrySet()) {
+            ParkourEndNode node = entry.getValue();
+
+            debugMarkers.add(WorldUtils.placeMarker(
+                    node.instance(),
+                    node.point().add(0.5, 0.7, 0.5),
+                    TextUtils.miniText("<#ffb84b>End <gray>%s", entry.getKey())
+            ));
+        }
+
+        /* Normal Nodes */
+        for (Map.Entry<String, List<ParkourNode>> entry : normalNodes.entrySet()) {
+            String parkourId = entry.getKey();
+            List<ParkourNode> nodes = entry.getValue();
+
+            for (ParkourNode node : nodes) {
+                Pos point = node.pos();
+
+                debugMarkers.add(WorldUtils.placeMarker(
+                        node.instance(),
+                        point.add(0, 0.7, 0),
+                        TextUtils.miniText(node.isCheckpoint() ?
+                                        "<#ffa84b>Checkpoint <gray>%s %d" :
+                                        "<#ffffff>Node <gray>%s %d",
+                                parkourId,
+                                node.index()
+                        )
+                ));
+            }
+        }
+    }
+
+    public void clearDebugMarkers() {
+        for (Entity marker : debugMarkers) marker.remove();
+        debugMarkers.clear();
+    }
+
+    private String getWorldParkourKey(@NotNull LoadedWorld world, @NotNull String parkourName) {
+        return String.format("%s:%s", world.id(), parkourName);
+    }
+
     public boolean isDoingParkour(@NotNull Player player) {
         return players.containsKey(player.getUuid());
     }
 
-    private @Nullable Parkour getParkour(@NotNull String uuid) {
-        return parkours.get(uuid);
+    private @Nullable Parkour getParkour(@NotNull String worldParkourKey) {
+        return parkours.get(worldParkourKey);
     }
 
-    public @Nullable Parkour getParkour(@NotNull String world, @NotNull Player player) {
+    public @Nullable Parkour getParkourAtPlayerPosition(@NotNull String world, @NotNull Player player) {
         List<Parkour> parkoursInWorld = worldParkourLookup.get(world);
         if (parkoursInWorld == null) return null;
 
@@ -318,7 +434,7 @@ public class ParkourManager {
         Parkour parkour = parkours.get(parkourUuid);
         if (parkour == null) return;
 
-        Main.toggleTracking(player);
+        invalidateReturnToStart(player);
 
         player.sendMessage(TextUtils.miniText("<green>Parkour started! Go go go!"));
         player.playSound(Sound.sound(SoundEvent.BLOCK_NOTE_BLOCK_PLING, Sound.Source.MASTER, 1.0f, 1.0f));
@@ -475,9 +591,11 @@ public class ParkourManager {
         player.playSound(Sound.sound(SoundEvent.ENTITY_PLAYER_LEVELUP, Sound.Source.MASTER, 1.0f, 1.0f));
     }
 
-    public void tryReturnToStart(@NotNull Player player) {
+    public void useReturnToStart(@NotNull Player player) {
         ParkourReturnHolder returnHolder = returnHolders.get(player.getUuid());
         if (returnHolder == null) return;
+
+        invalidateReturnToStart(player);
 
         Parkour parkour = getParkour(returnHolder.parkourId());
         if (parkour == null) return;
@@ -488,12 +606,15 @@ public class ParkourManager {
         player.sendMessage(TextUtils.miniText("<green>Returning to parkour start."));
         PlayerUtils.teleport(player, spawn);
 
+        tipManager.completeTip(player, "parkour_sneak_return_to_start");
+    }
+
+    public void invalidateReturnToStart(@NotNull Player player) {
+        ParkourReturnHolder returnHolder = returnHolders.get(player.getUuid());
+        if (returnHolder == null) return;
+
         returnHolder.expirationTask().cancel();
         returnHolders.remove(player.getUuid());
-
-        if (!tipCompleted.contains(player.getUuid())) {
-            tipCompleted.add(player.getUuid());
-        }
     }
 
     private boolean hasReachedAllCheckpoints(@NotNull Player player) {
@@ -553,39 +674,21 @@ public class ParkourManager {
 
         PacketUtils.removeWaypoint(player, parkourTry.parkourId());
 
+        Parkour parkour = getParkour(parkourTry.parkourId());
+        if (parkour == null || parkour.spawnPos() == null) return;
+
         returnHolders.put(player.getUuid(), new ParkourReturnHolder(
                 parkourTry.parkourId(),
                 MinecraftServer.getSchedulerManager().buildTask(() -> {
                     returnHolders.remove(player.getUuid());
-                }).delay(TaskSchedule.seconds(3)).schedule()
+                }).delay(TaskSchedule.seconds(5)).schedule()
         ));
 
-        sendTip(player, "<gray>Press <b><key:key.sneak></b> to return to parkour start.");
-
-        Main.toggleTracking(player);
-    }
-
-    // TODO - Move to TipManager or related
-    private final HashMap<UUID, Long> tipCooldowns = new HashMap<>();
-    private final List<UUID> tipCompleted = new ArrayList<>();
-
-    private void sendTip(@NotNull Player player, @NotNull String message) {
-        if (tipCompleted.contains(player.getUuid())) return;
-
-        long currentTime = System.currentTimeMillis();
-        Long lastSentTime = tipCooldowns.get(player.getUuid());
-
-        if (lastSentTime != null && (currentTime - lastSentTime) < 10_000) {
-            return;
-        }
-
-        tipCooldowns.put(player.getUuid(), currentTime);
-
-        player.sendMessage(Component.text()
-                .append(TextUtils.miniText("<gray>["))
-                .append(TextUtils.miniText("<yellow>Parkour Tip"))
-                .append(TextUtils.miniText("<gray>] "))
-                .append(TextUtils.miniText(message))
+        tipManager.showTipLater(
+                player,
+                "parkour_sneak_return_to_start",
+                Duration.ofSeconds(2),
+                "Press <b><key:key.sneak></b> to quickly return to the parkour starting point. <gray>(3 seconds left)"
         );
     }
 }
