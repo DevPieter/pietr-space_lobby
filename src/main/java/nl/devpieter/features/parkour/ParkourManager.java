@@ -2,6 +2,7 @@ package nl.devpieter.features.parkour;
 
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Point;
@@ -56,6 +57,8 @@ public class ParkourManager {
     private final TipManager tipManager = TipManager.getInstance();
     private final SignManager signManager = SignManager.getInstance();
     private final WorldManager worldManager = WorldManager.getInstance();
+
+    private final ParkourReplayManager replayManager = ParkourReplayManager.getInstance();
 
     private final List<Entity> debugMarkers = new ArrayList<>();
     private final HashMap<String, ParkourSpawnNode> spawnNodes = new HashMap<>();
@@ -459,6 +462,8 @@ public class ParkourManager {
                 parkourUuid,
                 player.getUuid()
         ));
+
+        replayManager.startTracking(player, parkour);
     }
 
     public void cancelParkour(@NotNull Player player, ParkourCancelReason reason) {
@@ -668,6 +673,15 @@ public class ParkourManager {
         if (player instanceof LobbyPlayer lobbyPlayer) {
             lobbyPlayer.switchToMainInventory();
         }
+
+        UUID replayId = replayManager.stopTracking(player);
+
+        Component ignore = TextUtils.miniText("<green>[Watch Replay]")
+                .clickEvent(ClickEvent.runCommand(String.format("/replay parkour %s", replayId)));
+
+        player.sendMessage(TextUtils.combine(
+                ignore
+        ));
 
         GlowingBlockHolder holder = glowingHolders.remove(player.getUuid());
         if (holder != null) PacketUtils.revertToOriginalBlock(player, holder);

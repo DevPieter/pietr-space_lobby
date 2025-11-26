@@ -4,7 +4,6 @@ import net.kyori.adventure.key.Key;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandManager;
-import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerHand;
@@ -15,18 +14,13 @@ import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.item.Material;
-import net.minestom.server.network.packet.client.ClientPacket;
-import net.minestom.server.network.packet.client.play.ClientInputPacket;
-import net.minestom.server.network.packet.client.play.ClientPlayerPositionAndRotationPacket;
-import net.minestom.server.network.packet.client.play.ClientPlayerPositionPacket;
-import net.minestom.server.network.packet.client.play.ClientPlayerRotationPacket;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
-import nl.devpieter.features.cooking.blockHandlers.CampfireBlockHandler;
 import nl.devpieter.blockHandler.DoorBlockHandler;
 import nl.devpieter.blockHandler.SignBlockHandler;
+import nl.devpieter.commands.ReplayCommand;
 import nl.devpieter.commands.ServerCommand;
 import nl.devpieter.commands.TestCommand;
 import nl.devpieter.commands.TipCommand;
@@ -34,6 +28,7 @@ import nl.devpieter.commands.player.GamemodeCommand;
 import nl.devpieter.commands.world.*;
 import nl.devpieter.config.ConfigManager;
 import nl.devpieter.config.EnvStatics;
+import nl.devpieter.features.cooking.blockHandlers.CampfireBlockHandler;
 import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.FishingReferenceHolder;
@@ -41,6 +36,7 @@ import nl.devpieter.features.fishing.catchable.ICatchable;
 import nl.devpieter.features.fishing.listeners.PlayerUseItemListener;
 import nl.devpieter.features.fishing.rod.IRod;
 import nl.devpieter.features.parkour.ParkourManager;
+import nl.devpieter.features.parkour.ParkourReplayManager;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerMoveListener;
@@ -59,8 +55,6 @@ import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Main {
@@ -223,13 +217,10 @@ public class Main {
             event.setCancelled(true);
         });
 
+        ParkourReplayManager replayManager = ParkourReplayManager.getInstance();
+
         MinecraftServer.getGlobalEventHandler().addListener(PlayerPacketEvent.class, event -> {
-            String name = event.getPacket().getClass().getSimpleName();
-
-            if (!tracking) return;
-            if (!trackedPacketNames.contains(name)) return;
-
-            trackedEvents.add(new TrackedPacket(event.getPacket(), System.currentTimeMillis()));
+            replayManager.tryPushPacket(event.getPlayer(), event.getPacket());
         });
 
         MinecraftServer.getGlobalEventHandler().addListener(PlayerStartSneakingEvent.class, event -> {
@@ -253,6 +244,7 @@ public class Main {
         commandManager.register(new WeatherCommand());
 
         // Misc
+        commandManager.register(new ReplayCommand());
         commandManager.register(new TipCommand());
         commandManager.register(new TestCommand());
         commandManager.register(new ServerCommand());
@@ -274,78 +266,5 @@ public class Main {
         }, TaskSchedule.immediate(), TaskSchedule.millis(100));
 
         scheduler.scheduleTask(task::cancel, TaskSchedule.millis(500), TaskSchedule.stop());
-    }
-
-    private static Pos startPosition = null;
-    private static boolean tracking = false;
-    private static boolean playing = false;
-
-    private static Task replayTask = null;
-
-    private static final List<String> trackedPacketNames = List.of(
-            "ClientInputPacket",
-            "ClientPlayerPositionPacket",
-            "ClientPlayerRotationPacket",
-            "ClientPlayerPositionAndRotationPacket"
-    );
-
-    record TrackedPacket(ClientPacket packet, long timestamp) {
-    }
-
-    private static final List<TrackedPacket> trackedEvents = new ArrayList<>();
-
-    public static void toggleTracking(Player player) {
-        if (tracking) {
-            player.sendMessage(TextUtils.miniText("<#00FF00>Stopped tracking events. Total tracked: " + trackedEvents.size()));
-            tracking = false;
-            playing = true;
-
-            Scheduler scheduler = MinecraftServer.getSchedulerManager();
-            AtomicReference<Integer> index = new AtomicReference<>(0);
-
-            Mannequin mannequin = new Mannequin(player);
-            mannequin.setInstance(player.getInstance(), startPosition);
-
-            player.teleport(mannequin.getPosition().add(0, 5, 0));
-            player.setGameMode(GameMode.SPECTATOR);
-
-            replayTask = scheduler.scheduleTask(() -> {
-                int i = index.get();
-                if (i >= trackedEvents.size()) {
-                    mannequin.remove();
-                    playing = false;
-
-                    player.setGameMode(GameMode.SURVIVAL);
-                    scheduler.buildTask(player::stopSpectating).schedule();
-
-                    replayTask.cancel();
-                    replayTask = null;
-                    return;
-                }
-
-                TrackedPacket trackedPacket = trackedEvents.get(i);
-                ClientPacket packet = trackedPacket.packet();
-
-                if (packet instanceof ClientPlayerPositionPacket positionPacket) {
-                    mannequin.refreshPosition(positionPacket.position().asPos().withYaw(mannequin.getPosition().yaw()).withPitch(mannequin.getPosition().pitch()), false);
-                } else if (packet instanceof ClientPlayerRotationPacket rotationPacket) {
-                    mannequin.refreshPosition(mannequin.getPosition().withYaw(rotationPacket.yaw()).withPitch(rotationPacket.pitch()), false);
-                } else if (packet instanceof ClientPlayerPositionAndRotationPacket positionAndRotationPacket) {
-                    mannequin.refreshPosition(positionAndRotationPacket.position(), false);
-                } else if (packet instanceof ClientInputPacket inputPacket) {
-                    mannequin.setSneaking(inputPacket.shift());
-                    mannequin.setSprinting(inputPacket.sprint());
-                }
-
-                index.updateAndGet(v -> v + 1);
-            }, TaskSchedule.immediate(), TaskSchedule.millis(1));
-        } else {
-            player.sendMessage(TextUtils.miniText("<#00FF00>Started tracking events."));
-            tracking = true;
-            playing = false;
-
-            startPosition = player.getPosition();
-            trackedEvents.clear();
-        }
     }
 }
