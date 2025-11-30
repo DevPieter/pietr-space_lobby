@@ -1,4 +1,4 @@
-FROM openjdk:25-jdk-slim
+FROM openjdk:26-ea-jdk-slim
 WORKDIR /app
 
 COPY build.gradle.kts settings.gradle.kts /app/
