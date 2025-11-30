@@ -1,0 +1,6 @@
+package nl.devpieter.features.parkour.models.parkourReplay;
+
+import net.minestom.server.network.packet.client.ClientPacket;
+
+record TrackedPacket(ClientPacket packet, long timestamp) {
+}
