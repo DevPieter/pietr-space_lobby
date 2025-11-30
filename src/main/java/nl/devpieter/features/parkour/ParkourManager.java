@@ -19,8 +19,8 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.TaskSchedule;
-import nl.devpieter.LobbyPlayer;
 import nl.devpieter.config.EnvStatics;
+import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.features.parkour.decodables.*;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
@@ -692,13 +692,6 @@ public class ParkourManager {
                 Component.space(),
                 replay
         ));
-
-        tipManager.showTip(
-                player,
-                "replay_experimental_feature",
-                "Replay",
-                "Replays are an <b>experimental feature</b> and may not work as intended."
-        );
 
         Parkour parkour = getParkour(parkourTry.parkourId());
         if (parkour == null || parkour.spawnPos() == null) return;

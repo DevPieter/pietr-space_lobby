@@ -29,6 +29,7 @@ import nl.devpieter.commands.player.GamemodeCommand;
 import nl.devpieter.commands.world.*;
 import nl.devpieter.config.ConfigManager;
 import nl.devpieter.config.EnvStatics;
+import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.features.cooking.blockHandlers.CampfireBlockHandler;
 import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.features.fishing.FishingManager;

@@ -6,12 +6,14 @@ import net.minestom.server.command.builder.arguments.minecraft.ArgumentUUID;
 import net.minestom.server.entity.Player;
 import nl.devpieter.features.parkour.ParkourReplayManager;
 import nl.devpieter.features.parkour.models.parkourReplay.FinishedPlayerReplay;
+import nl.devpieter.features.tips.TipManager;
 
 import java.util.UUID;
 
 public class ReplayCommand extends Command {
 
     private final ParkourReplayManager replayManager = ParkourReplayManager.getInstance();
+    private final TipManager tipManager = TipManager.getInstance();
 
     public ReplayCommand() {
         super("replay");
@@ -36,6 +38,13 @@ public class ReplayCommand extends Command {
 
             boolean started = replayManager.playReplay(player, replay);
             if (!started) player.sendMessage("A replay is already in progress.");
+
+            tipManager.showTip(
+                    player,
+                    "replay_experimental_feature",
+                    "Replay",
+                    "Replays are an <b>experimental feature</b> and may not work as intended."
+            );
         }, parkourIdArg);
 
         addSubcommand(parkour);

@@ -18,7 +18,6 @@ import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.InventoryType;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
-import net.minestom.server.item.component.TooltipDisplay;
 import net.minestom.server.tag.Tag;
 import nl.devpieter.features.cooking.models.CampfireItem;
 import nl.devpieter.models.BlockHolder;
@@ -30,6 +29,8 @@ public class CampfireBlockHandler implements BlockHandler {
 
     private static final int MAX_SLOTS = 4;
     private final HashMap<Integer, CampfireItem> campfireItems = new HashMap<>();
+
+    private long lastInventoryClickTime = 0;
 
     @Override
     public boolean onInteract(Interaction interaction) {
@@ -69,6 +70,9 @@ public class CampfireBlockHandler implements BlockHandler {
         EventNode<@NotNull InventoryEvent> node = EventNode.type("click", EventFilter.INVENTORY, (event, inv) -> inventory == inv)
                 .addListener(InventoryPreClickEvent.class, event -> {
                     event.setCancelled(true);
+
+                    if (System.currentTimeMillis() - lastInventoryClickTime < 200) return;
+                    lastInventoryClickTime = System.currentTimeMillis();
 
                     ItemStack clickedItem = event.getClickedItem();
                     if (clickedItem.material() == Material.AIR || clickedItem.material() == Material.GRAY_STAINED_GLASS_PANE) {
@@ -121,13 +125,16 @@ public class CampfireBlockHandler implements BlockHandler {
         String lit = tick.getBlock().getProperty("lit");
         if (lit == null || lit.equals("false")) return;
 
-        for (Map.Entry<Integer, CampfireItem> entry : campfireItems.entrySet()) {
+        Iterator<Map.Entry<Integer, CampfireItem>> iterator = campfireItems.entrySet().iterator();
+
+        while (iterator.hasNext()) {
+            Map.Entry<Integer, CampfireItem> entry = iterator.next();
             CampfireItem campfireItem = entry.getValue();
 
             if (campfireItem.cookingTime() < campfireItem.totalCookingTime()) {
                 campfireItem.setCookingTime(campfireItem.cookingTime() + 1);
             } else {
-                campfireItems.remove(entry.getKey());
+                iterator.remove();
             }
         }
 

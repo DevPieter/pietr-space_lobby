@@ -1,4 +1,4 @@
-package nl.devpieter;
+package nl.devpieter.entities;
 
 import net.minestom.server.entity.Player;
 import net.minestom.server.inventory.PlayerInventory;
