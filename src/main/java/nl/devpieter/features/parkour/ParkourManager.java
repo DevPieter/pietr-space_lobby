@@ -19,7 +19,7 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.TaskSchedule;
-import nl.devpieter.LobbyPlayer;
+import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.parkour.decodables.*;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;

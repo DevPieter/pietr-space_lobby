@@ -1,7 +1,7 @@
 package nl.devpieter.features.parkour;
 
 import net.minestom.server.entity.Player;
-import nl.devpieter.Mannequin;
+import nl.devpieter.entities.Mannequin;
 import nl.devpieter.features.parkour.models.parkourReplay.FinishedPlayerReplay;
 import nl.devpieter.features.parkour.models.parkourReplay.PlayerReplayFrame;
 
