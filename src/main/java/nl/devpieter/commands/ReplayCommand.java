@@ -5,7 +5,7 @@ import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.command.builder.arguments.minecraft.ArgumentUUID;
 import net.minestom.server.entity.Player;
 import nl.devpieter.features.parkour.ParkourReplayManager;
-import nl.devpieter.features.parkour.models.parkourReplay.FinishedParkourReplay;
+import nl.devpieter.features.parkour.models.parkourReplay.FinishedPlayerReplay;
 
 import java.util.UUID;
 
@@ -27,14 +27,14 @@ public class ReplayCommand extends Command {
             if (!(sender instanceof Player player)) return;
 
             UUID parkourId = context.get(parkourIdArg);
-            FinishedParkourReplay replay = replayManager.getFinishedReplay(parkourId);
+            FinishedPlayerReplay replay = replayManager.getFinishedReplay(parkourId);
 
             if (replay == null) {
                 player.sendMessage("No replay found with the given ID.");
                 return;
             }
 
-            boolean started = replay.startReplay(player);
+            boolean started = replayManager.playReplay(player, replay);
             if (!started) player.sendMessage("A replay is already in progress.");
         }, parkourIdArg);
 

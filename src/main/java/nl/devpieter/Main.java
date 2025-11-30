@@ -4,6 +4,7 @@ import net.kyori.adventure.key.Key;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandManager;
+import net.minestom.server.entity.EntityPose;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerHand;
@@ -51,6 +52,7 @@ import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
 import nl.devpieter.models.BlockHolder;
 import nl.devpieter.sees.Sees;
+import nl.devpieter.utils.minestom.PlayerUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.slf4j.Logger;
@@ -217,14 +219,26 @@ public class Main {
             event.setCancelled(true);
         });
 
-        ParkourReplayManager replayManager = ParkourReplayManager.getInstance();
-
-        MinecraftServer.getGlobalEventHandler().addListener(PlayerPacketEvent.class, event -> {
-            replayManager.tryPushPacket(event.getPlayer(), event.getPacket());
-        });
-
         MinecraftServer.getGlobalEventHandler().addListener(PlayerStartSneakingEvent.class, event -> {
 //            toggleTracking(event.getPlayer());
+        });
+
+        MinecraftServer.getGlobalEventHandler().addListener(PlayerTickEvent.class, event -> {
+            Player player = event.getPlayer();
+
+            boolean isSprinting = player.isSprinting();
+            boolean hasLowHeadroom = PlayerUtils.hasLowHeadroom(player);
+            boolean isInWater = PlayerUtils.isPlayerInWater(player);
+
+            if (isInWater && hasLowHeadroom && isSprinting) {
+                player.setPose(EntityPose.SWIMMING);
+            }
+
+            if (!(isInWater && isSprinting)) {
+                if (player.getPose() == EntityPose.SWIMMING) {
+                    player.setPose(EntityPose.STANDING);
+                }
+            }
         });
 
         CommandManager commandManager = MinecraftServer.getCommandManager();
@@ -252,6 +266,7 @@ public class Main {
         MinecraftServer.getConnectionManager().setPlayerProvider(LobbyPlayer::new);
 
 //        ParkourTryManager.getInstance().start();
+        ParkourReplayManager.getInstance().init();
         server.start("0.0.0.0", 25565);
     }
 

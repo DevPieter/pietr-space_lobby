@@ -24,19 +24,4 @@ public class Mannequin extends EntityCreature {
 
         set(DataComponents.CUSTOM_NAME, player.getName());
     }
-
-    @Override
-    public void update(long time) {
-//        super.update(time);
-    }
-
-    @Override
-    protected void movementTick() {
-//        super.movementTick();
-    }
-
-    @Override
-    public void tick(long time) {
-//        super.tick(time);
-    }
 }

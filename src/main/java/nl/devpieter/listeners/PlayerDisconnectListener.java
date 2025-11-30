@@ -4,6 +4,7 @@ import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerDisconnectEvent;
 import nl.devpieter.features.fishing.listeners.PlayerUseItemListener;
 import nl.devpieter.features.parkour.ParkourManager;
+import nl.devpieter.features.parkour.ParkourReplayManager;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.sitting.SitManager;
 import nl.devpieter.features.tips.TipManager;
@@ -13,7 +14,9 @@ public class PlayerDisconnectListener implements EventListener<@NotNull PlayerDi
 
     private final TipManager tipManager = TipManager.getInstance();
     private final SitManager sitManager = SitManager.getInstance();
+
     private final ParkourManager parkourManager = ParkourManager.getInstance();
+    private final ParkourReplayManager replayManager = ParkourReplayManager.getInstance();
 
     @Override
     public @NotNull Class<PlayerDisconnectEvent> eventType() {
@@ -24,7 +27,9 @@ public class PlayerDisconnectListener implements EventListener<@NotNull PlayerDi
     public @NotNull Result run(@NotNull PlayerDisconnectEvent event) {
         tipManager.resetTips(event.getPlayer());
         sitManager.standPlayer(event.getPlayer());
+
         parkourManager.cancelParkour(event.getPlayer(), ParkourCancelReason.PlayerQuit);
+        replayManager.clearReplays(event.getPlayer());
 
         PlayerUseItemListener.reelInFishingRod(event.getPlayer());
         return Result.SUCCESS;

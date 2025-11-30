@@ -57,7 +57,6 @@ public class ParkourManager {
     private final TipManager tipManager = TipManager.getInstance();
     private final SignManager signManager = SignManager.getInstance();
     private final WorldManager worldManager = WorldManager.getInstance();
-
     private final ParkourReplayManager replayManager = ParkourReplayManager.getInstance();
 
     private final List<Entity> debugMarkers = new ArrayList<>();
@@ -437,6 +436,11 @@ public class ParkourManager {
         Parkour parkour = parkours.get(parkourUuid);
         if (parkour == null) return;
 
+        if (replayManager.isWatchingReplay(player)) {
+            player.sendMessage(TextUtils.miniText("<red>You cannot start a parkour while watching a replay!"));
+            return;
+        }
+
         invalidateReturnToStart(player);
 
         player.sendMessage(TextUtils.miniText("<green>Parkour started! Go go go!"));
@@ -463,7 +467,7 @@ public class ParkourManager {
                 player.getUuid()
         ));
 
-        replayManager.startTracking(player, parkour);
+        replayManager.startTracking(player);
     }
 
     public void cancelParkour(@NotNull Player player, ParkourCancelReason reason) {
@@ -674,19 +678,27 @@ public class ParkourManager {
             lobbyPlayer.switchToMainInventory();
         }
 
-        UUID replayId = replayManager.stopTracking(player);
-
-        Component ignore = TextUtils.miniText("<green>[Watch Replay]")
-                .clickEvent(ClickEvent.runCommand(String.format("/replay parkour %s", replayId)));
-
-        player.sendMessage(TextUtils.combine(
-                ignore
-        ));
-
         GlowingBlockHolder holder = glowingHolders.remove(player.getUuid());
         if (holder != null) PacketUtils.revertToOriginalBlock(player, holder);
 
         PacketUtils.removeWaypoint(player, parkourTry.parkourId());
+
+        UUID replayId = replayManager.stopTracking(player);
+        Component replay = TextUtils.miniText("<blue>[Watch]")
+                .clickEvent(ClickEvent.runCommand(String.format("/replay parkour %s", replayId)));
+
+        player.sendMessage(TextUtils.combine(
+                TextUtils.miniText("<green>A replay of this attempt has been recorded"),
+                Component.space(),
+                replay
+        ));
+
+        tipManager.showTip(
+                player,
+                "replay_experimental_feature",
+                "Replay",
+                "Replays are an <b>experimental feature</b> and may not work as intended."
+        );
 
         Parkour parkour = getParkour(parkourTry.parkourId());
         if (parkour == null || parkour.spawnPos() == null) return;
