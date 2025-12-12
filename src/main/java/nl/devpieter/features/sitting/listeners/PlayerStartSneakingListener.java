@@ -2,6 +2,7 @@ package nl.devpieter.features.sitting.listeners;
 
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerStartSneakingEvent;
+import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.features.sitting.SitManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,7 +17,9 @@ public class PlayerStartSneakingListener implements EventListener<@NotNull Playe
 
     @Override
     public @NotNull Result run(@NotNull PlayerStartSneakingEvent event) {
-        this.sitManager.standPlayer(event.getPlayer());
+        if (!(event.getPlayer() instanceof LobbyPlayer player)) return Result.SUCCESS;
+
+        sitManager.standPlayer(player);
         return Result.SUCCESS;
     }
 }

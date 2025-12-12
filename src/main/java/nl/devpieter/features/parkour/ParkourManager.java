@@ -19,8 +19,10 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.TaskSchedule;
+import nl.devpieter.TagHelper;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.entities.LobbyPlayer;
+import nl.devpieter.enums.PlayerTags;
 import nl.devpieter.features.parkour.decodables.*;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
@@ -430,14 +432,17 @@ public class ParkourManager {
         return parkour.endPos();
     }
 
-    public void startParkour(@NotNull Player player, @NotNull String parkourUuid) {
+    public void startParkour(@NotNull LobbyPlayer player, @NotNull String parkourUuid) {
         if (players.containsKey(player.getUuid())) return;
 
         Parkour parkour = parkours.get(parkourUuid);
         if (parkour == null) return;
 
-        if (replayManager.isWatchingReplay(player)) {
-            player.sendMessage(TextUtils.miniText("<red>You cannot start a parkour while watching a replay!"));
+        if (!TagHelper.canStartParkour(player)) {
+            return;
+        }
+
+        if (!player.addTag(PlayerTags.IN_PARKOUR)) {
             return;
         }
 
@@ -450,17 +455,12 @@ public class ParkourManager {
         glowingHolders.put(player.getUuid(), PacketUtils.replaceWithGlowing(player, nextCheckpoint));
         PacketUtils.setWaypoint(player, parkourUuid, nextCheckpoint);
 
-        if (player instanceof LobbyPlayer lobbyPlayer) {
-            ItemStack cancelItem = ItemStack.of(Material.BARRIER);
-            ItemStack checkpointItem = ItemStack.of(Material.SPRUCE_PRESSURE_PLATE);
+        player.fillDynamicInventory(
+                new SlotHolder(0, ItemStack.of(Material.BARRIER)),
+                new SlotHolder(4, ItemStack.of(Material.SPRUCE_PRESSURE_PLATE))
+        );
+        player.switchToDynamicInventory();
 
-            lobbyPlayer.fillDynamicInventory(
-                    new SlotHolder(0, checkpointItem),
-                    new SlotHolder(4, cancelItem)
-            );
-
-            lobbyPlayer.switchToDynamicInventory();
-        }
 
         players.put(player.getUuid(), new ParkourTry(
                 parkourUuid,
@@ -676,6 +676,7 @@ public class ParkourManager {
 
         if (player instanceof LobbyPlayer lobbyPlayer) {
             lobbyPlayer.switchToMainInventory();
+            lobbyPlayer.removeTag(PlayerTags.IN_PARKOUR);
         }
 
         GlowingBlockHolder holder = glowingHolders.remove(player.getUuid());

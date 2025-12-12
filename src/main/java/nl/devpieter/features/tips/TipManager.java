@@ -73,6 +73,7 @@ public class TipManager {
     }
 
     public void showTip(@NotNull Player player, @NotNull String id, @NotNull Component message, boolean sound) {
+        removeExpiredTips(player);
         if (!canShowTip(player, id)) return;
 
         List<TipHolder> tipHolders = tips.computeIfAbsent(player.getUuid(), _ -> new ArrayList<>());
@@ -157,6 +158,14 @@ public class TipManager {
         }
 
         return null;
+    }
+
+    private void removeExpiredTips(@NotNull Player player) {
+        List<TipHolder> tipHolders = tips.get(player.getUuid());
+        if (tipHolders == null) return;
+
+        long currentTime = System.currentTimeMillis();
+        tipHolders.removeIf(tipHolder -> (currentTime - tipHolder.timestamp()) >= TIP_COOLDOWN.toMillis());
     }
 
     private static void playSoundEffect(Player player) {

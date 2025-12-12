@@ -1,9 +1,9 @@
 package nl.devpieter.features.parkour.listeners;
 
-import net.minestom.server.entity.Player;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.instance.Instance;
+import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.features.parkour.ParkourManager;
 import nl.devpieter.features.parkour.models.parkour.Parkour;
 import nl.devpieter.features.world.WorldManager;
@@ -22,7 +22,8 @@ public class ParkourPlayerMoveListener implements EventListener<@NotNull PlayerM
 
     @Override
     public @NotNull Result run(@NotNull PlayerMoveEvent event) {
-        Player player = event.getPlayer();
+        if (!(event.getPlayer() instanceof LobbyPlayer player)) return Result.SUCCESS;
+
         Instance instance = player.getInstance();
         if (instance == null) return Result.SUCCESS;
 
