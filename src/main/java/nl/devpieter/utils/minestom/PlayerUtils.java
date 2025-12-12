@@ -7,7 +7,9 @@ import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Player;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
+import net.minestom.server.tag.Tag;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -16,6 +18,24 @@ public class PlayerUtils {
     public static void teleport(@NotNull Player player, Pos pos) {
         player.teleport(pos);
         player.setVelocity(new Vec(0));
+    }
+
+    public static <T> @Nullable T readPlayerTag(@NotNull Player player, Tag<T> tag) {
+        return player.getTag(tag);
+    }
+
+    public static <T> boolean writePlayerTag(@NotNull Player player, Tag<T> tag, T value) {
+        if (player.getTag(tag) != null) return false;
+        player.setTag(tag, value);
+
+        return true;
+    }
+
+    public static <T> boolean removePlayerTag(@NotNull Player player, Tag<T> tag) {
+        if (player.getTag(tag) == null) return false;
+        player.removeTag(tag);
+
+        return true;
     }
 
     public static boolean isInsideBox(@NotNull Player player, @NotNull Point origin, @NotNull BoundingBox box) {
