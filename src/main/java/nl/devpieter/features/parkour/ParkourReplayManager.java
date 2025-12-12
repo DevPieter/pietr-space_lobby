@@ -6,6 +6,9 @@ import net.minestom.server.network.ConnectionManager;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
+import nl.devpieter.TagHelper;
+import nl.devpieter.entities.LobbyPlayer;
+import nl.devpieter.enums.PlayerTags;
 import nl.devpieter.features.parkour.models.parkourReplay.FinishedPlayerReplay;
 import nl.devpieter.features.parkour.models.parkourReplay.PlayerReplay;
 import nl.devpieter.features.parkour.models.parkourReplay.PlayerReplayFrame;
@@ -85,8 +88,16 @@ public class ParkourReplayManager {
         return id;
     }
 
-    public boolean playReplay(Player player, FinishedPlayerReplay replay) {
-        if (activeReplays.containsKey(player.getUuid())) return false;
+    public void playReplay(LobbyPlayer player, FinishedPlayerReplay replay) {
+        if (activeReplays.containsKey(player.getUuid())) return;
+
+        if (!TagHelper.canStartReplay(player)) {
+            return;
+        }
+
+        if (!player.addTag(PlayerTags.IN_PARKOUR_REPLAY)) {
+            return;
+        }
 
         player.teleport(replay.startPosition().add(0, 5, 0));
         player.setAllowFlying(true);
@@ -102,16 +113,11 @@ public class ParkourReplayManager {
             player.setFlying(false);
             player.setInvisible(false);
 
+            player.removeTag(PlayerTags.IN_PARKOUR_REPLAY);
         });
 
         Task task = scheduler.scheduleTask(runnable, TaskSchedule.immediate(), TaskSchedule.tick(1));
         activeReplays.put(player.getUuid(), new TaskRunnable<>(task, runnable));
-
-        return true;
-    }
-
-    public boolean isWatchingReplay(Player player) {
-        return activeReplays.containsKey(player.getUuid());
     }
 
     public void clearReplays(Player player) {

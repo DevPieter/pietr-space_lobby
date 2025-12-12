@@ -3,7 +3,8 @@ package nl.devpieter.commands;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.command.builder.arguments.minecraft.ArgumentUUID;
-import net.minestom.server.entity.Player;
+import nl.devpieter.entities.LobbyPlayer;
+import nl.devpieter.enums.PlayerTags;
 import nl.devpieter.features.parkour.ParkourReplayManager;
 import nl.devpieter.features.parkour.models.parkourReplay.FinishedPlayerReplay;
 import nl.devpieter.features.tips.TipManager;
@@ -26,7 +27,7 @@ public class ReplayCommand extends Command {
         ArgumentUUID parkourIdArg = ArgumentType.UUID("parkourId");
 
         parkour.addSyntax((sender, context) -> {
-            if (!(sender instanceof Player player)) return;
+            if (!(sender instanceof LobbyPlayer player)) return;
 
             UUID parkourId = context.get(parkourIdArg);
             FinishedPlayerReplay replay = replayManager.getFinishedReplay(parkourId);
@@ -36,8 +37,7 @@ public class ReplayCommand extends Command {
                 return;
             }
 
-            boolean started = replayManager.playReplay(player, replay);
-            if (!started) player.sendMessage("A replay is already in progress.");
+            replayManager.playReplay(player, replay);
 
             tipManager.showTip(
                     player,

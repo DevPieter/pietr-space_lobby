@@ -34,6 +34,14 @@ public class LobbyPlayer extends Player {
         return hasTag(tag.tag());
     }
 
+    public boolean hasAnyTag(@NotNull PlayerTags... tags) {
+        for (PlayerTags tag : tags) {
+            if (hasTag(tag)) return true;
+        }
+
+        return false;
+    }
+
     public boolean hasTag(@NotNull String tag) {
         return activeTags.contains(tag);
     }
