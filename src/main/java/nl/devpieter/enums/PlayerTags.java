@@ -1,4 +1,4 @@
-package nl.devpieter.features.states.enums;
+package nl.devpieter.enums;
 
 public enum PlayerTags {
 

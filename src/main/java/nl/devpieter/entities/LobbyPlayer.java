@@ -6,17 +6,21 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.network.player.GameProfile;
 import net.minestom.server.network.player.PlayerConnection;
 import nl.devpieter.config.EnvStatics;
+import nl.devpieter.enums.PlayerTags;
 import nl.devpieter.models.SlotHolder;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class LobbyPlayer extends Player {
 
     public static final String MAIN_INVENTORY = "main";
     public static final String DYNAMIC_INVENTORY = "__dynamic__";
 
+    private final List<String> activeTags = new ArrayList<>();
     private final HashMap<String, PlayerInventory> inventories = new HashMap<>();
 
     private String currentInventoryKey = MAIN_INVENTORY;
@@ -24,6 +28,31 @@ public class LobbyPlayer extends Player {
     public LobbyPlayer(PlayerConnection playerConnection, GameProfile gameProfile) {
         super(playerConnection, gameProfile);
         inventories.put(MAIN_INVENTORY, getInventory());
+    }
+
+    public boolean hasTag(@NotNull PlayerTags tag) {
+        return hasTag(tag.tag());
+    }
+
+    public boolean hasTag(@NotNull String tag) {
+        return activeTags.contains(tag);
+    }
+
+    public boolean addTag(@NotNull PlayerTags tag) {
+        return addTag(tag.tag());
+    }
+
+    public boolean addTag(@NotNull String tag) {
+        if (hasTag(tag)) return false;
+        return activeTags.add(tag);
+    }
+
+    public boolean removeTag(@NotNull PlayerTags tag) {
+        return removeTag(tag.tag());
+    }
+
+    public boolean removeTag(@NotNull String tag) {
+        return activeTags.remove(tag);
     }
 
     public boolean isMainInventoryActive() {
