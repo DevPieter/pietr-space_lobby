@@ -29,7 +29,19 @@ public class GamemodeCommand extends Command {
             GameMode mode = context.get(modeArgument);
             if (!(sender instanceof Player player)) return;
 
+            boolean fromSpectator = player.getGameMode() == GameMode.SPECTATOR;
+            boolean toSpectator = mode == GameMode.SPECTATOR;
+
             player.setGameMode(mode);
+
+            if (toSpectator) {
+                player.setInvisible(true);
+                player.setAutoViewable(false);
+            } else if (fromSpectator) {
+                player.setInvisible(false);
+                player.setAutoViewable(true);
+            }
+
             player.sendMessage("Your game mode has been set to " + mode.name());
         }, modeArgument);
     }

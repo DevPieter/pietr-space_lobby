@@ -220,10 +220,6 @@ public class Main {
             event.setCancelled(true);
         });
 
-        MinecraftServer.getGlobalEventHandler().addListener(PlayerStartSneakingEvent.class, event -> {
-//            toggleTracking(event.getPlayer());
-        });
-
         MinecraftServer.getGlobalEventHandler().addListener(PlayerTickEvent.class, event -> {
             Player player = event.getPlayer();
 

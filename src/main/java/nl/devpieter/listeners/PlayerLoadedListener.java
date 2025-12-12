@@ -42,6 +42,9 @@ public class PlayerLoadedListener implements EventListener<@NotNull PlayerLoaded
         team.updateCollisionRule(TeamsPacket.CollisionRule.NEVER);
         player.setTeam(team);
 
+        player.setInvisible(false);
+        player.setAutoViewable(true);
+
         return Result.SUCCESS;
     }
 }
