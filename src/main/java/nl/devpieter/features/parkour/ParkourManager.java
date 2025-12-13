@@ -18,6 +18,7 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
+import net.minestom.server.thread.Acquirable;
 import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.TagHelper;
 import nl.devpieter.config.EnvStatics;
@@ -246,8 +247,6 @@ public class ParkourManager {
             Component text = TextUtils.combine(
                     TextUtils.miniText("<#fcba03><b>Leaderboard"),
                     Component.newline(),
-                    TextUtils.miniText("<gray>Coming Soon!"),
-                    Component.newline(),
                     Component.newline(),
                     TextUtils.miniText("<gray><i>Stats are currently <b><red>NOT</red></b> saved!")
             );
@@ -264,7 +263,7 @@ public class ParkourManager {
                 textDisplayMeta.setHasNoGravity(true);
             });
 
-            parkour.setLeaderboardEntity(entity);
+            parkour.setLeaderboardEntity(entity.acquirable());
         }
 
         parkours.put(parkour.id(), parkour);
@@ -292,8 +291,11 @@ public class ParkourManager {
                 if (node.isCheckpoint()) instance.setBlock(point, Block.AIR);
             }
 
-            Entity leaderboardEntity = parkour.leaderboardEntity();
-            if (leaderboardEntity != null) leaderboardEntity.remove();
+//            Entity leaderboardEntity = parkour.leaderboardEntity();
+//            if (leaderboardEntity != null) leaderboardEntity.remove();
+
+            Acquirable<? extends Entity> leaderboardEntityAcquirable = parkour.leaderboardEntity();
+            if (leaderboardEntityAcquirable != null) leaderboardEntityAcquirable.sync(Entity::remove);
         }
 
         parkours.clear();
@@ -494,7 +496,7 @@ public class ParkourManager {
         }
 
         parkourTry.cancel(reason);
-        handleCleanup(player, parkourTry);
+        handleCleanup(player, parkour, parkourTry);
     }
 
     public void returnToCheckpoint(@NotNull Player player, @NotNull ParkourFailReason reason) {
@@ -595,7 +597,7 @@ public class ParkourManager {
         }
 
         parkourTry.finish();
-        handleCleanup(player, parkourTry);
+        handleCleanup(player, parkour, parkourTry);
     }
 
     public void useReturnToStart(@NotNull Player player) {
@@ -668,8 +670,8 @@ public class ParkourManager {
         PacketUtils.updateWaypoint(player, parkourId, nextCheckpoint);
     }
 
-    private void handleCleanup(@NotNull Player player, @NotNull ParkourTry parkourTry) {
-        parkourTryManager.handleParkourTry(player, parkourTry);
+    private void handleCleanup(@NotNull Player player, @NotNull Parkour parkour, @NotNull ParkourTry parkourTry) {
+        parkourTryManager.handleParkourTry(player, parkour, parkourTry);
 
         // Revert player inventory and tags
         if (player instanceof LobbyPlayer lobbyPlayer) {
@@ -701,8 +703,7 @@ public class ParkourManager {
         }
 
         // Setup return to start + tip
-        Parkour parkour = getParkour(parkourTry.parkourId());
-        if (parkour == null || parkour.spawnPos() == null) return;
+        if (parkour.spawnPos() == null) return;
 
         returnHolders.put(player.getUuid(), new ParkourReturnHolder(
                 parkourTry.parkourId(),
