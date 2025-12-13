@@ -127,4 +127,13 @@ public class ParkourTry {
         lastReachedNode = nodeIndex;
         if (isCheckpoint) lastCheckpoint = nodeIndex;
     }
+
+    public long completionTime() {
+        if (isCancelled) return -1;
+        return endTime - startTime;
+    }
+
+    public boolean hasFinished() {
+        return !isCancelled && endTime > 0;
+    }
 }

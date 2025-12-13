@@ -70,15 +70,16 @@ public class ParkourReplayManager {
         replay.startTracking();
     }
 
-    public @Nullable UUID stopTracking(Player player) {
+    public @Nullable UUID stopTracking(Player player, boolean saveReplay) {
         PlayerReplay replay = getParkourReplay(player);
         if (replay == null) return null;
 
         replay.stopTracking();
         replays.remove(player.getUuid());
 
-        UUID id = UUID.randomUUID();
+        if (!saveReplay) return null;
 
+        UUID id = UUID.randomUUID();
         finishedReplays.put(id, new FinishedPlayerReplay(
                 player.getUuid(),
                 id,
