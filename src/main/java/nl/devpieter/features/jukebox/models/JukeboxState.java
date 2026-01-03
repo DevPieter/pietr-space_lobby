@@ -15,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class JukeboxState {
 
@@ -67,9 +69,17 @@ public class JukeboxState {
         return songQueue.poll();
     }
 
-    public void play(@NotNull PointHolder pointHolder, @NotNull Song song) {
+    public void play(@NotNull PointHolder pointHolder, @NotNull Song song, BiConsumer<Boolean, Boolean> callback) {
         if (isPlaying()) {
+
+            // TODO - Remove or change limit?
+            if (songQueue.size() >= 3) {
+                callback.accept(false, false);
+                return;
+            }
+
             pushQueue(song);
+            callback.accept(true, true);
             return;
         }
 
@@ -78,11 +88,14 @@ public class JukeboxState {
                 currentSong.sound(),
                 pointHolder.position().add(0.5, 0.5, 0.5)
         );
+
+        callback.accept(true, false);
     }
 
-    public void stop(@NotNull PointHolder pointHolder) {
+    public void stop(@NotNull PointHolder pointHolder, Consumer<Boolean> callback) {
         if (!isPlaying()) {
             songQueue.clear();
+            callback.accept(false);
             return;
         }
 
@@ -90,6 +103,8 @@ public class JukeboxState {
 
         songQueue.clear();
         currentSong = null;
+
+        callback.accept(true);
     }
 
     public void tick(PointHolder pointHolder) {
@@ -108,7 +123,8 @@ public class JukeboxState {
         pointHolder.instance().stopSound(currentSong.sound());
         currentSong = null;
 
-        if (hasQueuedSongs()) play(pointHolder, popQueue());
+        if (hasQueuedSongs()) play(pointHolder, popQueue(), (_, _) -> {
+        });
     }
 
     private void tickDisplay() {
