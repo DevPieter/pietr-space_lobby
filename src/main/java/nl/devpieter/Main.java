@@ -270,13 +270,6 @@ public class Main {
 ////            }
 //        });
 
-        eventHandler.addListener(PlayerResourcePackStatusEvent.class, event -> {
-            Player player = event.getPlayer();
-            PackManager packManager = PackManager.getInstance();
-
-            packManager.updateStatus(player, event.getStatus());
-        });
-
         CommandManager commandManager = MinecraftServer.getCommandManager();
 
         // Player
