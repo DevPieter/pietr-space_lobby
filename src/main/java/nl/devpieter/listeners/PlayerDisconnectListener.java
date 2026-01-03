@@ -7,6 +7,7 @@ import nl.devpieter.features.fishing.listeners.PlayerUseItemListener;
 import nl.devpieter.features.parkour.ParkourManager;
 import nl.devpieter.features.parkour.ParkourReplayManager;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
+import nl.devpieter.features.resourcePack.PackManager;
 import nl.devpieter.features.sitting.SitManager;
 import nl.devpieter.features.tips.MsgManager;
 import nl.devpieter.features.tips.TipManager;
@@ -17,6 +18,7 @@ public class PlayerDisconnectListener implements EventListener<@NotNull PlayerDi
     private final MsgManager msgManager = MsgManager.getInstance();
     private final TipManager tipManager = TipManager.getInstance();
     private final SitManager sitManager = SitManager.getInstance();
+    private final PackManager packManager = PackManager.getInstance();
 
     private final ParkourManager parkourManager = ParkourManager.getInstance();
     private final ParkourReplayManager replayManager = ParkourReplayManager.getInstance();
@@ -33,6 +35,7 @@ public class PlayerDisconnectListener implements EventListener<@NotNull PlayerDi
         msgManager.resetMessages(player);
         tipManager.resetTips(player);
         sitManager.standPlayer(player);
+        packManager.clearStatus(player);
 
         parkourManager.cancelParkour(player, ParkourCancelReason.PlayerQuit);
         replayManager.clearReplays(player);

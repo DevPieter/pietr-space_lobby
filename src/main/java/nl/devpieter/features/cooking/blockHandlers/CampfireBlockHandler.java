@@ -8,6 +8,7 @@ import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.component.DataComponents;
 import net.minestom.server.entity.Player;
+import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventNode;
 import net.minestom.server.event.inventory.InventoryPreClickEvent;
@@ -33,7 +34,28 @@ public class CampfireBlockHandler implements BlockHandler {
     private long lastInventoryClickTime = 0;
 
     @Override
+    public @NotNull Key getKey() {
+        return Key.key("pieter_space", "campfire");
+    }
+
+    @Override
+    public @NotNull Collection<Tag<?>> getBlockEntityTags() {
+        return List.of(
+                Tag.NBT("Items"),
+                Tag.NBT("CookingTimes"),
+                Tag.NBT("CookingTotalTimes")
+        );
+    }
+
+    @Override
+    public boolean isTickable() {
+        return true;
+    }
+
+    @Override
     public boolean onInteract(Interaction interaction) {
+        if (interaction.getHand() != PlayerHand.MAIN) return false;
+
         Player player = interaction.getPlayer();
 
         String lit = interaction.getBlock().getProperty("lit");
@@ -98,25 +120,6 @@ public class CampfireBlockHandler implements BlockHandler {
 
         MinecraftServer.getGlobalEventHandler().addChild(node);
         player.openInventory(inventory);
-        return true;
-    }
-
-    @Override
-    public @NotNull Key getKey() {
-        return Key.key("pieter_space", "campfire");
-    }
-
-    @Override
-    public @NotNull Collection<Tag<?>> getBlockEntityTags() {
-        return List.of(
-                Tag.NBT("Items"),
-                Tag.NBT("CookingTimes"),
-                Tag.NBT("CookingTotalTimes")
-        );
-    }
-
-    @Override
-    public boolean isTickable() {
         return true;
     }
 

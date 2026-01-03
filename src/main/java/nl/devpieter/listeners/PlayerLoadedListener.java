@@ -11,6 +11,7 @@ import net.minestom.server.network.packet.server.play.TeamsPacket;
 import net.minestom.server.scoreboard.Team;
 import net.minestom.server.scoreboard.TeamBuilder;
 import net.minestom.server.scoreboard.TeamManager;
+import nl.devpieter.features.resourcePack.PackManager;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
