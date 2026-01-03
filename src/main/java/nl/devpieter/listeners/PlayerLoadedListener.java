@@ -11,12 +11,14 @@ import net.minestom.server.network.packet.server.play.TeamsPacket;
 import net.minestom.server.scoreboard.Team;
 import net.minestom.server.scoreboard.TeamBuilder;
 import net.minestom.server.scoreboard.TeamManager;
+import nl.devpieter.features.resourcePack.PackManager;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class PlayerLoadedListener implements EventListener<@NotNull PlayerLoadedEvent> {
 
     private final TeamManager teamManager = MinecraftServer.getTeamManager();
+    private final PackManager packManager = PackManager.getInstance();
 
     private final Component welcome = TextUtils.miniText(
             "<gray>Welcome to <b><gradient:#6A75AF:#303449>Pietr 🚀 Space</gradient></b>!\n" +
@@ -45,6 +47,7 @@ public class PlayerLoadedListener implements EventListener<@NotNull PlayerLoaded
         player.setInvisible(false);
         player.setAutoViewable(true);
 
+        packManager.promptResourcePack(player);
         return Result.SUCCESS;
     }
 }

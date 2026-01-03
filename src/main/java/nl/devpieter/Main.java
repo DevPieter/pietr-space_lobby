@@ -1,6 +1,11 @@
 package nl.devpieter;
 
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.resource.ResourcePackInfo;
+import net.kyori.adventure.resource.ResourcePackInfoLike;
+import net.kyori.adventure.resource.ResourcePackRequest;
+import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.text.Component;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandManager;
@@ -37,6 +42,7 @@ import nl.devpieter.features.fishing.FishingReferenceHolder;
 import nl.devpieter.features.fishing.catchable.ICatchable;
 import nl.devpieter.features.fishing.listeners.PlayerUseItemListener;
 import nl.devpieter.features.fishing.rod.IRod;
+import nl.devpieter.features.jukebox.blockHandlers.JukeboxBlockHandler;
 import nl.devpieter.features.parkour.ParkourManager;
 import nl.devpieter.features.parkour.ParkourReplayManager;
 import nl.devpieter.features.parkour.ParkourTryManager;
@@ -45,6 +51,7 @@ import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerMoveListener;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerSneakListener;
 import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
+import nl.devpieter.features.resourcePack.PackManager;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
 import nl.devpieter.features.world.WorldManager;
@@ -59,6 +66,8 @@ import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.slf4j.Logger;
 
+import java.net.URI;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Main {
@@ -73,13 +82,15 @@ public class Main {
         boolean useVelocity = configManager.getBoolean("use_velocity_proxy");
         String velocitySecret = configManager.getString("velocity_proxy_secret");
 
-        Auth auth = useVelocity ? new Auth.Velocity(velocitySecret) : new Auth.Online();
+//        Auth auth = useVelocity ? new Auth.Velocity(velocitySecret) : new Auth.Online();
+        Auth auth = useVelocity ? new Auth.Velocity(velocitySecret) : new Auth.Offline();
         logger.info("Using authentication: {}", useVelocity ? "Velocity" : "Online");
 
         MinecraftServer server = MinecraftServer.init(auth);
         MinecraftServer.setBrandName("Pieter Space Lobby");
 
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:campfire"), CampfireBlockHandler::new);
+        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:jukebox"), JukeboxBlockHandler::new);
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:sign"), SignBlockHandler::new);
 
         // TODO - A bit hacky, but I don't know a better way yet
@@ -237,6 +248,33 @@ public class Main {
                     player.setPose(EntityPose.STANDING);
                 }
             }
+        });
+
+//        eventHandler.addListener(PlayerStartSneakingEvent.class, event -> {
+//            Player player = event.getPlayer();
+//            PackManager packManager = PackManager.getInstance();
+//
+//            packManager.tryInformRecommendation(player, false);
+//
+////            if(packManager.hasAcceptedPack(player)) {
+//                System.out.println("Player " + player.getUsername() + " has accepted the resource pack.");
+//
+//                Sound sound = Sound.sound(
+//                        Key.key("lobby","music.joost.full-circle"),
+//                        Sound.Source.RECORD,
+//                        1.0f,
+//                        1.0f
+//                );
+//
+//                player.getInstance().playSound(sound, player.getPosition());
+////            }
+//        });
+
+        eventHandler.addListener(PlayerResourcePackStatusEvent.class, event -> {
+            Player player = event.getPlayer();
+            PackManager packManager = PackManager.getInstance();
+
+            packManager.updateStatus(player, event.getStatus());
         });
 
         CommandManager commandManager = MinecraftServer.getCommandManager();
