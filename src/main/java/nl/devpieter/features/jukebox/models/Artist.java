@@ -1,4 +1,9 @@
 package nl.devpieter.features.jukebox.models;
 
-public record Artist(String name) {
+import java.util.List;
+
+public record Artist(
+        String name,
+        List<Album> albums
+) {
 }

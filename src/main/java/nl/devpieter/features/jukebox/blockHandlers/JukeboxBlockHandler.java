@@ -13,6 +13,7 @@ import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.InventoryType;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
+import nl.devpieter.features.jukebox.models.Album;
 import nl.devpieter.features.jukebox.models.Artist;
 import nl.devpieter.features.jukebox.models.JukeboxState;
 import nl.devpieter.features.jukebox.models.Song;
@@ -22,24 +23,31 @@ import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class JukeboxBlockHandler implements BlockHandler {
 
     private final PackManager packManager = PackManager.getInstance();
-    private final HashMap<Artist, List<Song>> songs = new HashMap<>();
 
+    private final List<Artist> artists = new ArrayList<>();
     private final HashMap<PointHolder, JukeboxState> states = new HashMap<>();
 
     // TODO - Replace with a better system
     private long lastInventoryClickTime = 0;
 
     public JukeboxBlockHandler() {
-        Artist joost = new Artist("Joost Klein");
-        songs.put(joost, List.of(
-                new Song("Full Circle", Key.key("lobby", "music.joost.full-circle"), /* 00:01:35 */ 95000),
-                new Song("Joost Klein 5", Key.key("lobby", "music.joost.joost-klein-5"), /* 00:01:35 */ 95000)
+
+        artists.add(new Artist(
+                "Joost Klein",
+                List.of(new Album(
+                        "Kleinkunst",
+                        List.of(
+                                new Song("Full Circle", Key.key("lobby", "music.joost.full-circle"), /* 00:01:35 */ 95000),
+                                new Song("Joost Klein 5", Key.key("lobby", "music.joost.joost-klein-5"), /* 00:01:35 */ 95000)
+                        )
+                ))
         ));
 
 //        Artist sefa = new Artist("Sefa");
@@ -95,13 +103,28 @@ public class JukeboxBlockHandler implements BlockHandler {
 
 //        Inventory inventory = new Inventory(InventoryType.CHEST_5_ROW, TextUtils.miniText("<white>七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七ऄ七अ七आ"));
 
-        for (Artist artist : songs.keySet()) {
+//        for (Artist artist : songs.keySet()) {
+//
+//            int songCount = songs.get(artist).size();
+//
+//            ItemStack artistItem = ItemStack.of(Material.PAPER).with(builder -> {
+//                builder.customName(TextUtils.miniText(artist.name()));
+//                builder.lore(TextUtils.miniText("<gray>%d song%s available", songCount, songCount != 1 ? "s" : ""));
+//            });
+//
+//            inventory.addItemStack(artistItem);
+//        }
 
-            int songCount = songs.get(artist).size();
+        for (Artist artist : artists) {
+            int albumCount = artist.albums().size();
+            int songCount = artist.albums().stream().mapToInt(album -> album.songs().size()).sum();
 
             ItemStack artistItem = ItemStack.of(Material.PAPER).with(builder -> {
                 builder.customName(TextUtils.miniText(artist.name()));
-                builder.lore(TextUtils.miniText("<gray>%d song%s available", songCount, songCount != 1 ? "s" : ""));
+                builder.lore(TextUtils.miniText("<gray>%d song%s in %d album%s available",
+                        songCount, songCount != 1 ? "s" : "",
+                        albumCount, albumCount != 1 ? "s" : ""
+                ));
             });
 
             inventory.addItemStack(artistItem);
@@ -114,41 +137,76 @@ public class JukeboxBlockHandler implements BlockHandler {
 
         inventory.setItemStack(22, stopPlayingItem);
 
-        var test = EventNode.type("click", EventFilter.INVENTORY, (event, inv) -> inventory == inv)
-                .addListener(InventoryPreClickEvent.class, event -> {
-                    event.setCancelled(true);
+        inventory.eventNode().addChild(EventNode.type("click", EventFilter.INVENTORY, (event, inv) -> inventory == inv).addListener(InventoryPreClickEvent.class, event -> {
+            event.setCancelled(true);
 
-                    if (System.currentTimeMillis() - lastInventoryClickTime < 500) return;
-                    lastInventoryClickTime = System.currentTimeMillis();
+            if (System.currentTimeMillis() - lastInventoryClickTime < 500) return;
+            lastInventoryClickTime = System.currentTimeMillis();
 
-                    Player player = event.getPlayer();
-                    int slot = event.getSlot();
+            Player player = event.getPlayer();
+            int slot = event.getSlot();
 
-                    if (slot == 22) {
-                        PointHolder pointHolder = new PointHolder(
-                                interaction.getInstance(),
-                                interaction.getBlockPosition()
-                        );
+            if (slot == 22) {
+                PointHolder pointHolder = new PointHolder(
+                        interaction.getInstance(),
+                        interaction.getBlockPosition()
+                );
 
-                        JukeboxState state = getState(pointHolder, false);
-                        if (state != null) state.stop(pointHolder, stopped -> {
-                            if (stopped) player.sendMessage(TextUtils.miniText("<green>Music stopped."));
-                            else player.sendMessage(TextUtils.miniText("<yellow>No music was playing."));
-                        });
-
-                        return;
-                    }
-
-                    if (slot < 0 || slot >= songs.size()) return;
-
-                    Artist selectedArtist = (Artist) songs.keySet().toArray()[slot];
-                    List<Song> artistSongs = songs.get(selectedArtist);
-
-                    Inventory songsInventory = createSongsInventory(interaction, selectedArtist, artistSongs);
-                    player.openInventory(songsInventory);
+                JukeboxState state = getState(pointHolder, false);
+                if (state != null) state.stop(pointHolder, stopped -> {
+                    if (stopped) player.sendMessage(TextUtils.miniText("<green>Music stopped."));
+                    else player.sendMessage(TextUtils.miniText("<yellow>No music was playing."));
                 });
 
-        inventory.eventNode().addChild(test);
+                return;
+            }
+
+            if (slot < 0 || slot >= artists.size()) return;
+
+            Inventory albumsInventory = createAlbumsInventory(interaction, artists.get(slot));
+            player.openInventory(albumsInventory);
+
+//                    if (slot < 0 || slot >= songs.size()) return;
+//
+//                    Artist selectedArtist = (Artist) songs.keySet().toArray()[slot];
+//                    List<Song> artistSongs = songs.get(selectedArtist);
+//
+//                    Inventory songsInventory = createSongsInventory(interaction, selectedArtist, artistSongs);
+//                    player.openInventory(songsInventory);
+        }));
+        return inventory;
+    }
+
+    private Inventory createAlbumsInventory(@NotNull Interaction interaction, @NotNull Artist artist) {
+        Inventory inventory = new Inventory(InventoryType.CHEST_5_ROW, TextUtils.miniText(artist.name() + "'s Albums"));
+
+        for (Album album : artist.albums()) {
+            int songCount = album.songs().size();
+
+            ItemStack albumItem = ItemStack.of(Material.BOOK).with(builder -> {
+                builder.customName(TextUtils.miniText(album.name()));
+                builder.lore(TextUtils.miniText("<gray>%d song%s available", songCount, songCount != 1 ? "s" : ""));
+            });
+
+            inventory.addItemStack(albumItem);
+        }
+
+        inventory.eventNode().addChild(EventNode.type("click", EventFilter.INVENTORY, (event, inv) -> inventory == inv).addListener(InventoryPreClickEvent.class, event -> {
+            event.setCancelled(true);
+
+            if (System.currentTimeMillis() - lastInventoryClickTime < 500) return;
+            lastInventoryClickTime = System.currentTimeMillis();
+
+            int slot = event.getSlot();
+            if (slot < 0 || slot >= artist.albums().size()) return;
+
+            Album selectedAlbum = artist.albums().get(slot);
+            List<Song> albumSongs = selectedAlbum.songs();
+
+            Inventory songsInventory = createSongsInventory(interaction, artist, albumSongs);
+            event.getPlayer().openInventory(songsInventory);
+        }));
+
         return inventory;
     }
 
@@ -165,36 +223,33 @@ public class JukeboxBlockHandler implements BlockHandler {
             inventory.addItemStack(songItem);
         }
 
-        var test = EventNode.type("click", EventFilter.INVENTORY, (event, inv) -> inventory == inv)
-                .addListener(InventoryPreClickEvent.class, event -> {
-                    event.setCancelled(true);
+        inventory.eventNode().addChild(EventNode.type("click", EventFilter.INVENTORY, (event, inv) -> inventory == inv).addListener(InventoryPreClickEvent.class, event -> {
+            event.setCancelled(true);
 
-                    if (System.currentTimeMillis() - lastInventoryClickTime < 500) return;
-                    lastInventoryClickTime = System.currentTimeMillis();
+            if (System.currentTimeMillis() - lastInventoryClickTime < 500) return;
+            lastInventoryClickTime = System.currentTimeMillis();
 
-                    int slot = event.getSlot();
-                    if (slot < 0 || slot >= artistSongs.size()) return;
+            int slot = event.getSlot();
+            if (slot < 0 || slot >= artistSongs.size()) return;
 
-                    PointHolder pointHolder = new PointHolder(
-                            interaction.getInstance(),
-                            interaction.getBlockPosition()
-                    );
+            PointHolder pointHolder = new PointHolder(
+                    interaction.getInstance(),
+                    interaction.getBlockPosition()
+            );
 
-                    JukeboxState state = getState(pointHolder, true);
-                    if (state != null) state.play(pointHolder, artistSongs.get(slot), (success, queued) -> {
-                        Player player = event.getPlayer();
+            JukeboxState state = getState(pointHolder, true);
+            if (state != null) state.play(pointHolder, artistSongs.get(slot), (success, queued) -> {
+                Player player = event.getPlayer();
 
-                        if (!success) {
-                            player.sendMessage(TextUtils.miniText("<red>The song could not be played. The queue is full."));
-                            return;
-                        }
+                if (!success) {
+                    player.sendMessage(TextUtils.miniText("<red>The song could not be played. The queue is full."));
+                    return;
+                }
 
-                        if (queued) player.sendMessage(TextUtils.miniText("<green>Song has been added to the queue."));
-                        else player.sendMessage(TextUtils.miniText("<green>Now playing song."));
-                    });
-                });
-
-        inventory.eventNode().addChild(test);
+                if (queued) player.sendMessage(TextUtils.miniText("<green>Song has been added to the queue."));
+                else player.sendMessage(TextUtils.miniText("<green>Now playing song."));
+            });
+        }));
         return inventory;
     }
 
