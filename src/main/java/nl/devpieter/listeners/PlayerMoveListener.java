@@ -27,12 +27,12 @@ public class PlayerMoveListener implements EventListener<@NotNull PlayerMoveEven
     public @NotNull Result run(@NotNull PlayerMoveEvent event) {
         Player player = event.getPlayer();
 
-        if (packManager.canAutoPrompt(player)) {
+        if (packManager.canAutoPrompt(player, PackManager.MAIN_PACK)) {
             LoadedWorld world = worldManager.getLoadedWorldByInstance(player.getInstance());
 
             if (world != null) {
                 Pos spawn = world.world().settings().spawn().toPoint().asPos();
-                if (spawn.distance(player.getPosition()) >= 3) packManager.tryAutoPrompt(player);
+                if (spawn.distance(player.getPosition()) >= 3) packManager.tryAutoPrompt(player, PackManager.MAIN_PACK);
             }
         }
 

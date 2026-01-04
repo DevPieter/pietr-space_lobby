@@ -1,6 +1,7 @@
 package nl.devpieter.features.jukebox.blockHandlers;
 
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerHand;
@@ -18,6 +19,7 @@ import nl.devpieter.features.jukebox.models.Artist;
 import nl.devpieter.features.jukebox.models.JukeboxState;
 import nl.devpieter.features.jukebox.models.Song;
 import nl.devpieter.features.resourcePack.PackManager;
+import nl.devpieter.features.resourcePack.models.ResourcePack;
 import nl.devpieter.models.PointHolder;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 public class JukeboxBlockHandler implements BlockHandler {
 
@@ -39,16 +42,54 @@ public class JukeboxBlockHandler implements BlockHandler {
 
     public JukeboxBlockHandler() {
 
+        ResourcePack joostKleinPack = new ResourcePack(
+                UUID.fromString("7cd46b27-4118-474b-bd16-a91fa57b4cd7"),
+                "https://maven.pietr.space/snapshots/nl/devpieter/files/packs/MusicPack-0.1.1+1.21.10.zip",
+                "",
+                TextUtils.miniText("<#6a75af><b>Music Pack</b> - Joost Klein"),
+                TextUtils.combine(
+                        Component.newline(),
+                        TextUtils.miniText("<#2b2f40>Enjoy the music of Joost Klein with this custom resource pack!"),
+                        Component.newline(),
+                        Component.newline(),
+                        TextUtils.miniText("<#2b2f40><i>Required to play Joost Klein's songs.")
+                ),
+                false,
+                false
+        );
+
+        // ansichtkaart 00:02:17
+        // coachella 00:02:58
+        // full-circle 00:01:35
+        // funny-onion-song 00:01:45
+        // hackers-theme 00:01:32
+        // jailbreak-life 00:01:51
+        // joost-klein-5 00:01:35
+        // latin-gabber 00:01:36
+        // tetetetete 00:02:43
+        // wtf 00:02:30
+
         artists.add(new Artist(
                 "Joost Klein",
                 List.of(new Album(
                         "Kleinkunst",
                         List.of(
+                                new Song("Ansichtkaart", Key.key("lobby", "music.joost.ansichtkaart"), /* 00:02:17 */ 137000),
+                                new Song("Coachella", Key.key("lobby", "music.joost.coachella"), /* 00:02:58 */ 178000),
                                 new Song("Full Circle", Key.key("lobby", "music.joost.full-circle"), /* 00:01:35 */ 95000),
-                                new Song("Joost Klein 5", Key.key("lobby", "music.joost.joost-klein-5"), /* 00:01:35 */ 95000)
-                        )
+                                new Song("Funny Onion Song", Key.key("lobby", "music.joost.funny-onion-song"), /* 00:01:45 */ 105000),
+                                new Song("Hackers Theme", Key.key("lobby", "music.joost.hackers-theme"), /* 00:01:32 */ 92000),
+                                new Song("Jailbreak Life", Key.key("lobby", "music.joost.jailbreak-life"), /* 00:01:51 */ 111000),
+                                new Song("Joost Klein 5", Key.key("lobby", "music.joost.joost-klein-5"), /* 00:01:35 */ 95000),
+                                new Song("Latin Gabber", Key.key("lobby", "music.joost.latin-gabber"), /* 00:01:36 */ 96000),
+                                new Song("Tetetetete", Key.key("lobby", "music.joost.tetetetete"), /* 00:02:43 */ 163000),
+                                new Song("WTF", Key.key("lobby", "music.joost.wtf"), /* 00:02:30 */ 150000)
+                        ),
+                        joostKleinPack
                 ))
         ));
+
+        packManager.registerResourcePack(joostKleinPack);
 
 //        Artist sefa = new Artist("Sefa");
 //        songs.put(sefa, List.of(
@@ -73,8 +114,8 @@ public class JukeboxBlockHandler implements BlockHandler {
 
         Player player = interaction.getPlayer();
 
-        packManager.tryInformRecommendation(player, true);
-        if (!packManager.hasPackLoaded(player)) return true;
+        packManager.tryInformRecommendation(player, PackManager.MAIN_PACK, true);
+        if (!packManager.hasPackLoaded(player, PackManager.MAIN_PACK)) return true;
 
         Inventory artistsInventory = createArtistsInventory(interaction);
         player.openInventory(artistsInventory);
@@ -94,14 +135,14 @@ public class JukeboxBlockHandler implements BlockHandler {
     }
 
     private Inventory createArtistsInventory(@NotNull Interaction interaction) {
-        Inventory inventory = new Inventory(InventoryType.CHEST_3_ROW, TextUtils.miniText("Artists"));
+//        Inventory inventory = new Inventory(InventoryType.CHEST_3_ROW, TextUtils.miniText("Artists"));
 
         // 七七七七七七七七
         // 2 = 七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七
 //        Inventory inventory = new Inventory(InventoryType.CHEST_5_ROW, TextUtils.miniText("<white>七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七ㇺ七ㇻ七ㇺ"));
 //        Inventory inventory = new Inventory(InventoryType.CHEST_5_ROW, TextUtils.miniText("<white>七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七ऄ七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七इ七七अ七आ"));
 
-//        Inventory inventory = new Inventory(InventoryType.CHEST_5_ROW, TextUtils.miniText("<white>七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七ऄ七अ七आ"));
+        Inventory inventory = new Inventory(InventoryType.CHEST_5_ROW, TextUtils.miniText("<white>七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七ऄ七अ七आ"));
 
 //        for (Artist artist : songs.keySet()) {
 //
@@ -201,6 +242,17 @@ public class JukeboxBlockHandler implements BlockHandler {
             if (slot < 0 || slot >= artist.albums().size()) return;
 
             Album selectedAlbum = artist.albums().get(slot);
+
+            if (selectedAlbum.resourcePack() != null) {
+                System.out.println("Requesting resource pack for album: " + selectedAlbum.name());
+
+                packManager.tryInformRecommendation(event.getPlayer(), selectedAlbum.resourcePack().packId(), true);
+                if (!packManager.hasPackLoaded(event.getPlayer(), selectedAlbum.resourcePack().packId())) {
+                    System.out.println("Player has not loaded the required resource pack for album: " + selectedAlbum.name());
+                    return;
+                }
+            }
+
             List<Song> albumSongs = selectedAlbum.songs();
 
             Inventory songsInventory = createSongsInventory(interaction, artist, albumSongs);
@@ -211,8 +263,8 @@ public class JukeboxBlockHandler implements BlockHandler {
     }
 
     private Inventory createSongsInventory(@NotNull Interaction interaction, @NotNull Artist artist, @NotNull List<Song> artistSongs) {
-//        Inventory inventory = new Inventory(InventoryType.CHEST_5_ROW, TextUtils.miniText("<white>七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七ऄ七अ七आ"));
-        Inventory inventory = new Inventory(InventoryType.CHEST_5_ROW, TextUtils.miniText(artist.name() + "'s Songs"));
+        Inventory inventory = new Inventory(InventoryType.CHEST_5_ROW, TextUtils.miniText("<white>七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七七ऄ七अ七आ"));
+//        Inventory inventory = new Inventory(InventoryType.CHEST_5_ROW, TextUtils.miniText(artist.name() + "'s Songs"));
 
         for (Song song : artistSongs) {
             ItemStack songItem = ItemStack.of(Material.MUSIC_DISC_13).with(builder -> {
