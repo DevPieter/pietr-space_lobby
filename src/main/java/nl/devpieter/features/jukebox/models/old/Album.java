@@ -1,4 +1,4 @@
-package nl.devpieter.features.jukebox.models;
+package nl.devpieter.features.jukebox.models.old;
 
 import nl.devpieter.features.resourcePack.models.ResourcePack;
 import org.jetbrains.annotations.Nullable;

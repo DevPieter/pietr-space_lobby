@@ -21,10 +21,7 @@ import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.blockHandler.DoorBlockHandler;
 import nl.devpieter.blockHandler.SignBlockHandler;
-import nl.devpieter.commands.ReplayCommand;
-import nl.devpieter.commands.ServerCommand;
-import nl.devpieter.commands.TestCommand;
-import nl.devpieter.commands.TipCommand;
+import nl.devpieter.commands.*;
 import nl.devpieter.commands.player.GamemodeCommand;
 import nl.devpieter.commands.world.*;
 import nl.devpieter.config.ConfigManager;
@@ -37,7 +34,9 @@ import nl.devpieter.features.fishing.FishingReferenceHolder;
 import nl.devpieter.features.fishing.catchable.ICatchable;
 import nl.devpieter.features.fishing.listeners.PlayerUseItemListener;
 import nl.devpieter.features.fishing.rod.IRod;
-import nl.devpieter.features.jukebox.blockHandlers.JukeboxBlockHandler2;
+import nl.devpieter.features.jukebox.MusicJobManager;
+import nl.devpieter.features.jukebox.MusicManager;
+import nl.devpieter.features.jukebox.blockHandlers.JukeboxBlockHandler3;
 import nl.devpieter.features.parkour.ParkourManager;
 import nl.devpieter.features.parkour.ParkourReplayManager;
 import nl.devpieter.features.parkour.ParkourTryManager;
@@ -83,7 +82,12 @@ public class Main {
 
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:campfire"), CampfireBlockHandler::new);
 //        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:jukebox"), JukeboxBlockHandler::new);
-        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:jukebox"), JukeboxBlockHandler2::new);
+
+        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:jukebox"), () -> {
+            JukeboxBlockHandler3 handler = new JukeboxBlockHandler3();
+            MinecraftServer.getSchedulerManager().scheduleTask(() -> Sees.getInstance().subscribe(handler), TaskSchedule.immediate(), TaskSchedule.stop());
+            return handler;
+        });
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:sign"), SignBlockHandler::new);
 
         // TODO - A bit hacky, but I don't know a better way yet
@@ -139,6 +143,8 @@ public class Main {
 
         Sees sees = Sees.getInstance();
         sees.subscribe(new MainListener());
+        sees.subscribe(MusicManager.getInstance());
+        sees.subscribe(MusicJobManager.getInstance());
 
         WorldManager worldManager = WorldManager.getInstance();
         worldManager.init();
@@ -285,10 +291,14 @@ public class Main {
         commandManager.register(new TestCommand());
         commandManager.register(new ServerCommand());
 
+        // Testing
+        commandManager.register(new MusicCommand());
+
         MinecraftServer.getConnectionManager().setPlayerProvider(LobbyPlayer::new);
 
         ParkourTryManager.getInstance().init();
         ParkourReplayManager.getInstance().init();
+        MusicJobManager.getInstance().init();
         server.start("0.0.0.0", 25565);
     }
 

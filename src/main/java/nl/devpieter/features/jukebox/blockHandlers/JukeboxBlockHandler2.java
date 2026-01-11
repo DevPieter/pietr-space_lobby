@@ -2,6 +2,9 @@ package nl.devpieter.features.jukebox.blockHandlers;
 
 import com.google.gson.Gson;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.resource.ResourcePackRequest;
+import net.kyori.adventure.resource.ResourcePackStatus;
+import net.kyori.adventure.sound.Sound;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerHand;
@@ -10,8 +13,14 @@ import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.api.request.AsyncRequest;
+import nl.devpieter.features.jukebox.enums.MusicPackJobState;
+import nl.devpieter.features.jukebox.models.JobStatusResponse;
+import nl.devpieter.features.jukebox.models.ProcessedSong;
+import nl.devpieter.features.jukebox.models.QueueSongsRequest;
+import nl.devpieter.features.jukebox.models.QueueSongsResponse;
 import nl.devpieter.features.resourcePack.PackManager;
 import nl.devpieter.features.resourcePack.models.ResourcePack;
+import nl.devpieter.sees.listener.SListener;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +33,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class JukeboxBlockHandler2 implements BlockHandler {
+public class JukeboxBlockHandler2 implements BlockHandler, SListener {
 
     private final PackManager packManager = PackManager.getInstance();
     private final Scheduler scheduler = MinecraftServer.getSchedulerManager();
@@ -45,41 +54,119 @@ public class JukeboxBlockHandler2 implements BlockHandler {
         Player player = interaction.getPlayer();
 
         List<String> songUrls = List.of(
-                "XM7BVj_C7PI"
+//                "XM7BVj_C7PI" // Klaag zang
+//                "fnQrPvm0_38" // Beseffen
+//                "PtApgLa94Yo"
+                "dbIpxy59B-U"
         );
 
-        queueSongs(player, songUrls).thenAccept(jobId -> {
-            System.out.println("Queued music pack job with ID: " + jobId);
+        player.sendMessage(TextUtils.miniText("<#6a75af>Queuing your custom music pack..."));
+
+        queueSongs(player, songUrls).thenAccept(job -> {
+            System.out.println("Queued music pack job with ID: " + job.id());
 
             AtomicReference<Task> taskRef = new AtomicReference<>();
 
             Task task = scheduler.scheduleTask(() -> {
-                getJobStatus(jobId).thenAccept(jobStatusResponse -> {
-                    System.out.println("Job status: " + jobStatusResponse.state);
+                getJobStatus(job.id()).thenAccept(jobStatusResponse -> {
+                    System.out.println("Job status: " + jobStatusResponse.state());
 
-                    if (jobStatusResponse.state == MusicPackJobState.Completed.getValue()) {
+                    player.sendActionBar(TextUtils.miniText("<#6a75af>Music Pack Job Status: " + switch (jobStatusResponse.state()) {
+                        case 0 -> "Pending";
+                        case 1 -> "Queued";
+                        case 2 -> "Started";
+                        case 3 -> "Completed";
+                        case 4 -> "Failed";
+                        default -> "Unknown";
+                    }));
+
+                    if (jobStatusResponse.state() == MusicPackJobState.Completed.getValue()) {
                         System.out.println("Music pack job completed!");
+
+                        player.sendMessage(TextUtils.miniText("<#6a75af>Your custom music pack is ready! Downloading now..."));
+
                         UUID finishedPackId = jobStatusResponse.finishedPackId();
                         String downloadUrl = jobStatusResponse.downloadUrl();
 
                         if (finishedPackId != null && downloadUrl != null) {
-                            packManager.registerResourcePack(
-                                    new ResourcePack(
-                                            finishedPackId,
-                                            downloadUrl,
-                                            "",
-                                            TextUtils.miniText("<#6a75af><b>Custom Jukebox Pack</b>"),
-                                            TextUtils.miniText("<#2b2f40>Enjoy the custom music experience!"),
-                                            false,
-                                            false
-                                    )
+//                            packManager.registerResourcePack(
+//                                    new ResourcePack(
+//                                            finishedPackId,
+//                                            downloadUrl,
+//                                            "",
+//                                            TextUtils.miniText("<#6a75af><b>Custom Jukebox Pack</b>"),
+//                                            TextUtils.miniText("<#2b2f40>Enjoy the custom music experience!"),
+//                                            false,
+//                                            false
+//                                    )
+//                            );
+//
+//                            packManager.tryInformRecommendation(player, finishedPackId, false);
+
+                            if (jobStatusResponse.processedSongs().isEmpty()) {
+                                System.out.println("No processed songs found in the job response.");
+                                taskRef.get().cancel();
+                                return;
+                            }
+
+                            ResourcePack pack = new ResourcePack(
+                                    finishedPackId,
+                                    downloadUrl,
+                                    "",
+                                    TextUtils.miniText("<#6a75af><b>Custom Jukebox Pack</b>"),
+                                    TextUtils.miniText("<#2b2f40>Enjoy the custom music experience!"),
+                                    false,
+                                    false
                             );
 
-                            packManager.tryInformRecommendation(player, finishedPackId, false);
+                            ResourcePackRequest request = ResourcePackRequest.resourcePackRequest()
+                                    .prompt(pack.promptMessage())
+                                    .replace(true).required(false)
+                                    .packs(pack.toPackInfo())
+                                    .build();
+
+                            player.sendResourcePacks(request.callback((uuid, status, audience) -> {
+
+                                if (status == ResourcePackStatus.DECLINED) {
+                                    System.out.println("Player declined the resource pack.");
+                                    return;
+                                }
+
+                                if (status == ResourcePackStatus.FAILED_DOWNLOAD) {
+                                    System.out.println("Resource pack download failed.");
+                                    return;
+                                }
+
+                                if (status != ResourcePackStatus.SUCCESSFULLY_LOADED) return;
+
+                                ProcessedSong firstSong = jobStatusResponse.processedSongs().getFirst();
+                                if (firstSong == null || firstSong.fileName() == null) {
+                                    System.out.println("No valid processed songs found.");
+                                    return;
+                                }
+
+                                player.sendMessage(TextUtils.miniText("<#6a75af>Your custom music pack has been loaded! Enjoy the tunes."));
+
+                                System.out.println("Resource Pack Status for " + player.getUsername() + ": " + status.name() + " (Pack ID: " + finishedPackId + ")");
+
+                                scheduler.scheduleTask(() -> {
+                                    System.out.println("Playing song: " + firstSong.title() + " (" + firstSong.fileName() + ")");
+                                    System.out.println("lobby:music." + firstSong.fileName());
+
+                                    // lobby:music.9d9c4136-fd5f-4ef0-af9e-cdec6a1cde5d
+                                    Key musicKey = Key.key("lobby", "music." + firstSong.fileName());
+                                    Sound musicSound = Sound.sound(musicKey, Sound.Source.RECORD, 0.6f, 1.0f);
+
+                                    player.playSound(musicSound);
+                                    player.sendMessage(TextUtils.miniText("<#6a75af><b>Now playing:</b> " + firstSong.title()));
+
+                                }, TaskSchedule.seconds(3), TaskSchedule.stop());
+
+                            }));
                         }
 
                         taskRef.get().cancel();
-                    } else if (jobStatusResponse.state == MusicPackJobState.Failed.getValue()) {
+                    } else if (jobStatusResponse.state() == MusicPackJobState.Failed.getValue()) {
                         System.out.println("Music pack job failed: " + jobStatusResponse.errorMessage());
                         taskRef.get().cancel();
                     }
@@ -90,56 +177,17 @@ public class JukeboxBlockHandler2 implements BlockHandler {
             taskRef.set(task);
         });
 
-
         return true;
     }
 
     private final Gson gson = new Gson();
 
-    record QueueSongRequest(List<String> trackUrls) {
-    }
-
-    record QueueSongResponse(String id) {
-    }
-
-    record JobStatusResponse(
-            int state,
-            @Nullable UUID finishedPackId,
-            @Nullable String downloadUrl,
-            @Nullable String errorMessage
-    ) {
-    }
-
-    enum MusicPackJobState {
-        Pending(0),
-        Queued(1),
-        Started(2),
-        Completed(3),
-        Failed(4);
-
-        private final int value;
-
-        MusicPackJobState(int value) {
-            this.value = value;
-        }
-
-        public int getValue() {
-            return value;
-        }
-    }
-
-    private CompletableFuture<UUID> queueSongs(Player player, List<String> songUrls) {
-        return new AsyncRequest<UUID>() {
-
-            // POST http://localhost:5173/music-pack-jobs
-            // Body: { "trackUrls": ["url", "url"] }
-
-            // Returns 202 Accepted
-            // Response body: { "id": "019b8f80-785b-77f0-a8a1-a571e228f92a" }
+    private CompletableFuture<QueueSongsResponse> queueSongs(Player player, List<String> songUrls) {
+        return new AsyncRequest<QueueSongsResponse>() {
 
             @Override
-            protected @Nullable UUID requestAsync() throws Exception {
-                String json = gson.toJson(new QueueSongRequest(songUrls));
+            protected @Nullable QueueSongsResponse requestAsync() throws Exception {
+                String json = gson.toJson(new QueueSongsRequest(songUrls));
                 HttpRequest.BodyPublisher body = HttpRequest.BodyPublishers.ofString(json);
 
                 HttpResponse<String> response = simplePost(URI.create("http://localhost:5173/music-pack-jobs"), body);
@@ -147,19 +195,13 @@ public class JukeboxBlockHandler2 implements BlockHandler {
                     throw new Exception("API returned " + response.statusCode() + ", expected 202");
                 }
 
-                QueueSongResponse queueSongResponse = gson.fromJson(response.body(), QueueSongResponse.class);
-                return UUID.fromString(queueSongResponse.id);
+                return gson.fromJson(response.body(), QueueSongsResponse.class);
             }
         }.execute().getFuture();
     }
 
     private CompletableFuture<JobStatusResponse> getJobStatus(UUID jobId) {
         return new AsyncRequest<JobStatusResponse>() {
-
-            // GET http://localhost:5173/music-pack-jobs/{jobId}
-
-            // Returns 200 OK
-            // Response body: { "state": 0, "finishedPackId": "019b8f80-785b-77f0-a8a1-a571e228f92a", "errorMessage": null }
 
             @Override
             protected @Nullable JobStatusResponse requestAsync() throws Exception {

@@ -1,4 +1,4 @@
-package nl.devpieter.features.jukebox.models;
+package nl.devpieter.features.jukebox.models.old;
 
 import net.kyori.adventure.sound.Sound;
 import org.jetbrains.annotations.NotNull;

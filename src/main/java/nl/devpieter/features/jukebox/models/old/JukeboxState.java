@@ -1,4 +1,4 @@
-package nl.devpieter.features.jukebox.models;
+package nl.devpieter.features.jukebox.models.old;
 
 import net.kyori.adventure.text.Component;
 import net.minestom.server.coordinate.Vec;
