@@ -1,4 +1,4 @@
-FROM openjdk:25-jdk-slim
+FROM eclipse-temurin:25-jdk
 WORKDIR /app
 
 COPY build.gradle.kts settings.gradle.kts /app/

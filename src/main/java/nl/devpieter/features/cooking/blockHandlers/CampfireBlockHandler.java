@@ -8,6 +8,7 @@ import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.component.DataComponents;
 import net.minestom.server.entity.Player;
+import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventNode;
 import net.minestom.server.event.inventory.InventoryPreClickEvent;
@@ -18,7 +19,6 @@ import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.InventoryType;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
-import net.minestom.server.item.component.TooltipDisplay;
 import net.minestom.server.tag.Tag;
 import nl.devpieter.features.cooking.models.CampfireItem;
 import nl.devpieter.models.BlockHolder;
@@ -31,8 +31,31 @@ public class CampfireBlockHandler implements BlockHandler {
     private static final int MAX_SLOTS = 4;
     private final HashMap<Integer, CampfireItem> campfireItems = new HashMap<>();
 
+    private long lastInventoryClickTime = 0;
+
+    @Override
+    public @NotNull Key getKey() {
+        return Key.key("pieter_space", "campfire");
+    }
+
+    @Override
+    public @NotNull Collection<Tag<?>> getBlockEntityTags() {
+        return List.of(
+                Tag.NBT("Items"),
+                Tag.NBT("CookingTimes"),
+                Tag.NBT("CookingTotalTimes")
+        );
+    }
+
+    @Override
+    public boolean isTickable() {
+        return true;
+    }
+
     @Override
     public boolean onInteract(Interaction interaction) {
+        if (interaction.getHand() != PlayerHand.MAIN) return false;
+
         Player player = interaction.getPlayer();
 
         String lit = interaction.getBlock().getProperty("lit");
@@ -70,6 +93,9 @@ public class CampfireBlockHandler implements BlockHandler {
                 .addListener(InventoryPreClickEvent.class, event -> {
                     event.setCancelled(true);
 
+                    if (System.currentTimeMillis() - lastInventoryClickTime < 200) return;
+                    lastInventoryClickTime = System.currentTimeMillis();
+
                     ItemStack clickedItem = event.getClickedItem();
                     if (clickedItem.material() == Material.AIR || clickedItem.material() == Material.GRAY_STAINED_GLASS_PANE) {
                         return;
@@ -98,36 +124,20 @@ public class CampfireBlockHandler implements BlockHandler {
     }
 
     @Override
-    public @NotNull Key getKey() {
-        return Key.key("pieter_space", "campfire");
-    }
-
-    @Override
-    public @NotNull Collection<Tag<?>> getBlockEntityTags() {
-        return List.of(
-                Tag.NBT("Items"),
-                Tag.NBT("CookingTimes"),
-                Tag.NBT("CookingTotalTimes")
-        );
-    }
-
-    @Override
-    public boolean isTickable() {
-        return true;
-    }
-
-    @Override
     public void tick(Tick tick) {
         String lit = tick.getBlock().getProperty("lit");
         if (lit == null || lit.equals("false")) return;
 
-        for (Map.Entry<Integer, CampfireItem> entry : campfireItems.entrySet()) {
+        Iterator<Map.Entry<Integer, CampfireItem>> iterator = campfireItems.entrySet().iterator();
+
+        while (iterator.hasNext()) {
+            Map.Entry<Integer, CampfireItem> entry = iterator.next();
             CampfireItem campfireItem = entry.getValue();
 
             if (campfireItem.cookingTime() < campfireItem.totalCookingTime()) {
                 campfireItem.setCookingTime(campfireItem.cookingTime() + 1);
             } else {
-                campfireItems.remove(entry.getKey());
+                iterator.remove();
             }
         }
 

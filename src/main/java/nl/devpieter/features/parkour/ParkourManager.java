@@ -2,6 +2,7 @@ package nl.devpieter.features.parkour;
 
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Point;
@@ -17,9 +18,12 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
+import net.minestom.server.thread.Acquirable;
 import net.minestom.server.timer.TaskSchedule;
-import nl.devpieter.LobbyPlayer;
+import nl.devpieter.TagHelper;
 import nl.devpieter.config.EnvStatics;
+import nl.devpieter.entities.LobbyPlayer;
+import nl.devpieter.enums.PlayerTags;
 import nl.devpieter.features.parkour.decodables.*;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
@@ -31,6 +35,7 @@ import nl.devpieter.features.parkour.models.parkourTry.ReachedNode;
 import nl.devpieter.features.signs.SignDecoder;
 import nl.devpieter.features.signs.SignManager;
 import nl.devpieter.features.signs.models.SignHolder;
+import nl.devpieter.features.tips.MsgManager;
 import nl.devpieter.features.tips.TipManager;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
@@ -53,9 +58,13 @@ public class ParkourManager {
 
     private final ComponentLogger logger = MinecraftServer.LOGGER;
 
+    private final MsgManager msgManager = MsgManager.getInstance();
     private final TipManager tipManager = TipManager.getInstance();
     private final SignManager signManager = SignManager.getInstance();
     private final WorldManager worldManager = WorldManager.getInstance();
+
+    private final ParkourTryManager parkourTryManager = ParkourTryManager.getInstance();
+    private final ParkourReplayManager replayManager = ParkourReplayManager.getInstance();
 
     private final List<Entity> debugMarkers = new ArrayList<>();
     private final HashMap<String, ParkourSpawnNode> spawnNodes = new HashMap<>();
@@ -238,8 +247,6 @@ public class ParkourManager {
             Component text = TextUtils.combine(
                     TextUtils.miniText("<#fcba03><b>Leaderboard"),
                     Component.newline(),
-                    TextUtils.miniText("<gray>Coming Soon!"),
-                    Component.newline(),
                     Component.newline(),
                     TextUtils.miniText("<gray><i>Stats are currently <b><red>NOT</red></b> saved!")
             );
@@ -256,7 +263,7 @@ public class ParkourManager {
                 textDisplayMeta.setHasNoGravity(true);
             });
 
-            parkour.setLeaderboardEntity(entity);
+            parkour.setLeaderboardEntity(entity.acquirable());
         }
 
         parkours.put(parkour.id(), parkour);
@@ -284,8 +291,11 @@ public class ParkourManager {
                 if (node.isCheckpoint()) instance.setBlock(point, Block.AIR);
             }
 
-            Entity leaderboardEntity = parkour.leaderboardEntity();
-            if (leaderboardEntity != null) leaderboardEntity.remove();
+//            Entity leaderboardEntity = parkour.leaderboardEntity();
+//            if (leaderboardEntity != null) leaderboardEntity.remove();
+
+            Acquirable<? extends Entity> leaderboardEntityAcquirable = parkour.leaderboardEntity();
+            if (leaderboardEntityAcquirable != null) leaderboardEntityAcquirable.sync(Entity::remove);
         }
 
         parkours.clear();
@@ -428,11 +438,19 @@ public class ParkourManager {
         return parkour.endPos();
     }
 
-    public void startParkour(@NotNull Player player, @NotNull String parkourUuid) {
+    public void startParkour(@NotNull LobbyPlayer player, @NotNull String parkourUuid) {
         if (players.containsKey(player.getUuid())) return;
 
         Parkour parkour = parkours.get(parkourUuid);
         if (parkour == null) return;
+
+        if (!TagHelper.canStartParkour(player)) {
+            return;
+        }
+
+        if (!player.addTag(PlayerTags.IN_PARKOUR)) {
+            return;
+        }
 
         invalidateReturnToStart(player);
 
@@ -443,22 +461,19 @@ public class ParkourManager {
         glowingHolders.put(player.getUuid(), PacketUtils.replaceWithGlowing(player, nextCheckpoint));
         PacketUtils.setWaypoint(player, parkourUuid, nextCheckpoint);
 
-        if (player instanceof LobbyPlayer lobbyPlayer) {
-            ItemStack cancelItem = ItemStack.of(Material.BARRIER);
-            ItemStack checkpointItem = ItemStack.of(Material.SPRUCE_PRESSURE_PLATE);
+        player.fillDynamicInventory(
+                new SlotHolder(0, ItemStack.of(Material.BARRIER)),
+                new SlotHolder(4, ItemStack.of(Material.SPRUCE_PRESSURE_PLATE))
+        );
+        player.switchToDynamicInventory();
 
-            lobbyPlayer.fillDynamicInventory(
-                    new SlotHolder(0, checkpointItem),
-                    new SlotHolder(4, cancelItem)
-            );
-
-            lobbyPlayer.switchToDynamicInventory();
-        }
 
         players.put(player.getUuid(), new ParkourTry(
                 parkourUuid,
                 player.getUuid()
         ));
+
+        replayManager.startTracking(player);
     }
 
     public void cancelParkour(@NotNull Player player, ParkourCancelReason reason) {
@@ -481,7 +496,7 @@ public class ParkourManager {
         }
 
         parkourTry.cancel(reason);
-        handleCleanup(player, parkourTry);
+        handleCleanup(player, parkour, parkourTry);
     }
 
     public void returnToCheckpoint(@NotNull Player player, @NotNull ParkourFailReason reason) {
@@ -511,7 +526,7 @@ public class ParkourManager {
             PlayerUtils.teleport(player, currentCheckpointNode.pos());
         }
 
-        player.sendMessage(TextUtils.miniText("<red>You failed the jump!"));
+        player.sendActionBar(TextUtils.miniText("<red>You failed the jump!"));
         player.playSound(Sound.sound(SoundEvent.ENTITY_VILLAGER_NO, Sound.Source.MASTER, 1.0f, 1.0f));
 
         if (lastReachedIndex < 0 || lastReachedIndex >= parkour.nodes().size()) return;
@@ -543,7 +558,7 @@ public class ParkourManager {
 
         if (i > expectedIndex) {
             if (nodes.subList(expectedIndex, i).stream().anyMatch(ParkourNode::isCheckpoint)) {
-                player.sendMessage(TextUtils.miniText("<red>You must reach the next checkpoint first!"));
+                msgManager.showMessage(player, "parkour_must_reach_checkpoint_first", "<red>You must reach the next checkpoint first!");
                 return;
             }
 
@@ -577,18 +592,12 @@ public class ParkourManager {
         if (!PlayerUtils.isInsideBox(player, parkour.endPos(), parkour.endBox())) return;
 
         if (!hasReachedAllCheckpoints(player)) {
-            player.sendMessage(TextUtils.miniText("<red>You must reach all checkpoints before finishing!"));
+            msgManager.showMessage(player, "parkour_must_reach_all_checkpoints", "<red>You must reach all checkpoints before finishing!");
             return;
         }
 
         parkourTry.finish();
-        handleCleanup(player, parkourTry);
-
-        long timeMs = parkourTry.endTime() - parkourTry.startTime();
-        String time = TextUtils.getFormattedTime(timeMs, true, false);
-
-        player.sendMessage(TextUtils.miniText("<green>Parkour finished in <b>%s</b>!", time));
-        player.playSound(Sound.sound(SoundEvent.ENTITY_PLAYER_LEVELUP, Sound.Source.MASTER, 1.0f, 1.0f));
+        handleCleanup(player, parkour, parkourTry);
     }
 
     public void useReturnToStart(@NotNull Player player) {
@@ -646,7 +655,7 @@ public class ParkourManager {
     }
 
     private void handleCheckpointReached(@NotNull Player player, @NotNull String parkourId) {
-        player.sendMessage(TextUtils.miniText("<yellow>Checkpoint reached!"));
+        player.sendActionBar(TextUtils.miniText("<yellow>Checkpoint reached!"));
         player.playSound(Sound.sound(SoundEvent.ENTITY_EXPERIENCE_ORB_PICKUP, Sound.Source.MASTER, 1.0f, 0.8f));
 
         GlowingBlockHolder holder = glowingHolders.remove(player.getUuid());
@@ -661,34 +670,53 @@ public class ParkourManager {
         PacketUtils.updateWaypoint(player, parkourId, nextCheckpoint);
     }
 
-    private void handleCleanup(@NotNull Player player, @NotNull ParkourTry parkourTry) {
-//        parkourTryManager.queueParkourTry(parkourTry);
-        players.remove(player.getUuid());
+    private void handleCleanup(@NotNull Player player, @NotNull Parkour parkour, @NotNull ParkourTry parkourTry) {
+        parkourTryManager.handleParkourTry(player, parkour, parkourTry);
 
+        // Revert player inventory and tags
         if (player instanceof LobbyPlayer lobbyPlayer) {
             lobbyPlayer.switchToMainInventory();
+            lobbyPlayer.removeTag(PlayerTags.IN_PARKOUR);
         }
 
+        players.remove(player.getUuid());
+
+        // Revert glowing block and waypoint
         GlowingBlockHolder holder = glowingHolders.remove(player.getUuid());
         if (holder != null) PacketUtils.revertToOriginalBlock(player, holder);
 
         PacketUtils.removeWaypoint(player, parkourTry.parkourId());
 
-        Parkour parkour = getParkour(parkourTry.parkourId());
-        if (parkour == null || parkour.spawnPos() == null) return;
+        // Create replay and send link
+        boolean hasFinished = parkourTry.hasFinished();
+        UUID replayId = replayManager.stopTracking(player, hasFinished);
+
+        if (hasFinished && replayId != null) {
+            Component replay = TextUtils.miniText("<blue>[Watch]")
+                    .clickEvent(ClickEvent.runCommand(String.format("/replay parkour %s", replayId)));
+
+            player.sendMessage(TextUtils.combine(
+                    TextUtils.miniText("<gray><i>A replay of this attempt has been recorded</i>.</gray>"),
+                    Component.space(),
+                    replay
+            ));
+        }
+
+        // Setup return to start + tip
+        if (parkour.spawnPos() == null) return;
 
         returnHolders.put(player.getUuid(), new ParkourReturnHolder(
                 parkourTry.parkourId(),
                 MinecraftServer.getSchedulerManager().buildTask(() -> {
                     returnHolders.remove(player.getUuid());
-                }).delay(TaskSchedule.seconds(5)).schedule()
+                }).delay(TaskSchedule.seconds(10)).schedule()
         ));
 
         tipManager.showTipLater(
                 player,
                 "parkour_sneak_return_to_start",
-                Duration.ofSeconds(2),
-                "Press <b><key:key.sneak></b> to quickly return to the parkour starting point. <gray>(3 seconds left)"
+                Duration.ofSeconds(4),
+                "Press <b><key:key.sneak></b> to quickly return to the parkour starting point. <gray>(6 seconds left)"
         );
     }
 }

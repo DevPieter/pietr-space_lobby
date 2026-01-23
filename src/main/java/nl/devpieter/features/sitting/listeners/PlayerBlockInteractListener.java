@@ -6,6 +6,7 @@ import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerBlockInteractEvent;
 import net.minestom.server.instance.block.Block;
+import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.features.sitting.SitManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,7 +21,7 @@ public class PlayerBlockInteractListener implements EventListener<@NotNull Playe
 
     @Override
     public @NotNull Result run(@NotNull PlayerBlockInteractEvent event) {
-        Player player = event.getPlayer();
+        if (!(event.getPlayer() instanceof LobbyPlayer player)) return Result.SUCCESS;
         if (event.getHand() != PlayerHand.MAIN || !player.isSneaking()) return Result.SUCCESS;
 
         BlockVec block = event.getBlockPosition();

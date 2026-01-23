@@ -7,9 +7,10 @@ import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.LivingEntity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.instance.block.Block;
-import nl.devpieter.features.parkour.ParkourManager;
+import nl.devpieter.TagHelper;
+import nl.devpieter.entities.LobbyPlayer;
+import nl.devpieter.enums.PlayerTags;
 import nl.devpieter.utils.minestom.PlayerUtils;
-import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -18,8 +19,6 @@ import java.util.UUID;
 public class SitManager {
 
     private static SitManager INSTANCE;
-
-    private final ParkourManager parkourManager = ParkourManager.getInstance();
 
     private final HashMap<UUID, Entity> sittingPlayers = new HashMap<>();
 
@@ -31,11 +30,14 @@ public class SitManager {
         return INSTANCE;
     }
 
-    public void sitPlayer(@NotNull Player player, Block block, BlockVec blockVec) {
-        if (this.sittingPlayers.containsKey(player.getUuid())) return;
+    public void sitPlayer(@NotNull LobbyPlayer player, Block block, BlockVec blockVec) {
+        if (sittingPlayers.containsKey(player.getUuid())) return;
 
-        if (this.parkourManager.isDoingParkour(player)) {
-            player.sendMessage(TextUtils.miniText("<red>You cannot sit while doing a parkour!"));
+        if (!TagHelper.canSitPlayer(player)) {
+            return;
+        }
+
+        if (!player.addTag(PlayerTags.SITTING)) {
             return;
         }
 
@@ -52,21 +54,19 @@ public class SitManager {
         player.teleport(entity.getPosition().add(0, 1, 0));
 
         entity.addPassenger(player);
-        this.sittingPlayers.put(player.getUuid(), entity);
+        sittingPlayers.put(player.getUuid(), entity);
     }
 
-    public void standPlayer(@NotNull Player player) {
-        if (!this.sittingPlayers.containsKey(player.getUuid())) return;
+    public void standPlayer(@NotNull LobbyPlayer player) {
+        if (!sittingPlayers.containsKey(player.getUuid())) return;
 
-        Entity entity = this.sittingPlayers.get(player.getUuid());
+        Entity entity = sittingPlayers.get(player.getUuid());
         entity.removePassenger(player);
         entity.remove();
 
         PlayerUtils.teleport(player, player.getPosition().add(0, 1, 0));
-        this.sittingPlayers.remove(player.getUuid());
-    }
+        sittingPlayers.remove(player.getUuid());
 
-    public boolean isSitting(@NotNull Player player) {
-        return this.sittingPlayers.containsKey(player.getUuid());
+        player.removeTag(PlayerTags.SITTING);
     }
 }
