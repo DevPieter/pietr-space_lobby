@@ -1,11 +1,6 @@
 package nl.devpieter;
 
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.resource.ResourcePackInfo;
-import net.kyori.adventure.resource.ResourcePackInfoLike;
-import net.kyori.adventure.resource.ResourcePackRequest;
-import net.kyori.adventure.sound.Sound;
-import net.kyori.adventure.text.Component;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandManager;
@@ -35,6 +30,7 @@ import nl.devpieter.commands.world.*;
 import nl.devpieter.config.ConfigManager;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.entities.LobbyPlayer;
+import nl.devpieter.enums.PlayerTags;
 import nl.devpieter.features.cooking.blockHandlers.CampfireBlockHandler;
 import nl.devpieter.features.economy.money.MoneyManager;
 import nl.devpieter.features.economy.skills.SkillManager;
@@ -53,8 +49,6 @@ import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerMoveListener;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerSneakListener;
 import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
-import nl.devpieter.features.resourcePack.PackManager;
-import nl.devpieter.features.sitting.SitManager;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
 import nl.devpieter.features.world.WorldManager;
@@ -64,14 +58,12 @@ import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
 import nl.devpieter.models.BlockHolder;
 import nl.devpieter.sees.Sees;
-import nl.devpieter.utils.minestom.PlayerUtils;
 import nl.devpieter.utils.common.MathUtils;
+import nl.devpieter.utils.minestom.PlayerUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.slf4j.Logger;
 
-import java.net.URI;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Main {
@@ -145,7 +137,9 @@ public class Main {
                     .append(TextUtils.miniText("<#586373>!"))
             );
 
-            boolean isSitting = SitManager.getInstance().isSitting(player);
+            boolean isSitting = false;
+            if (player instanceof LobbyPlayer lobbyPlayer) isSitting = lobbyPlayer.hasTag(PlayerTags.SITTING);
+
             boolean isRaining = player.getInstance() != null && player.getInstance().getWeather().isRaining();
 
             int bonus = isRaining ? MathUtils.randomInt(1, 3) : 0;
