@@ -6,7 +6,6 @@ public record ReachedNode(
         long timestamp,
         boolean skipped
 ) {
-
     public static ReachedNode create(int nodeIndex, int reachedAtIndex, boolean skipped) {
         return new ReachedNode(nodeIndex, reachedAtIndex, System.currentTimeMillis(), skipped);
     }

@@ -1,9 +1,15 @@
 package nl.devpieter;
 
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.resource.ResourcePackInfo;
+import net.kyori.adventure.resource.ResourcePackInfoLike;
+import net.kyori.adventure.resource.ResourcePackRequest;
+import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.text.Component;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandManager;
+import net.minestom.server.entity.EntityPose;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerHand;
@@ -18,9 +24,9 @@ import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
-import nl.devpieter.features.cooking.blockHandlers.CampfireBlockHandler;
 import nl.devpieter.blockHandler.DoorBlockHandler;
 import nl.devpieter.blockHandler.SignBlockHandler;
+import nl.devpieter.commands.ReplayCommand;
 import nl.devpieter.commands.ServerCommand;
 import nl.devpieter.commands.TestCommand;
 import nl.devpieter.commands.TipCommand;
@@ -28,6 +34,8 @@ import nl.devpieter.commands.player.GamemodeCommand;
 import nl.devpieter.commands.world.*;
 import nl.devpieter.config.ConfigManager;
 import nl.devpieter.config.EnvStatics;
+import nl.devpieter.entities.LobbyPlayer;
+import nl.devpieter.features.cooking.blockHandlers.CampfireBlockHandler;
 import nl.devpieter.features.economy.money.MoneyManager;
 import nl.devpieter.features.economy.skills.SkillManager;
 import nl.devpieter.features.farming.FarmBlockHandler;
@@ -36,12 +44,16 @@ import nl.devpieter.features.fishing.FishingReferenceHolder;
 import nl.devpieter.features.fishing.catchable.ICatchable;
 import nl.devpieter.features.fishing.listeners.PlayerUseItemListener;
 import nl.devpieter.features.fishing.rod.IRod;
+import nl.devpieter.features.jukebox.blockHandlers.JukeboxBlockHandler;
 import nl.devpieter.features.parkour.ParkourManager;
+import nl.devpieter.features.parkour.ParkourReplayManager;
+import nl.devpieter.features.parkour.ParkourTryManager;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerMoveListener;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerSneakListener;
 import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
+import nl.devpieter.features.resourcePack.PackManager;
 import nl.devpieter.features.sitting.SitManager;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
@@ -52,11 +64,14 @@ import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
 import nl.devpieter.models.BlockHolder;
 import nl.devpieter.sees.Sees;
+import nl.devpieter.utils.minestom.PlayerUtils;
 import nl.devpieter.utils.common.MathUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.slf4j.Logger;
 
+import java.net.URI;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Main {
@@ -71,13 +86,15 @@ public class Main {
         boolean useVelocity = configManager.getBoolean("use_velocity_proxy");
         String velocitySecret = configManager.getString("velocity_proxy_secret");
 
-        Auth auth = useVelocity ? new Auth.Velocity(velocitySecret) : new Auth.Online();
+//        Auth auth = useVelocity ? new Auth.Velocity(velocitySecret) : new Auth.Online();
+        Auth auth = useVelocity ? new Auth.Velocity(velocitySecret) : new Auth.Offline();
         logger.info("Using authentication: {}", useVelocity ? "Velocity" : "Online");
 
         MinecraftServer server = MinecraftServer.init(auth);
         MinecraftServer.setBrandName("Pieter Space Lobby");
 
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:campfire"), CampfireBlockHandler::new);
+        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:jukebox"), JukeboxBlockHandler::new);
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:sign"), SignBlockHandler::new);
 
         // TODO - A bit hacky, but I don't know a better way yet
@@ -230,6 +247,44 @@ public class Main {
             event.setCancelled(true);
         });
 
+        MinecraftServer.getGlobalEventHandler().addListener(PlayerTickEvent.class, event -> {
+            Player player = event.getPlayer();
+
+            boolean isSprinting = player.isSprinting();
+            boolean hasLowHeadroom = PlayerUtils.hasLowHeadroom(player);
+            boolean isInWater = PlayerUtils.isPlayerInWater(player);
+
+            if (isInWater && hasLowHeadroom && isSprinting) {
+                player.setPose(EntityPose.SWIMMING);
+            }
+
+            if (!(isInWater && isSprinting)) {
+                if (player.getPose() == EntityPose.SWIMMING) {
+                    player.setPose(EntityPose.STANDING);
+                }
+            }
+        });
+
+//        eventHandler.addListener(PlayerStartSneakingEvent.class, event -> {
+//            Player player = event.getPlayer();
+//            PackManager packManager = PackManager.getInstance();
+//
+//            packManager.tryInformRecommendation(player, false);
+//
+////            if(packManager.hasAcceptedPack(player)) {
+//                System.out.println("Player " + player.getUsername() + " has accepted the resource pack.");
+//
+//                Sound sound = Sound.sound(
+//                        Key.key("lobby","music.joost.full-circle"),
+//                        Sound.Source.RECORD,
+//                        1.0f,
+//                        1.0f
+//                );
+//
+//                player.getInstance().playSound(sound, player.getPosition());
+////            }
+//        });
+
         CommandManager commandManager = MinecraftServer.getCommandManager();
 
         // Player
@@ -247,13 +302,15 @@ public class Main {
         commandManager.register(new WeatherCommand());
 
         // Misc
+        commandManager.register(new ReplayCommand());
         commandManager.register(new TipCommand());
         commandManager.register(new TestCommand());
         commandManager.register(new ServerCommand());
 
         MinecraftServer.getConnectionManager().setPlayerProvider(LobbyPlayer::new);
 
-//        ParkourTryManager.getInstance().start();
+        ParkourTryManager.getInstance().init();
+        ParkourReplayManager.getInstance().init();
         server.start("0.0.0.0", 25565);
     }
 

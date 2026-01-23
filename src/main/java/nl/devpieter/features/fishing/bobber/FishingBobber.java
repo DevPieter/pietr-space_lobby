@@ -15,13 +15,14 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.particle.Particle;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.utils.chunk.ChunkCache;
+import nl.devpieter.entities.LobbyPlayer;
+import nl.devpieter.enums.PlayerTags;
 import nl.devpieter.features.economy.skills.SkillManager;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.catchable.ICatchable;
 import nl.devpieter.features.fishing.enums.BobberState;
 import nl.devpieter.features.fishing.models.BobberSettings;
 import nl.devpieter.features.fishing.rod.IRod;
-import nl.devpieter.features.sitting.SitManager;
 import nl.devpieter.utils.common.MathUtils;
 import nl.devpieter.utils.minestom.ParticleUtils;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +33,6 @@ import java.util.Random;
 public class FishingBobber extends EntityCreature implements IBobber {
 
     private final FishingManager fishingManager = FishingManager.getInstance();
-    private final SitManager sitManager = SitManager.getInstance();
 
     public final Instance instance;
     private final IRod rod;
@@ -184,7 +184,11 @@ public class FishingBobber extends EntityCreature implements IBobber {
         int tickStep = 1;
 
         // Sitting players fish a bit faster
-        if (rng.nextFloat() < 0.25f && sitManager.isSitting(thrower)) {
+
+        boolean isSitting = false;
+        if (thrower instanceof LobbyPlayer player) isSitting = player.hasTag(PlayerTags.SITTING);
+
+        if (rng.nextFloat() < 0.25f && isSitting) {
             tickStep += 1;
         }
 

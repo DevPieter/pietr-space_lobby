@@ -5,11 +5,15 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
+import net.minestom.server.instance.Weather;
 import net.minestom.server.instance.anvil.AnvilLoader;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.events.WorldManagerInitializedEvent;
 import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.features.world.models.World;
+import nl.devpieter.features.world.models.settings.WorldSettings;
+import nl.devpieter.features.world.models.settings.WorldTimeSetting;
+import nl.devpieter.features.world.models.settings.WorldWeatherSetting;
 import nl.devpieter.sees.Sees;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,8 +65,17 @@ public class WorldManager {
             logger.info("Loading world: {} ({})", world.name(), world.id());
             InstanceContainer instance = instanceManager.createInstanceContainer();
 
-            instance.setTime(world.settings().time().time());
-            instance.setTimeRate(world.settings().time().cycle() ? 1 : 0);
+            WorldSettings settings = world.settings();
+
+            WorldTimeSetting timeSetting = settings.time();
+            instance.setTime(timeSetting.time());
+            instance.setTimeRate(timeSetting.cycle() ? 1 : 0);
+
+            WorldWeatherSetting weatherSetting = settings.weather();
+            if (weatherSetting.type().equalsIgnoreCase("rain")) instance.setWeather(Weather.RAIN);
+            else if (weatherSetting.type().equalsIgnoreCase("thunder")) instance.setWeather(Weather.THUNDER);
+            else instance.setWeather(Weather.CLEAR);
+
             instance.setChunkLoader(new AnvilLoader(EnvStatics.WORLD_DATA_PATH + "/" + world.id()));
 
             loadedWorlds.put(world.id(), new LoadedWorld(world, instance));

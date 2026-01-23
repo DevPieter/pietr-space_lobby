@@ -4,6 +4,8 @@ import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.instance.Instance;
+import net.minestom.server.thread.Acquirable;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -36,7 +38,8 @@ public class Parkour/*(
 
     private final List<ParkourNode> nodes;
 
-    private Entity leaderboardEntity;
+    private Acquirable<@NotNull ? extends Entity> leaderboardEntityAcquirable;
+//    private Entity leaderboardEntity;
 
     public Parkour(String id, String worldId, Instance instance, @Nullable ParkourSpawnNode spawnNode, @Nullable ParkourLeaderboardNode leaderboardNode, ParkourStartNode startNode, ParkourEndNode endNode, List<ParkourNode> nodes) {
         this.id = id;
@@ -85,13 +88,21 @@ public class Parkour/*(
         return nodes;
     }
 
-    public Entity leaderboardEntity() {
-        return leaderboardEntity;
+    public @Nullable Acquirable<@NotNull ? extends Entity> leaderboardEntity() {
+        return leaderboardEntityAcquirable;
     }
 
-    public void setLeaderboardEntity(Entity leaderboardEntity) {
-        this.leaderboardEntity = leaderboardEntity;
+    public void setLeaderboardEntity(Acquirable<@NotNull ? extends Entity> leaderboardEntity) {
+        this.leaderboardEntityAcquirable = leaderboardEntity;
     }
+
+//    public Entity leaderboardEntity() {
+//        return leaderboardEntity;
+//    }
+//
+//    public void setLeaderboardEntity(Entity leaderboardEntity) {
+//        this.leaderboardEntity = leaderboardEntity;
+//    }
 
     public @Nullable Pos spawnPos() {
         if (spawnNode == null) return null;

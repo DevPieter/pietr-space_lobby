@@ -47,7 +47,11 @@ public class TipManager {
     }
 
     public void showTipLater(@NotNull Player player, @NotNull String id, Duration delay, @NotNull String prefix, @NotNull String message) {
-        scheduler.buildTask(() -> showTip(player, id, prefix, message)).delay(delay).schedule();
+        showTipLater(player, id, delay, prefix, message, true);
+    }
+
+    public void showTipLater(@NotNull Player player, @NotNull String id, Duration delay, @NotNull String prefix, @NotNull String message, boolean sound) {
+        scheduler.buildTask(() -> showTip(player, id, prefix, message, true)).delay(delay).schedule();
     }
 
     public void showTip(@NotNull Player player, @NotNull String id, @NotNull String message) {
@@ -55,6 +59,21 @@ public class TipManager {
     }
 
     public void showTip(@NotNull Player player, @NotNull String id, @NotNull String prefix, @NotNull String message) {
+        showTip(player, id, prefix, message, true);
+    }
+
+    public void showTip(@NotNull Player player, @NotNull String id, @NotNull String prefix, @NotNull String message, boolean sound) {
+        showTip(player, id, TextUtils.combine(
+                TextUtils.miniText("<#e8e827><b>["),
+                TextUtils.miniText("<#e8e827><b>%s", prefix),
+                TextUtils.miniText("<#e8e827><b>]"),
+                Component.space(),
+                TextUtils.miniText("<#f0f097>%s", message)
+        ), sound);
+    }
+
+    public void showTip(@NotNull Player player, @NotNull String id, @NotNull Component message, boolean sound) {
+        removeExpiredTips(player);
         if (!canShowTip(player, id)) return;
 
         List<TipHolder> tipHolders = tips.computeIfAbsent(player.getUuid(), _ -> new ArrayList<>());
@@ -66,16 +85,12 @@ public class TipManager {
                 .clickEvent(ClickEvent.runCommand(String.format("/tip ignore %s true", id)));
 
         player.sendMessage(TextUtils.combine(
-                TextUtils.miniText("<#e8e827><b>["),
-                TextUtils.miniText("<#e8e827><b>%s", prefix),
-                TextUtils.miniText("<#e8e827><b>]"),
-                Component.space(),
-                TextUtils.miniText("<#f0f097>%s", message),
+                message,
                 Component.space(),
                 ignore
         ));
 
-        playSoundEffect(player);
+        if (sound) playSoundEffect(player);
     }
 
     public void disableTips(@NotNull Player player, boolean disable) {
@@ -143,6 +158,14 @@ public class TipManager {
         }
 
         return null;
+    }
+
+    private void removeExpiredTips(@NotNull Player player) {
+        List<TipHolder> tipHolders = tips.get(player.getUuid());
+        if (tipHolders == null) return;
+
+        long currentTime = System.currentTimeMillis();
+        tipHolders.removeIf(tipHolder -> (currentTime - tipHolder.timestamp()) >= TIP_COOLDOWN.toMillis());
     }
 
     private static void playSoundEffect(Player player) {
