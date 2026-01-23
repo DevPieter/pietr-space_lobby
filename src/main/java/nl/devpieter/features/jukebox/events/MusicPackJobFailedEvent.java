@@ -4,5 +4,5 @@ import nl.devpieter.sees.event.SEvent;
 
 import java.util.UUID;
 
-public record MusicJobFailedEvent(UUID jobId) implements SEvent {
+public record MusicPackJobFailedEvent(UUID jobId) implements SEvent {
 }

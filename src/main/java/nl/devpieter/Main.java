@@ -73,8 +73,7 @@ public class Main {
         boolean useVelocity = configManager.getBoolean("use_velocity_proxy");
         String velocitySecret = configManager.getString("velocity_proxy_secret");
 
-//        Auth auth = useVelocity ? new Auth.Velocity(velocitySecret) : new Auth.Online();
-        Auth auth = useVelocity ? new Auth.Velocity(velocitySecret) : new Auth.Offline();
+        Auth auth = useVelocity ? new Auth.Velocity(velocitySecret) : new Auth.Online();
         logger.info("Using authentication: {}", useVelocity ? "Velocity" : "Online");
 
         MinecraftServer server = MinecraftServer.init(auth);

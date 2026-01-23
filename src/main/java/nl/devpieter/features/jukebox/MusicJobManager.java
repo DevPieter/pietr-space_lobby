@@ -6,15 +6,14 @@ import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.api.request.AsyncRequest;
 import nl.devpieter.features.jukebox.enums.MusicPackJobState;
-import nl.devpieter.features.jukebox.events.MusicJobFailedEvent;
-import nl.devpieter.features.jukebox.events.MusicJobFinishedEvent;
-import nl.devpieter.features.jukebox.events.MusicJobStatusUpdateEvent;
+import nl.devpieter.features.jukebox.events.MusicPackJobFailedEvent;
+import nl.devpieter.features.jukebox.events.MusicPackJobFinishedEvent;
+import nl.devpieter.features.jukebox.events.MusicPackJobStatusUpdateEvent;
 import nl.devpieter.features.jukebox.models.FinishedJobData;
 import nl.devpieter.features.jukebox.models.JobStatusResponse;
 import nl.devpieter.features.jukebox.models.QueueSongsRequest;
 import nl.devpieter.features.jukebox.models.QueueSongsResponse;
 import nl.devpieter.sees.Sees;
-import nl.devpieter.sees.annotations.SEventListener;
 import nl.devpieter.sees.listener.SListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,8 +34,6 @@ public class MusicJobManager implements SListener {
     private final Gson gson = new Gson();
     private final Sees sees = Sees.getInstance();
     private final Scheduler scheduler = MinecraftServer.getSchedulerManager();
-
-//    private final List<String> preQueuedSongs = new ArrayList<>();
 
     private final List<UUID> activeJobs = new ArrayList<>();
     private final HashMap<UUID, FinishedJobData> finishedJobs = new HashMap<>();
@@ -63,20 +60,57 @@ public class MusicJobManager implements SListener {
 
                     System.out.println("Job " + jobId + " is in state " + response.getJobState());
 
-                    if (response.getJobState() == MusicPackJobState.Completed) {
-                        sees.dispatch(new MusicJobFinishedEvent(jobId, new FinishedJobData(
-                                response.downloadUrl(),
-                                response.processedSongs()
-                        )));
-                    } else if (response.getJobState() == MusicPackJobState.Failed) {
-                        sees.dispatch(new MusicJobFailedEvent(jobId));
+                    // This should never happen, but just in case.
+                    if (finishedJobs.containsKey(jobId)) {
+                        activeJobs.remove(jobId);
+                        return null;
                     }
 
-                    sees.dispatch(new MusicJobStatusUpdateEvent(jobId, response.getJobState()));
+                    if (response.getJobState() == MusicPackJobState.Completed) {
+
+                        if (response.finishedPackId() == null
+                                || response.downloadUrl() == null
+                                || response.processedSongs() == null
+                        ) {
+                            System.out.println("Job " + jobId + " is marked as completed but is missing data.");
+
+                            activeJobs.remove(jobId);
+                            sees.dispatch(new MusicPackJobFailedEvent(jobId));
+                            return null;
+                        }
+
+                        FinishedJobData jobData = new FinishedJobData(
+                                response.finishedPackId(),
+                                response.downloadUrl(),
+                                response.processedSongs()
+                        );
+
+                        finishedJobs.put(jobId, jobData);
+                        activeJobs.remove(jobId);
+
+                        sees.dispatch(new MusicPackJobFinishedEvent(jobId, jobData));
+                    } else if (response.getJobState() == MusicPackJobState.Failed) {
+                        activeJobs.remove(jobId);
+                        sees.dispatch(new MusicPackJobFailedEvent(jobId));
+                    }
+
+                    sees.dispatch(new MusicPackJobStatusUpdateEvent(jobId, response.getJobState()));
                     return null;
                 });
             }
         }, TaskSchedule.nextTick(), TaskSchedule.seconds(3));
+    }
+
+    public boolean isJobActive(@NotNull UUID jobId) {
+        return activeJobs.contains(jobId);
+    }
+
+    public boolean isJobFinished(@NotNull UUID jobId) {
+        return finishedJobs.containsKey(jobId);
+    }
+
+    public @Nullable FinishedJobData getJobData(@NotNull UUID jobId) {
+        return finishedJobs.get(jobId);
     }
 
     public CompletableFuture<@Nullable UUID> queueJobAsync(List<String> songsToQueue) {
@@ -89,18 +123,6 @@ public class MusicJobManager implements SListener {
             activeJobs.add(response.id());
             return response.id();
         });
-    }
-
-    @SEventListener
-    public void onMusicJobFinished(MusicJobFinishedEvent event) {
-        UUID jobId = event.jobId();
-        finishedJobs.put(jobId, event.finishedJobData());
-        activeJobs.remove(jobId);
-    }
-
-    @SEventListener
-    public void onMusicJobFailed(MusicJobFailedEvent event) {
-        activeJobs.remove(event.jobId());
     }
 
     private @NotNull CompletableFuture<@Nullable QueueSongsResponse> sendQueueRequestAsync(QueueSongsRequest request) {

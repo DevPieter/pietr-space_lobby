@@ -5,5 +5,5 @@ import nl.devpieter.sees.event.SEvent;
 
 import java.util.UUID;
 
-public record MusicJobFinishedEvent(UUID jobId, FinishedJobData finishedJobData) implements SEvent {
+public record MusicPackJobFinishedEvent(UUID jobId, FinishedJobData finishedJobData) implements SEvent {
 }
