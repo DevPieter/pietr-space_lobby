@@ -11,7 +11,10 @@ import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.signs.models.SignHolder;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
+import nl.devpieter.features.world.models.settings.WorldMarkerSignsSetting;
+import nl.devpieter.features.world.models.settings.WorldSettings;
 import nl.devpieter.models.BlockHolder;
+import nl.devpieter.models.SimpleVec;
 import nl.devpieter.utils.minestom.TextUtils;
 import nl.devpieter.utils.minestom.WorldUtils;
 
@@ -22,9 +25,6 @@ import java.util.List;
 public class SignManager {
 
     private static SignManager INSTANCE;
-
-    private static final int SCAN_RADIUS = 64;
-    private static final Vec SCAN_CENTER = new Vec(0, 64, 0);
     private static final String MARKED_SIGN_PREFIX = "[PTR]";
 
     private final ComponentLogger logger = MinecraftServer.LOGGER;
@@ -61,10 +61,32 @@ public class SignManager {
         logger.info("Scanning instance {} for marked signs...", id);
         List<Point> locations = new ArrayList<>();
 
-        locations.addAll(WorldUtils.findBlocks(instance, SCAN_CENTER, SCAN_RADIUS, Block.OAK_SIGN));
-        locations.addAll(WorldUtils.findBlocks(instance, SCAN_CENTER, SCAN_RADIUS, Block.OAK_WALL_SIGN));
-        locations.addAll(WorldUtils.findBlocks(instance, SCAN_CENTER, SCAN_RADIUS, Block.OAK_HANGING_SIGN));
-        locations.addAll(WorldUtils.findBlocks(instance, SCAN_CENTER, SCAN_RADIUS, Block.OAK_WALL_HANGING_SIGN));
+        WorldSettings settings = world.world().settings();
+        WorldMarkerSignsSetting markerSettings = settings.markerSigns();
+
+        if (!markerSettings.enabled()) {
+            logger.info("Marker signs are disabled for instance {}.", id);
+            return;
+        }
+
+        SimpleVec centerSetting = markerSettings.center();
+        if (centerSetting == null) {
+            logger.info("No center defined for marker signs in instance {}.", id);
+            return;
+        }
+
+        Vec scanCenter = centerSetting.toVec();
+        int scanRadius = markerSettings.scanRadius();
+
+        if (scanRadius <= 0) {
+            logger.info("Invalid scan radius for marker signs in instance {}.", id);
+            return;
+        }
+
+        locations.addAll(WorldUtils.findBlocks(instance, scanCenter, scanRadius, Block.OAK_SIGN));
+        locations.addAll(WorldUtils.findBlocks(instance, scanCenter, scanRadius, Block.OAK_WALL_SIGN));
+        locations.addAll(WorldUtils.findBlocks(instance, scanCenter, scanRadius, Block.OAK_HANGING_SIGN));
+        locations.addAll(WorldUtils.findBlocks(instance, scanCenter, scanRadius, Block.OAK_WALL_HANGING_SIGN));
 
         if (locations.isEmpty()) {
             logger.info("No signs found in the instance {}.", id);
