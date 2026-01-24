@@ -4,8 +4,11 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import org.jetbrains.annotations.NotNull;
 
-public record Song(@NotNull String title, @NotNull Key musicKey, long durationMillis) {
-
+public record Song(
+        @NotNull String title,
+        @NotNull Key musicKey,
+        long durationMillis
+) {
     public @NotNull Sound createSound() {
         return Sound.sound(
                 musicKey,

@@ -1,4 +1,4 @@
-package nl.devpieter.features.world.models;
+package nl.devpieter.models;
 
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;

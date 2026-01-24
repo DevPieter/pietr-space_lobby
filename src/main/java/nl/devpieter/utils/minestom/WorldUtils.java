@@ -58,7 +58,46 @@ public class WorldUtils {
         return entity;
     }
 
-    public static @NotNull List<Point> findBlocks(Instance instance, Point center, int radius, Block targetBlock) {
+//    public static @NotNull List<Point> findBlocks(Instance instance, Point center, int radius, Block targetBlock) {
+//        List<Point> found = new ArrayList<>();
+//
+//        int minX = center.blockX() - radius;
+//        int maxX = center.blockX() + radius;
+//
+//        int minY = Math.max(center.blockY() - radius, -64);
+//        int maxY = Math.min(center.blockY() + radius, 320);
+//
+//        int minZ = center.blockZ() - radius;
+//        int maxZ = center.blockZ() + radius;
+//
+//        for (int x = minX; x <= maxX; x++) {
+//            for (int y = minY; y <= maxY; y++) {
+//                for (int z = minZ; z <= maxZ; z++) {
+//                    if (center.distance(x, y, z) > radius) continue;
+//
+//                    Point pos = new Vec(x, y, z);
+//
+//                    if (!instance.isChunkLoaded(pos)) {
+//                        CompletableFuture<Chunk> future = instance.loadChunk(pos);
+//                        future.join();
+//                    }
+//
+//                    Block block = instance.getBlock(pos);
+//                    if (!block.compare(targetBlock)) continue;
+//
+//                    found.add(pos);
+//                }
+//            }
+//        }
+//
+//        return found;
+//    }
+
+    public static @NotNull List<Point> findBlocks(Instance instance, Point center, int radius, Block... targetBlocks) {
+        return findBlocks(instance, center, radius, List.of(targetBlocks));
+    }
+
+    public static @NotNull List<Point> findBlocks(Instance instance, Point center, int radius, List<Block> targetBlocks) {
         List<Point> found = new ArrayList<>();
 
         int minX = center.blockX() - radius;
@@ -83,9 +122,13 @@ public class WorldUtils {
                     }
 
                     Block block = instance.getBlock(pos);
-                    if (!block.compare(targetBlock)) continue;
 
-                    found.add(pos);
+                    for (Block targetBlock : targetBlocks) {
+                        if (!block.compare(targetBlock)) continue;
+
+                        found.add(pos);
+                        break;
+                    }
                 }
             }
         }

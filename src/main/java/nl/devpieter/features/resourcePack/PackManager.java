@@ -1,15 +1,17 @@
 package nl.devpieter.features.resourcePack;
 
-import net.kyori.adventure.resource.ResourcePackInfo;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.resource.ResourcePackRequest;
 import net.kyori.adventure.resource.ResourcePackStatus;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.entity.Player;
+import nl.devpieter.features.resourcePack.models.PackStatus;
+import nl.devpieter.features.resourcePack.models.ResourcePack;
 import nl.devpieter.features.tips.MsgManager;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,17 +21,34 @@ public class PackManager {
 
     private static PackManager INSTANCE;
 
+    public static final UUID MAIN_PACK = UUID.fromString("674a8d35-73d6-4d6c-b299-d321bd8c5a85");
+
     private final MsgManager msgManager = MsgManager.getInstance();
 
-    private final UUID resourcePackId = UUID.fromString("674a8d35-73d6-4d6c-b299-d321bd8c5a85");
-    private final String resourcePackUrl = "https://maven.pietr.space/snapshots/nl/devpieter/files/packs/PietrLobby-0.1.0+1.21.10.zip";
-    private final String resourcePackHash = "";
+    private final HashMap<UUID, List<UUID>> acceptedPlayers = new HashMap<>();
+    private final HashMap<UUID, List<UUID>> promptedPlayers = new HashMap<>();
+    private final HashMap<UUID, List<PackStatus>> playerPackStatuses = new HashMap<>();
 
-    private final List<UUID> acceptedPlayers = new ArrayList<>();
-    private final List<UUID> promptedPlayers = new ArrayList<>();
-    private final HashMap<UUID, ResourcePackStatus> playerPackStatuses = new HashMap<>();
+    private final HashMap<UUID, ResourcePack> resourcePacks = new HashMap<>();
 
     private PackManager() {
+        ResourcePack mainPack = new ResourcePack(
+                MAIN_PACK,
+                "https://maven.pietr.space/snapshots/nl/devpieter/files/packs/PietrLobby-0.1.1+1.21.10.zip",
+                "",
+                TextUtils.miniText("<#6a75af><b>Pietr 🚀 Space</b>, Full Lobby Experience"),
+                TextUtils.combine(
+                        Component.newline(),
+                        TextUtils.miniText("<#2b2f40>Enjoy the full lobby experience with our custom resource pack!"),
+                        Component.newline(),
+                        Component.newline(),
+                        TextUtils.miniText("<#2b2f40><i>Some features may not work properly without it.")
+                ),
+                true,
+                true
+        );
+
+        resourcePacks.put(mainPack.packId(), mainPack);
     }
 
     public static PackManager getInstance() {
@@ -37,67 +56,87 @@ public class PackManager {
         return INSTANCE;
     }
 
-    public boolean hasPackAccepted(@NotNull Player player) {
-        return acceptedPlayers.contains(player.getUuid());
+    public void registerResourcePack(@NotNull ResourcePack resourcePack) {
+        resourcePacks.put(resourcePack.packId(), resourcePack);
     }
 
-    public boolean hasPrompted(@NotNull Player player) {
-        return promptedPlayers.contains(player.getUuid());
+    public boolean hasPackAccepted(@NotNull Player player, UUID packId) {
+        List<UUID> acceptedPacks = acceptedPlayers.get(player.getUuid());
+        if (acceptedPacks == null) return false;
+
+        return acceptedPacks.contains(packId);
     }
 
-    public boolean hasPackLoaded(@NotNull Player player) {
-        ResourcePackStatus status = playerPackStatuses.getOrDefault(player.getUuid(), ResourcePackStatus.DECLINED);
-        return status == ResourcePackStatus.SUCCESSFULLY_LOADED || status == ResourcePackStatus.ACCEPTED;
+    public boolean hasPrompted(@NotNull Player player, UUID packId) {
+        List<UUID> promptedPacks = promptedPlayers.get(player.getUuid());
+        if (promptedPacks == null) return false;
+
+        return promptedPacks.contains(packId);
     }
 
-    public boolean canAutoPrompt(@NotNull Player player) {
-        return !hasPackLoaded(player) && hasPackAccepted(player);
+    public boolean hasPackLoaded(@NotNull Player player, UUID packId) {
+        PackStatus status = getPackStatus(player, packId);
+        if (status == null) return false;
+
+        return status.status() == ResourcePackStatus.SUCCESSFULLY_LOADED || status.status() == ResourcePackStatus.ACCEPTED;
     }
 
-    public void tryAutoPrompt(@NotNull Player player) {
-        if (canAutoPrompt(player)) promptResourcePack(player);
+    public boolean canAutoPrompt(@NotNull Player player, UUID packId) {
+        if (hasPackLoaded(player, packId)) return false;
+        if (!hasPackAccepted(player, packId)) return false;
+
+        ResourcePack pack = resourcePacks.get(packId);
+        if (pack == null) return false;
+
+        return pack.autoPrompt();
     }
 
-    public void tryInformRecommendation(@NotNull Player player, boolean required) {
-        if (hasPackLoaded(player)) return;
-        if (!hasPrompted(player)) promptResourcePack(player);
+    public void tryAutoPrompt(@NotNull Player player, UUID packId) {
+        if (canAutoPrompt(player, packId)) promptResourcePack(player, packId);
+    }
+
+    public void tryInformRecommendation(@NotNull Player player, UUID packId, boolean required) {
+        if (hasPackLoaded(player, packId)) return;
+        if (!hasPrompted(player, packId)) promptResourcePack(player, packId);
+
+        ResourcePack pack = resourcePacks.get(packId);
+        if (pack == null) return;
 
         msgManager.showMessage(
                 player,
                 "resource_pack_recommendation",
-                TextUtils.combine(required
-                                ? TextUtils.miniText("<red>This feature only works with the server resource pack enabled.")
-                                : TextUtils.miniText("<yellow>This feature works best with the server resource pack enabled."),
+                TextUtils.combine(required ?
+                                TextUtils.combine(
+                                        TextUtils.miniText("<red>This feature only works with the"),
+                                        Component.space(),
+                                        pack.displayName(),
+                                        Component.space(), TextUtils.miniText("<red>pack enabled.")
+                                ) :
+                                TextUtils.combine(
+                                        TextUtils.miniText("<yellow>This feature works best with the"),
+                                        Component.space(),
+                                        pack.displayName(),
+                                        Component.space(), TextUtils.miniText("<yellow>pack enabled.")
+                                ),
                         Component.newline(),
-                        TextUtils.miniText("<gray><i>You can enable the resource pack in your server settings.")
+                        TextUtils.miniText("<gray><i>You can accept server packs in your server settings.")
                 ),
                 required
         );
     }
 
-    private void promptResourcePack(@NotNull Player player) {
-        if (hasPrompted(player)) return;
-
-        ResourcePackInfo info = ResourcePackInfo.resourcePackInfo()
-                .id(resourcePackId).uri(URI.create(resourcePackUrl)).hash(resourcePackHash)
-                .build();
+    private void promptResourcePack(@NotNull Player player, UUID packId) {
+        ResourcePack pack = resourcePacks.get(packId);
+        if (pack == null) return;
 
         ResourcePackRequest request = ResourcePackRequest.resourcePackRequest()
-                .prompt(TextUtils.combine(
-                        Component.newline(),
-                        TextUtils.miniText("<#6a75af><b>Pietr 🚀 Space</b>, Full Lobby Experience"),
-                        Component.newline(),
-                        TextUtils.miniText("<#2b2f40>Enjoy the full lobby experience with our custom resource pack!"),
-                        Component.newline(),
-                        Component.newline(),
-                        TextUtils.miniText("<#2b2f40><i>Some features may not work properly without it.")
-                ))
+                .prompt(pack.promptMessage())
                 .replace(true).required(false)
-                .packs(info)
+                .packs(pack.toPackInfo(), resourcePacks.get(MAIN_PACK).toPackInfo()) // TODO - Add all currently loaded packs
                 .build();
 
-        player.sendResourcePacks(request.callback((_, status, _) -> updateStatus(player, status)));
-        promptedPlayers.add(player.getUuid());
+        player.sendResourcePacks(request.callback(this::updateStatus));
+        markPrompted(player.getUuid(), packId);
     }
 
     public void clearStatus(@NotNull Player player) {
@@ -105,33 +144,56 @@ public class PackManager {
         playerPackStatuses.remove(player.getUuid());
     }
 
-    private void updateStatus(@NotNull Player player, ResourcePackStatus status) {
-        playerPackStatuses.put(player.getUuid(), status);
+    private void updateStatus(@NotNull UUID packId, @NotNull ResourcePackStatus status, @NotNull Audience audience) {
+        if (!(audience instanceof Player player)) return;
 
-        boolean hasAccepted = acceptedPlayers.contains(player.getUuid());
+        System.out.println("Resource Pack Status for " + player.getUsername() + ": " + status.name() + " (Pack ID: " + packId + ")");
 
-        if (!hasAccepted && status == ResourcePackStatus.SUCCESSFULLY_LOADED) {
-            acceptedPlayers.add(player.getUuid());
+        List<PackStatus> statuses = playerPackStatuses.getOrDefault(player.getUuid(), new ArrayList<>());
 
-            msgManager.showMessage(
-                    player,
-                    "resource_pack_accepted",
-                    TextUtils.miniText("<green>Thank you for accepting the server resource pack! Enjoy the full experience."),
-                    false
-            );
+        PackStatus existingStatus = getPackStatus(player, packId);
+        if (existingStatus != null) statuses.remove(existingStatus);
+
+        statuses.add(new PackStatus(packId, status));
+        playerPackStatuses.put(player.getUuid(), statuses);
+
+        if (status == ResourcePackStatus.ACCEPTED) markAccepted(player.getUuid(), packId, true);
+        else if (status == ResourcePackStatus.DECLINED) markAccepted(player.getUuid(), packId, false);
+    }
+
+    private void markPrompted(@NotNull UUID playerId, UUID packId) {
+        List<UUID> promptedPacks = promptedPlayers.getOrDefault(playerId, new ArrayList<>());
+        if (promptedPacks.contains(packId)) return;
+
+        promptedPacks.add(packId);
+        promptedPlayers.put(playerId, promptedPacks);
+    }
+
+    private void markAccepted(@NotNull UUID playerId, UUID packId, boolean accepted) {
+        List<UUID> acceptedPacks = acceptedPlayers.getOrDefault(playerId, new ArrayList<>());
+
+        if (accepted) {
+            if (!acceptedPacks.contains(packId)) {
+                acceptedPacks.add(packId);
+                acceptedPlayers.put(playerId, acceptedPacks);
+            }
+        } else {
+            if (acceptedPacks.contains(packId)) {
+                acceptedPacks.remove(packId);
+                acceptedPlayers.put(playerId, acceptedPacks);
+            }
+        }
+    }
+
+    private @Nullable PackStatus getPackStatus(@NotNull Player player, UUID packId) {
+        List<PackStatus> statuses = playerPackStatuses.get(player.getUuid());
+        if (statuses == null) return null;
+
+        for (PackStatus status : statuses) {
+            if (!status.packId().equals(packId)) continue;
+            return status;
         }
 
-        if (hasAccepted && status == ResourcePackStatus.DECLINED) {
-            acceptedPlayers.remove(player.getUuid());
-        }
-
-        if (status == ResourcePackStatus.FAILED_RELOAD || status == ResourcePackStatus.FAILED_DOWNLOAD) {
-            msgManager.showMessage(
-                    player,
-                    "resource_pack_failed",
-                    TextUtils.miniText("<red>Failed to download the server resource pack. Some features may not work properly."),
-                    true
-            );
-        }
+        return null;
     }
 }
