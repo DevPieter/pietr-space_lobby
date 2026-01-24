@@ -1,14 +1,10 @@
 package nl.devpieter;
 
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.resource.ResourcePackInfo;
-import net.kyori.adventure.resource.ResourcePackInfoLike;
-import net.kyori.adventure.resource.ResourcePackRequest;
-import net.kyori.adventure.sound.Sound;
-import net.kyori.adventure.text.Component;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandManager;
+import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.EntityPose;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
@@ -34,6 +30,7 @@ import nl.devpieter.commands.player.GamemodeCommand;
 import nl.devpieter.commands.world.*;
 import nl.devpieter.config.ConfigManager;
 import nl.devpieter.config.EnvStatics;
+import nl.devpieter.entities.bee.BeeEntity;
 import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.features.cooking.blockHandlers.CampfireBlockHandler;
 import nl.devpieter.features.farming.FarmBlockHandler;
@@ -51,7 +48,6 @@ import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerMoveListener;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerSneakListener;
 import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
-import nl.devpieter.features.resourcePack.PackManager;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
 import nl.devpieter.features.world.WorldManager;
@@ -64,10 +60,9 @@ import nl.devpieter.sees.Sees;
 import nl.devpieter.utils.minestom.PlayerUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
+import nl.devpieter.utils.minestom.WorldUtils;
 import org.slf4j.Logger;
 
-import java.net.URI;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Main {
@@ -252,22 +247,19 @@ public class Main {
 
 //        eventHandler.addListener(PlayerStartSneakingEvent.class, event -> {
 //            Player player = event.getPlayer();
-//            PackManager packManager = PackManager.getInstance();
 //
-//            packManager.tryInformRecommendation(player, false);
+////            player.getInstance().
 //
-////            if(packManager.hasAcceptedPack(player)) {
-//                System.out.println("Player " + player.getUsername() + " has accepted the resource pack.");
+//            Point hive = WorldUtils.findBlocks(
+//                    player.getInstance(),
+//                    player.getPosition(),
+//                    50,
+//                    Block.BEE_NEST,
+//                    Block.BEEHIVE
+//            ).stream().findFirst().orElse(null);
 //
-//                Sound sound = Sound.sound(
-//                        Key.key("lobby","music.joost.full-circle"),
-//                        Sound.Source.RECORD,
-//                        1.0f,
-//                        1.0f
-//                );
-//
-//                player.getInstance().playSound(sound, player.getPosition());
-////            }
+//            BeeEntity bee = new BeeEntity(hive);
+//            bee.setInstance(player.getInstance(), player.getPosition().withY(player.getPosition().y() + 2));
 //        });
 
         CommandManager commandManager = MinecraftServer.getCommandManager();
