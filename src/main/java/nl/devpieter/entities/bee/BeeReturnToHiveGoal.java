@@ -45,6 +45,7 @@ public class BeeReturnToHiveGoal extends GoalSelector {
         if (distance > ARRIVAL_THRESHOLD) return;
 
         bee.resetNectar();
+        onEnterHive.accept(null);
     }
 
     @Override
@@ -56,7 +57,5 @@ public class BeeReturnToHiveGoal extends GoalSelector {
     public void end() {
         returning = false;
         entityCreature.getNavigator().reset();
-
-        onEnterHive.accept(null);
     }
 }

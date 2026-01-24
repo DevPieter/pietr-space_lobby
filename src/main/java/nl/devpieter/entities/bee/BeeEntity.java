@@ -37,7 +37,7 @@ public class BeeEntity extends EntityCreature {
     private long lastCollectTime = 0;
 
     private boolean isFrozen = false;
-    private int nectarLevel = 2;
+    private int nectarLevel = 0;
 
     public BeeEntity(Point hiveLocation, Consumer<Acquirable<@NotNull ? extends BeeEntity>> onEnterHive) {
         super(EntityType.BEE);

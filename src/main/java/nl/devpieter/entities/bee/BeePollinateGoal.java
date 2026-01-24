@@ -14,11 +14,11 @@ import java.util.function.Consumer;
 
 public class BeePollinateGoal extends GoalSelector {
 
-    private static final long MAX_PATHFINDING_TIME = TimeUnit.SECONDS.toNanos(20);
-    private static final long FAILURE_DELAY = TimeUnit.SECONDS.toNanos(5);
+    private static final long MAX_PATHFINDING_TIME = TimeUnit.SECONDS.toMillis(20);
+    private static final long FAILURE_DELAY = TimeUnit.SECONDS.toMillis(5);
 
-    private static final long POLLINATION_COOLDOWN = TimeUnit.SECONDS.toNanos(10);
-    private static final long POLLINATION_ANIMATION_DURATION = TimeUnit.SECONDS.toNanos(3);
+    private static final long POLLINATION_COOLDOWN = TimeUnit.SECONDS.toMillis(10);
+    private static final long POLLINATION_ANIMATION_DURATION = TimeUnit.SECONDS.toMillis(3);
 
     private static final int SEARCH_RADIUS = 15;
     private static final double ARRIVAL_THRESHOLD = 1;
@@ -74,15 +74,15 @@ public class BeePollinateGoal extends GoalSelector {
             return false;
         }
 
-        if (lastFailedSearch != -1 && System.nanoTime() - lastFailedSearch < FAILURE_DELAY) {
+        if (lastFailedSearch != -1 && System.currentTimeMillis() - lastFailedSearch < FAILURE_DELAY) {
             return false;
         }
 
-        if (lastFailedPathfinding != -1 && System.nanoTime() - lastFailedPathfinding < FAILURE_DELAY) {
+        if (lastFailedPathfinding != -1 && System.currentTimeMillis() - lastFailedPathfinding < FAILURE_DELAY) {
             return false;
         }
 
-        return lastPollinationTime == -1 || System.nanoTime() - lastPollinationTime >= POLLINATION_COOLDOWN;
+        return lastPollinationTime == -1 || System.currentTimeMillis() - lastPollinationTime >= POLLINATION_COOLDOWN;
     }
 
     @Override
@@ -97,7 +97,7 @@ public class BeePollinateGoal extends GoalSelector {
         );
 
         if (locations.isEmpty()) {
-            lastFailedSearch = System.nanoTime();
+            lastFailedSearch = System.currentTimeMillis();
             return;
         }
 
@@ -105,7 +105,7 @@ public class BeePollinateGoal extends GoalSelector {
         Point target = targetFlower.add(0.5, 1.5, 0.5);
 
         entityCreature.getNavigator().setPathTo(target);
-        startTime = System.nanoTime();
+        startTime = System.currentTimeMillis();
     }
 
     @Override
@@ -113,21 +113,20 @@ public class BeePollinateGoal extends GoalSelector {
         if (targetFlower == null) return;
         if (bee.hasNectar()) return;
 
-        if (startTime != -1 && System.nanoTime() - startTime > MAX_PATHFINDING_TIME) {
-            lastFailedPathfinding = System.nanoTime();
+        if (startTime != -1 && System.currentTimeMillis() - startTime > MAX_PATHFINDING_TIME) {
+            lastFailedPathfinding = System.currentTimeMillis();
             reset();
 
             return;
         }
-
 
         if (isPollinating) tickPollinating();
         else tickFlyingToFlower();
     }
 
     private void tickPollinating() {
-        long pollinationTime = System.nanoTime() - pollinationStartTime;
-        double timeInSeconds = pollinationTime / 1_000_000_000.0;
+        long pollinationTime = System.currentTimeMillis() - pollinationStartTime;
+        double timeInSeconds = pollinationTime / 1000.0;
 
         double yOffset = Math.sin(timeInSeconds * POLLINATION_SPEED) * POLLINATION_HEIGHT;
 
@@ -156,7 +155,7 @@ public class BeePollinateGoal extends GoalSelector {
         if (distance > ARRIVAL_THRESHOLD) return;
 
         isPollinating = true;
-        pollinationStartTime = System.nanoTime();
+        pollinationStartTime = System.currentTimeMillis();
 
         entityCreature.getNavigator().reset();
     }
@@ -166,7 +165,7 @@ public class BeePollinateGoal extends GoalSelector {
         if (bee.hasNectar()) return true;
         if (!isPollinating) return targetFlower == null;
 
-        long hoverTime = System.nanoTime() - pollinationStartTime;
+        long hoverTime = System.currentTimeMillis() - pollinationStartTime;
         return hoverTime >= POLLINATION_ANIMATION_DURATION;
     }
 
@@ -175,7 +174,7 @@ public class BeePollinateGoal extends GoalSelector {
         entityCreature.getNavigator().reset();
 
         if (isPollinating) {
-            lastPollinationTime = System.nanoTime();
+            lastPollinationTime = System.currentTimeMillis();
             onPollinate.accept(null);
         }
 
