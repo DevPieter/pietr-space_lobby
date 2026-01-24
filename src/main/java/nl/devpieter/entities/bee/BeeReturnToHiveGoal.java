@@ -3,16 +3,22 @@ package nl.devpieter.entities.bee;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.ai.GoalSelector;
 
+import java.util.function.Consumer;
+
 public class BeeReturnToHiveGoal extends GoalSelector {
 
-    private static final double ARRIVAL_THRESHOLD = 2.0;
+    private static final double ARRIVAL_THRESHOLD = 1;
 
     private final BeeEntity bee;
     private boolean returning = false;
 
-    public BeeReturnToHiveGoal(BeeEntity bee) {
+    private final Consumer<Void> onEnterHive;
+
+    public BeeReturnToHiveGoal(BeeEntity bee, Consumer<Void> onEnterHive) {
         super(bee);
+
         this.bee = bee;
+        this.onEnterHive = onEnterHive;
     }
 
     @Override
@@ -50,5 +56,7 @@ public class BeeReturnToHiveGoal extends GoalSelector {
     public void end() {
         returning = false;
         entityCreature.getNavigator().reset();
+
+        onEnterHive.accept(null);
     }
 }

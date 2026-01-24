@@ -1,10 +1,8 @@
 package nl.devpieter.entities.bee;
 
-import net.kyori.adventure.text.Component;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
-import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.ai.GoalSelector;
 import net.minestom.server.instance.block.Block;
 import nl.devpieter.utils.minestom.WorldUtils;
@@ -63,8 +61,6 @@ public class BeePollinateGoal extends GoalSelector {
     private long pollinationStartTime = -1;
     private long lastPollinationTime = -1;
 
-    private Entity debugEntity = null;
-
     public BeePollinateGoal(BeeEntity bee, Consumer<Void> onPollinate) {
         super(bee);
 
@@ -110,13 +106,6 @@ public class BeePollinateGoal extends GoalSelector {
 
         entityCreature.getNavigator().setPathTo(target);
         startTime = System.nanoTime();
-
-        if (debugEntity != null) debugEntity.remove();
-        debugEntity = WorldUtils.placeMarker(
-                entityCreature.getInstance(),
-                new Vec(target.x(), target.y(), target.z()),
-                Component.text("Flower Target")
-        );
     }
 
     @Override
@@ -184,11 +173,6 @@ public class BeePollinateGoal extends GoalSelector {
     @Override
     public void end() {
         entityCreature.getNavigator().reset();
-
-        if (debugEntity != null) {
-            debugEntity.remove();
-            debugEntity = null;
-        }
 
         if (isPollinating) {
             lastPollinationTime = System.nanoTime();

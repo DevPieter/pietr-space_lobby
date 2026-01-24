@@ -4,12 +4,12 @@ import net.kyori.adventure.key.Key;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandManager;
-import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.EntityPose;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.event.GlobalEventHandler;
+import net.minestom.server.event.entity.EntityAttackEvent;
 import net.minestom.server.event.item.PickupItemEvent;
 import net.minestom.server.event.player.*;
 import net.minestom.server.instance.Instance;
@@ -20,6 +20,7 @@ import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
+import nl.devpieter.blockHandler.BeehiveBlockHandler;
 import nl.devpieter.blockHandler.DoorBlockHandler;
 import nl.devpieter.blockHandler.SignBlockHandler;
 import nl.devpieter.commands.ReplayCommand;
@@ -30,8 +31,8 @@ import nl.devpieter.commands.player.GamemodeCommand;
 import nl.devpieter.commands.world.*;
 import nl.devpieter.config.ConfigManager;
 import nl.devpieter.config.EnvStatics;
-import nl.devpieter.entities.bee.BeeEntity;
 import nl.devpieter.entities.LobbyPlayer;
+import nl.devpieter.entities.bee.BeeEntity;
 import nl.devpieter.features.cooking.blockHandlers.CampfireBlockHandler;
 import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.features.fishing.FishingManager;
@@ -60,7 +61,6 @@ import nl.devpieter.sees.Sees;
 import nl.devpieter.utils.minestom.PlayerUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
-import nl.devpieter.utils.minestom.WorldUtils;
 import org.slf4j.Logger;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -86,6 +86,7 @@ public class Main {
 
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:campfire"), CampfireBlockHandler::new);
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:jukebox"), JukeboxBlockHandler::new);
+        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:beehive"), BeehiveBlockHandler::new);
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:sign"), SignBlockHandler::new);
 
         // TODO - A bit hacky, but I don't know a better way yet
@@ -248,8 +249,6 @@ public class Main {
 //        eventHandler.addListener(PlayerStartSneakingEvent.class, event -> {
 //            Player player = event.getPlayer();
 //
-////            player.getInstance().
-//
 //            Point hive = WorldUtils.findBlocks(
 //                    player.getInstance(),
 //                    player.getPosition(),
@@ -261,6 +260,13 @@ public class Main {
 //            BeeEntity bee = new BeeEntity(hive);
 //            bee.setInstance(player.getInstance(), player.getPosition().withY(player.getPosition().y() + 2));
 //        });
+
+        eventHandler.addListener(EntityAttackEvent.class, event -> {
+            if (!(event.getEntity() instanceof Player player)) return;
+            if (!(event.getTarget() instanceof BeeEntity bee)) return;
+
+            bee.collectNectar(player);
+        });
 
         CommandManager commandManager = MinecraftServer.getCommandManager();
 

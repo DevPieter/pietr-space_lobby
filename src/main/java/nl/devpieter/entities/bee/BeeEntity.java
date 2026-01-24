@@ -16,15 +16,18 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.particle.Particle;
 import net.minestom.server.sound.SoundEvent;
+import net.minestom.server.thread.Acquirable;
 import nl.devpieter.entities.PhysicsItem;
 import nl.devpieter.utils.minestom.ParticleUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class BeeEntity extends EntityCreature {
 
@@ -33,9 +36,10 @@ public class BeeEntity extends EntityCreature {
     private final HashMap<UUID, Integer> collectCounts = new HashMap<>();
     private long lastCollectTime = 0;
 
-    private int nectarLevel = 0;
+    private boolean isFrozen = false;
+    private int nectarLevel = 2;
 
-    public BeeEntity(Point hiveLocation) {
+    public BeeEntity(Point hiveLocation, Consumer<Acquirable<@NotNull ? extends BeeEntity>> onEnterHive) {
         super(EntityType.BEE);
         this.hiveLocation = hiveLocation;
 
@@ -48,7 +52,9 @@ public class BeeEntity extends EntityCreature {
 
         addAIGroup(
                 List.of(
-                        new BeeReturnToHiveGoal(this),
+                        new BeeReturnToHiveGoal(this, _ -> {
+                            onEnterHive.accept((Acquirable<? extends BeeEntity>) this.acquirable());
+                        }),
                         new BeePollinateGoal(this, _ -> {
                             nectarLevel++;
                             updateNectarMeta();
@@ -57,6 +63,16 @@ public class BeeEntity extends EntityCreature {
                 ),
                 List.of()
         );
+    }
+
+    @Override
+    public void update(long time) {
+        if (isFrozen) return;
+        super.update(time);
+    }
+
+    public void setFrozen(boolean frozen) {
+        isFrozen = frozen;
     }
 
     public boolean hasNectar() {
