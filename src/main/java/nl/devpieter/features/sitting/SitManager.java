@@ -2,11 +2,10 @@ package nl.devpieter.features.sitting;
 
 import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.coordinate.Point;
-import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.LivingEntity;
-import net.minestom.server.entity.Player;
 import net.minestom.server.instance.block.Block;
+import net.minestom.server.thread.Acquirable;
 import nl.devpieter.TagHelper;
 import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.enums.PlayerTags;
@@ -20,7 +19,7 @@ public class SitManager {
 
     private static SitManager INSTANCE;
 
-    private final HashMap<UUID, Entity> sittingPlayers = new HashMap<>();
+    private final HashMap<UUID, Acquirable<@NotNull ? extends LivingEntity>> sittingPlayers = new HashMap<>();
 
     private SitManager() {
     }
@@ -31,20 +30,13 @@ public class SitManager {
     }
 
     public void sitPlayer(@NotNull LobbyPlayer player, Block block, BlockVec blockVec) {
-        if (sittingPlayers.containsKey(player.getUuid())) return;
-
-        if (!TagHelper.canSitPlayer(player)) {
-            return;
-        }
-
-        if (!player.addTag(PlayerTags.SITTING)) {
-            return;
-        }
+        if (!TagHelper.canSitPlayer(player)) return;
+        if (!player.addTag(PlayerTags.SITTING)) return;
 
         Point bounding = block.registry().collisionShape().relativeEnd();
 
         LivingEntity entity = new LivingEntity(EntityType.ARMOR_STAND);
-        entity.setInstance(player.getInstance(), blockVec.asVec().add(0.5, bounding.y() - 1.9, 0.5));
+        entity.setInstance(player.getInstance(), blockVec.add(0.5, bounding.y() - 1.9, 0.5));
         entity.setInvulnerable(true);
         entity.setNoGravity(true);
         entity.setInvisible(true);
@@ -54,19 +46,21 @@ public class SitManager {
         player.teleport(entity.getPosition().add(0, 1, 0));
 
         entity.addPassenger(player);
-        sittingPlayers.put(player.getUuid(), entity);
+        sittingPlayers.put(player.getUuid(), entity.acquirable());
     }
 
     public void standPlayer(@NotNull LobbyPlayer player) {
         if (!sittingPlayers.containsKey(player.getUuid())) return;
 
-        Entity entity = sittingPlayers.get(player.getUuid());
-        entity.removePassenger(player);
-        entity.remove();
+        Acquirable<? extends LivingEntity> acquirable = sittingPlayers.get(player.getUuid());
+        acquirable.sync(livingEntity -> {
+            livingEntity.removePassenger(player);
+            livingEntity.remove();
 
-        PlayerUtils.teleport(player, player.getPosition().add(0, 1, 0));
-        sittingPlayers.remove(player.getUuid());
+            PlayerUtils.teleport(player, player.getPosition().add(0, 1, 0));
+            sittingPlayers.remove(player.getUuid());
 
-        player.removeTag(PlayerTags.SITTING);
+            player.removeTag(PlayerTags.SITTING);
+        });
     }
 }

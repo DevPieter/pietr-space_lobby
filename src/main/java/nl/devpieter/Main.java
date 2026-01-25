@@ -77,8 +77,7 @@ public class Main {
         boolean useVelocity = configManager.getBoolean("use_velocity_proxy");
         String velocitySecret = configManager.getString("velocity_proxy_secret");
 
-//        Auth auth = useVelocity ? new Auth.Velocity(velocitySecret) : new Auth.Online();
-        Auth auth = useVelocity ? new Auth.Velocity(velocitySecret) : new Auth.Offline();
+        Auth auth = useVelocity ? new Auth.Velocity(velocitySecret) : new Auth.Online();
         logger.info("Using authentication: {}", useVelocity ? "Velocity" : "Online");
 
         MinecraftServer server = MinecraftServer.init(auth);
@@ -88,6 +87,7 @@ public class Main {
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:jukebox"), JukeboxBlockHandler::new);
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:beehive"), BeehiveBlockHandler::new);
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:sign"), SignBlockHandler::new);
+//        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:bed"), BedBlockHandler::new);
 
         // TODO - A bit hacky, but I don't know a better way yet
         MinecraftServer.getGlobalEventHandler().addListener(PlayerBlockInteractEvent.class, event -> {
