@@ -9,6 +9,7 @@ import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.event.GlobalEventHandler;
+import net.minestom.server.event.entity.EntityAttackEvent;
 import net.minestom.server.event.item.PickupItemEvent;
 import net.minestom.server.event.player.*;
 import net.minestom.server.instance.Instance;
@@ -19,6 +20,7 @@ import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
+import nl.devpieter.blockHandler.BeehiveBlockHandler;
 import nl.devpieter.blockHandler.DoorBlockHandler;
 import nl.devpieter.blockHandler.SignBlockHandler;
 import nl.devpieter.commands.ReplayCommand;
@@ -30,6 +32,7 @@ import nl.devpieter.commands.world.*;
 import nl.devpieter.config.ConfigManager;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.entities.LobbyPlayer;
+import nl.devpieter.entities.bee.BeeEntity;
 import nl.devpieter.features.cooking.blockHandlers.CampfireBlockHandler;
 import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.features.fishing.FishingManager;
@@ -75,8 +78,7 @@ public class Main {
         boolean useVelocity = configManager.getBoolean("use_velocity_proxy");
         String velocitySecret = configManager.getString("velocity_proxy_secret");
 
-//        Auth auth = useVelocity ? new Auth.Velocity(velocitySecret) : new Auth.Online();
-        Auth auth = useVelocity ? new Auth.Velocity(velocitySecret) : new Auth.Offline();
+        Auth auth = useVelocity ? new Auth.Velocity(velocitySecret) : new Auth.Online();
         logger.info("Using authentication: {}", useVelocity ? "Velocity" : "Online");
 
         MinecraftServer server = MinecraftServer.init(auth);
@@ -84,7 +86,9 @@ public class Main {
 
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:campfire"), CampfireBlockHandler::new);
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:jukebox"), JukeboxBlockHandler::new);
+        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:beehive"), BeehiveBlockHandler::new);
         MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:sign"), SignBlockHandler::new);
+//        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:bed"), BedBlockHandler::new);
 
         // TODO - A bit hacky, but I don't know a better way yet
         MinecraftServer.getGlobalEventHandler().addListener(PlayerBlockInteractEvent.class, event -> {
@@ -247,23 +251,27 @@ public class Main {
 
 //        eventHandler.addListener(PlayerStartSneakingEvent.class, event -> {
 //            Player player = event.getPlayer();
-//            PackManager packManager = PackManager.getInstance();
 //
-//            packManager.tryInformRecommendation(player, false);
+//            Point hive = WorldUtils.findBlocks(
+//                    player.getInstance(),
+//                    player.getPosition(),
+//                    50,
+//                    Block.BEE_NEST,
+//                    Block.BEEHIVE
+//            ).stream().findFirst().orElse(null);
 //
-////            if(packManager.hasAcceptedPack(player)) {
-//                System.out.println("Player " + player.getUsername() + " has accepted the resource pack.");
-//
-//                Sound sound = Sound.sound(
-//                        Key.key("lobby","music.joost.full-circle"),
-//                        Sound.Source.RECORD,
-//                        1.0f,
-//                        1.0f
-//                );
-//
-//                player.getInstance().playSound(sound, player.getPosition());
-////            }
+//            BeeEntity bee = new BeeEntity(hive, acquirable -> {
+//                acquirable.sync(BeeEntity::resetNectar);
+//            });
+//            bee.setInstance(player.getInstance(), player.getPosition().withY(player.getPosition().y() + 2));
 //        });
+
+        eventHandler.addListener(EntityAttackEvent.class, event -> {
+            if (!(event.getEntity() instanceof Player player)) return;
+            if (!(event.getTarget() instanceof BeeEntity bee)) return;
+
+            bee.collectNectar(player);
+        });
 
         CommandManager commandManager = MinecraftServer.getCommandManager();
 

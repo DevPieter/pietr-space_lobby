@@ -25,7 +25,7 @@ public class PlayerBlockInteractListener implements EventListener<@NotNull Playe
         if (event.getHand() != PlayerHand.MAIN || !player.isSneaking()) return Result.SUCCESS;
 
         BlockVec block = event.getBlockPosition();
-        Block blockAbove = player.getInstance().getBlock(block.asVec().add(0, 1, 0));
+        Block blockAbove = player.getInstance().getBlock(block.add(0, 1, 0));
         if (!blockAbove.isAir()) return Result.SUCCESS;
 
         this.sitManager.sitPlayer(player, event.getBlock(), block);

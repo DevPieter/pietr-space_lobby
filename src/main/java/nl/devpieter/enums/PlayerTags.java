@@ -3,6 +3,7 @@ package nl.devpieter.enums;
 public enum PlayerTags {
 
     SITTING("sitting"),
+    LAYING("laying"),
     IN_PARKOUR("in_parkour"),
     IN_PARKOUR_REPLAY("in_parkour_replay");
 
