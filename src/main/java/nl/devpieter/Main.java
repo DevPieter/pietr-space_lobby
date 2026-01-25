@@ -257,7 +257,9 @@ public class Main {
 //                    Block.BEEHIVE
 //            ).stream().findFirst().orElse(null);
 //
-//            BeeEntity bee = new BeeEntity(hive);
+//            BeeEntity bee = new BeeEntity(hive, acquirable -> {
+//                acquirable.sync(BeeEntity::resetNectar);
+//            });
 //            bee.setInstance(player.getInstance(), player.getPosition().withY(player.getPosition().y() + 2));
 //        });
 

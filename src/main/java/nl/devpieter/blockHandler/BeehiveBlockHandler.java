@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 
 public class BeehiveBlockHandler implements BlockHandler {
 
-    private static final long AWAY_FROM_HIVE_CHECK_INTERVAL = TimeUnit.SECONDS.toMillis(10);
+    private static final long AWAY_FROM_HIVE_CHECK_INTERVAL = TimeUnit.SECONDS.toMillis(30);
     private static final long MAX_AWAY_FROM_HIVE_TIME = TimeUnit.MINUTES.toMillis(5);
 
     private final List<Acquirable<@NotNull ? extends BeeEntity>> bees = new ArrayList<>();
