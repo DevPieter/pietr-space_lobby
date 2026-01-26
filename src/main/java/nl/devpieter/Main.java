@@ -198,38 +198,38 @@ public class Main {
         });
 
         // TODO - Temporary farming replanting listener
-        MinecraftServer.getGlobalEventHandler().addListener(PlayerStartDiggingEvent.class, event -> {
-            Player player = event.getPlayer();
-            if (player.getGameMode() == GameMode.CREATIVE) return;
-            event.setCancelled(true);
+//        MinecraftServer.getGlobalEventHandler().addListener(PlayerStartDiggingEvent.class, event -> {
+//            Player player = event.getPlayer();
+//            if (player.getGameMode() == GameMode.CREATIVE) return;
+//            event.setCancelled(true);
+//
+//            Block block = event.getBlock();
+//            BlockHandler handler = block.handler();
+//            Instance instance = event.getInstance();
+//
+//            if (!(handler instanceof FarmBlockHandler farmHandler)) return;
+//
+//            BlockHolder holder = new BlockHolder(instance, event.getBlockPosition(), block);
+//            if (!farmHandler.canBeHarvested(holder)) return;
+//
+//            farmHandler.replant(holder, event.getPlayer());
+//        });
 
-            Block block = event.getBlock();
-            BlockHandler handler = block.handler();
-            Instance instance = event.getInstance();
-
-            if (!(handler instanceof FarmBlockHandler farmHandler)) return;
-
-            BlockHolder holder = new BlockHolder(instance, event.getBlockPosition(), block);
-            if (!farmHandler.canBeHarvested(holder)) return;
-
-            farmHandler.replant(holder, event.getPlayer());
-        });
-
-        MinecraftServer.getGlobalEventHandler().addListener(PlayerStartDiggingEvent.class, event -> {
-            Player player = event.getPlayer();
-            if (player.getGameMode() == GameMode.CREATIVE) return;
-            event.setCancelled(true);
-        });
-
-        eventHandler.addListener(PlayerBlockBreakEvent.class, event -> {
-            if (event.getPlayer().getGameMode() == GameMode.CREATIVE) return;
-            event.setCancelled(true);
-        });
-
-        eventHandler.addListener(PlayerBlockPlaceEvent.class, event -> {
-            if (event.getPlayer().getGameMode() == GameMode.CREATIVE) return;
-            event.setCancelled(true);
-        });
+//        MinecraftServer.getGlobalEventHandler().addListener(PlayerStartDiggingEvent.class, event -> {
+//            Player player = event.getPlayer();
+//            if (player.getGameMode() == GameMode.CREATIVE) return;
+//            event.setCancelled(true);
+//        });
+//
+//        eventHandler.addListener(PlayerBlockBreakEvent.class, event -> {
+//            if (event.getPlayer().getGameMode() == GameMode.CREATIVE) return;
+//            event.setCancelled(true);
+//        });
+//
+//        eventHandler.addListener(PlayerBlockPlaceEvent.class, event -> {
+//            if (event.getPlayer().getGameMode() == GameMode.CREATIVE) return;
+//            event.setCancelled(true);
+//        });
 
         MinecraftServer.getGlobalEventHandler().addListener(PlayerTickEvent.class, event -> {
             Player player = event.getPlayer();

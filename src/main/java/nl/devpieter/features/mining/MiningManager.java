@@ -126,6 +126,12 @@ public class MiningManager {
             event.setCancelled(true);
         });
 
+        mainNode.addListener(PlayerDisconnectEvent.class, event -> {
+            stopMining(event.getPlayer());
+        });
+
+        // Cancel on player attack?
+
         EVENT_NODE = mainNode;
         return EVENT_NODE;
     }
