@@ -18,6 +18,7 @@ import net.minestom.server.particle.Particle;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.thread.Acquirable;
 import nl.devpieter.entities.PhysicsItem;
+import nl.devpieter.utils.common.RandomUtils;
 import nl.devpieter.utils.minestom.ParticleUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
@@ -25,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -37,6 +37,8 @@ public class BeeEntity extends EntityCreature {
     private long lastCollectTime = 0;
 
     private boolean isFrozen = false;
+
+    private final int maxNectarLevel = 8;
     private int nectarLevel = 0;
 
     public BeeEntity(Point hiveLocation, Consumer<Acquirable<@NotNull ? extends BeeEntity>> onEnterHive) {
@@ -52,13 +54,8 @@ public class BeeEntity extends EntityCreature {
 
         addAIGroup(
                 List.of(
-                        new BeeReturnToHiveGoal(this, _ -> {
-                            onEnterHive.accept((Acquirable<? extends BeeEntity>) this.acquirable());
-                        }),
-                        new BeePollinateGoal(this, _ -> {
-                            nectarLevel++;
-                            updateNectarMeta();
-                        }),
+                        new BeeReturnNectarToHiveGoal(this, _ -> onEnterHive.accept((Acquirable<? extends BeeEntity>) this.acquirable())),
+                        new BeePollinateGoal(this, _ -> incrementNectarLevel()),
                         new RandomStrollGoal(this, 15)
                 ),
                 List.of()
@@ -71,12 +68,20 @@ public class BeeEntity extends EntityCreature {
         super.update(time);
     }
 
+    public Point getHiveLocation() {
+        return hiveLocation;
+    }
+
+    public boolean isFrozen() {
+        return isFrozen;
+    }
+
     public void setFrozen(boolean frozen) {
         isFrozen = frozen;
     }
 
     public boolean hasNectar() {
-        return nectarLevel >= 3;
+        return nectarLevel >= maxNectarLevel;
     }
 
     public void resetNectar() {
@@ -86,8 +91,13 @@ public class BeeEntity extends EntityCreature {
         updateNectarMeta();
     }
 
-    public Point getHiveLocation() {
-        return hiveLocation;
+    private void incrementNectarLevel() {
+        if (nectarLevel >= maxNectarLevel) return;
+
+        int increment = RandomUtils.randomIntInclusive(1, 3);
+        nectarLevel = Math.min(nectarLevel + increment, maxNectarLevel);
+
+        updateNectarMeta();
     }
 
     public void collectNectar(Player player) {
@@ -123,10 +133,10 @@ public class BeeEntity extends EntityCreature {
                 getInstance(),
                 getPosition(),
                 Sound.sound(
-                        SoundEvent.UI_HUD_BUBBLE_POP,
+                        SoundEvent.ITEM_HONEYCOMB_WAX_ON,
                         Sound.Source.NEUTRAL,
-                        2.0f,
-                        1.0f
+                        1.0f,
+                        RandomUtils.randomFloatInclusive(1.1f, 1.6f, 0.01f)
                 )
         );
     }
@@ -140,11 +150,10 @@ public class BeeEntity extends EntityCreature {
         PhysicsItem itemEntity = new PhysicsItem(nectar);
         itemEntity.setInstance(player.getInstance(), getPosition());
 
-        Random random = new Random();
         Vec velocity = new Vec(
-                (random.nextDouble() - 0.5) * 0.1,
+                (RandomUtils.randomDoubleInclusive(0.0, 1.0, 0.01) - 0.5) * 0.1,
                 -0.05,
-                (random.nextDouble() - 0.5) * 0.1
+                (RandomUtils.randomDoubleInclusive(0.0, 1.0, 0.01) - 0.5) * 0.1
         );
 
         itemEntity.setVelocity(velocity);
@@ -162,10 +171,10 @@ public class BeeEntity extends EntityCreature {
                 getInstance(),
                 getPosition(),
                 Sound.sound(
-                        SoundEvent.ITEM_HONEYCOMB_WAX_ON,
+                        SoundEvent.ENTITY_BEE_STING,
                         Sound.Source.NEUTRAL,
-                        1.0f,
-                        1.0f
+                        0.8f,
+                        RandomUtils.randomFloatInclusive(1.2f, 1.4f, 0.01f)
                 )
         );
     }

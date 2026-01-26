@@ -32,7 +32,7 @@ public class WorldManager {
     private final Logger logger = MinecraftServer.LOGGER;
     private final Gson gson = new Gson();
 
-    private final Sees sees = Sees.getInstance();
+    private final Sees sees = Sees.getSharedInstance();
     private final InstanceManager instanceManager = MinecraftServer.getInstanceManager();
 
     private final List<World> foundWorlds = new ArrayList<>();

@@ -10,6 +10,8 @@ public class MineMathUtils {
             case "south" -> Direction.SOUTH;
             case "west" -> Direction.WEST;
             case "east" -> Direction.EAST;
+            case "up" -> Direction.UP;
+            case "down" -> Direction.DOWN;
             default -> Direction.NORTH;
         };
     }

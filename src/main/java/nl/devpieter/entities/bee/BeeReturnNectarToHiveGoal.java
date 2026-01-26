@@ -1,11 +1,12 @@
 package nl.devpieter.entities.bee;
 
+import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.ai.GoalSelector;
 
 import java.util.function.Consumer;
 
-public class BeeReturnToHiveGoal extends GoalSelector {
+public class BeeReturnNectarToHiveGoal extends GoalSelector {
 
     private static final double ARRIVAL_THRESHOLD = 1;
 
@@ -14,7 +15,7 @@ public class BeeReturnToHiveGoal extends GoalSelector {
 
     private final Consumer<Void> onEnterHive;
 
-    public BeeReturnToHiveGoal(BeeEntity bee, Consumer<Void> onEnterHive) {
+    public BeeReturnNectarToHiveGoal(BeeEntity bee, Consumer<Void> onEnterHive) {
         super(bee);
 
         this.bee = bee;
@@ -33,7 +34,10 @@ public class BeeReturnToHiveGoal extends GoalSelector {
         Point location = bee.getHiveLocation();
         if (location == null) return;
 
-        entityCreature.getNavigator().setPathTo(location);
+        BoundingBox bb = entityCreature.getBoundingBox();
+        double centerToCorner = Math.sqrt(bb.width() * bb.width() + bb.depth() * bb.depth()) / 2;
+
+        entityCreature.getNavigator().setPathTo(location, centerToCorner, 80, 50, null);
     }
 
     @Override
@@ -44,13 +48,13 @@ public class BeeReturnToHiveGoal extends GoalSelector {
         double distance = entityCreature.getPosition().distance(location);
         if (distance > ARRIVAL_THRESHOLD) return;
 
-        bee.resetNectar();
         onEnterHive.accept(null);
+        returning = false;
     }
 
     @Override
     public boolean shouldEnd() {
-        return !bee.hasNectar();
+        return !returning || !bee.hasNectar();
     }
 
     @Override

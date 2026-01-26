@@ -1,10 +1,12 @@
 package nl.devpieter.entities;
 
+import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Player;
 import net.minestom.server.inventory.PlayerInventory;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.network.player.GameProfile;
 import net.minestom.server.network.player.PlayerConnection;
+import nl.devpieter.TagHelper;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.enums.PlayerTags;
 import nl.devpieter.models.SlotHolder;
@@ -131,5 +133,23 @@ public class LobbyPlayer extends Player {
         sendPacketToViewersAndSelf(getEquipmentsPacket());
 
         inventory.update();
+    }
+
+    @Override
+    public void leaveBed() {
+        removeTag(PlayerTags.LAYING);
+        super.leaveBed();
+
+        System.out.println("Player " + getUsername() + " has left the bed and is no longer laying.");
+    }
+
+    @Override
+    public void enterBed(Point point) {
+        if (!TagHelper.canLayPlayer(this)) return;
+
+        addTag(PlayerTags.LAYING);
+        super.enterBed(point);
+
+        System.out.println("Player " + getUsername() + " has entered the bed and is now laying.");
     }
 }

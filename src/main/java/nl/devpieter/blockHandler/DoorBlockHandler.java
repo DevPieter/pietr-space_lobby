@@ -12,7 +12,7 @@ import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
-import nl.devpieter.utils.common.MathUtils;
+import nl.devpieter.utils.common.RandomUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,9 +46,9 @@ public class DoorBlockHandler implements BlockHandler {
                     getSoundPosition(block, point),
                     SoundEvent.ENTITY_PLAYER_BREATH,
                     0.7f,
-                    MathUtils.randomFloat(0.6f, 1.0f)
+                    RandomUtils.randomFloatInclusive(0.6f, 1.0f, 0.01f)
             );
-        }).delay(Duration.ofSeconds(MathUtils.randomInt(6, 12))).schedule();
+        }).delay(Duration.ofSeconds(RandomUtils.randomIntInclusive(6, 12))).schedule();
 
         return true;
     }

@@ -1,14 +1,17 @@
 package nl.devpieter.entities.bee;
 
+import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.ai.GoalSelector;
 import net.minestom.server.instance.block.Block;
+import net.minestom.server.particle.Particle;
+import nl.devpieter.utils.common.RandomUtils;
+import nl.devpieter.utils.minestom.ParticleUtils;
 import nl.devpieter.utils.minestom.WorldUtils;
 
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -17,15 +20,16 @@ public class BeePollinateGoal extends GoalSelector {
     private static final long MAX_PATHFINDING_TIME = TimeUnit.SECONDS.toMillis(20);
     private static final long FAILURE_DELAY = TimeUnit.SECONDS.toMillis(5);
 
-    private static final long POLLINATION_COOLDOWN = TimeUnit.SECONDS.toMillis(10);
-    private static final long POLLINATION_ANIMATION_DURATION = TimeUnit.SECONDS.toMillis(3);
+    private static final long POLLINATION_COOLDOWN_MIN = TimeUnit.SECONDS.toMillis(8);
+    private static final long POLLINATION_COOLDOWN_MAX = TimeUnit.SECONDS.toMillis(16);
 
-    private static final int SEARCH_RADIUS = 15;
+    private static final int SEARCH_RADIUS = 25;
     private static final double ARRIVAL_THRESHOLD = 1;
 
     private static final double POLLINATION_HEIGHT = 0.3;
     private static final double POLLINATION_SPEED = 4.0;
     private static final double POLLINATION_APPROACH_FACTOR = 3.0;
+    private static final long POLLINATION_ANIMATION_DURATION = TimeUnit.SECONDS.toMillis(4);
 
     private static final List<Block> FLOWER_BLOCKS = List.of(
             Block.DANDELION,
@@ -46,7 +50,7 @@ public class BeePollinateGoal extends GoalSelector {
             Block.PEONY
     );
 
-    private final Random random = new Random();
+//    private final Random random = new Random();
 
     private final BeeEntity bee;
     private final Consumer<Void> onPollinate;
@@ -59,6 +63,7 @@ public class BeePollinateGoal extends GoalSelector {
 
     private boolean isPollinating;
     private long pollinationStartTime = -1;
+    private long pollinationCooldown = -1;
     private long lastPollinationTime = -1;
 
     public BeePollinateGoal(BeeEntity bee, Consumer<Void> onPollinate) {
@@ -82,7 +87,7 @@ public class BeePollinateGoal extends GoalSelector {
             return false;
         }
 
-        return lastPollinationTime == -1 || System.currentTimeMillis() - lastPollinationTime >= POLLINATION_COOLDOWN;
+        return lastPollinationTime == -1 || System.currentTimeMillis() - lastPollinationTime >= pollinationCooldown;
     }
 
     @Override
@@ -101,10 +106,13 @@ public class BeePollinateGoal extends GoalSelector {
             return;
         }
 
-        targetFlower = locations.get(random.nextInt(locations.size()));
+        targetFlower = locations.get(RandomUtils.randomIntExclusive(0, locations.size()));
         Point target = targetFlower.add(0.5, 1.5, 0.5);
 
-        entityCreature.getNavigator().setPathTo(target);
+        BoundingBox bb = entityCreature.getBoundingBox();
+        double centerToCorner = Math.sqrt(bb.width() * bb.width() + bb.depth() * bb.depth()) / 2;
+
+        entityCreature.getNavigator().setPathTo(target, centerToCorner, 60, 40, null);
         startTime = System.currentTimeMillis();
     }
 
@@ -124,13 +132,15 @@ public class BeePollinateGoal extends GoalSelector {
         else tickFlyingToFlower();
     }
 
+    private long lastPollinationParticleTime = 0;
+
     private void tickPollinating() {
         long pollinationTime = System.currentTimeMillis() - pollinationStartTime;
         double timeInSeconds = pollinationTime / 1000.0;
 
         double yOffset = Math.sin(timeInSeconds * POLLINATION_SPEED) * POLLINATION_HEIGHT;
 
-        Point target = targetFlower.add(0.5, .7, 0.5);
+        Point target = targetFlower.add(0.5, .6, 0.5);
 
         Point targetPos = new Pos(
                 target.x(),
@@ -146,6 +156,23 @@ public class BeePollinateGoal extends GoalSelector {
         );
 
         entityCreature.setVelocity(direction.mul(POLLINATION_APPROACH_FACTOR));
+
+        double distance = entityCreature.getPosition().distance(target);
+        if (distance > 0.1) return;
+
+        if (System.currentTimeMillis() - lastPollinationParticleTime >= 600) {
+            lastPollinationParticleTime = System.currentTimeMillis();
+
+            ParticleUtils.spawnParticleToViewers(
+                    entityCreature,
+                    Particle.HAPPY_VILLAGER,
+                    targetFlower.add(0.5, 0.5, 0.5),
+                    new Vec(0.2, 0.2, 0.2),
+                    0.2f,
+                    4
+            );
+
+        }
     }
 
     private void tickFlyingToFlower() {
@@ -174,7 +201,9 @@ public class BeePollinateGoal extends GoalSelector {
         entityCreature.getNavigator().reset();
 
         if (isPollinating) {
+            pollinationCooldown = RandomUtils.randomLongInclusive(POLLINATION_COOLDOWN_MIN, POLLINATION_COOLDOWN_MAX);
             lastPollinationTime = System.currentTimeMillis();
+
             onPollinate.accept(null);
         }
 
