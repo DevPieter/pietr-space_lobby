@@ -140,7 +140,7 @@ public class Main {
             playSoundEffect(player);
         });
 
-        Sees sees = Sees.getInstance();
+        Sees sees = Sees.getSharedInstance();
         sees.subscribe(new MainListener());
 
         WorldManager worldManager = WorldManager.getInstance();
