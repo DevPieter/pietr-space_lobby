@@ -1,12 +1,13 @@
 package nl.devpieter.features.parkour.models.parkourTry;
 
+import org.jetbrains.annotations.Nullable;
+
 public record ReachedNode(
         int nodeIndex,
-        int reachedAtIndex, // TODO - Check if needed
-        long timestamp,
-        boolean skipped
+        boolean skipped,
+        @Nullable Long timestamp
 ) {
-    public static ReachedNode create(int nodeIndex, int reachedAtIndex, boolean skipped) {
-        return new ReachedNode(nodeIndex, reachedAtIndex, System.currentTimeMillis(), skipped);
+    public static ReachedNode create(int nodeIndex, boolean skipped) {
+        return new ReachedNode(nodeIndex, skipped, skipped ? null : System.currentTimeMillis());
     }
 }

@@ -564,7 +564,7 @@ public class ParkourManager {
 
             for (int skippedIndex = expectedIndex; skippedIndex < i; skippedIndex++) {
                 ParkourNode skippedNode = nodes.get(skippedIndex);
-                parkourTry.reachedNodes().add(ReachedNode.create(skippedNode.index(), i, true));
+                parkourTry.reachedNodes().add(ReachedNode.create(skippedNode.index(), true));
             }
 
             handlePointReached(player, parkourTry, node, i);
@@ -594,6 +594,14 @@ public class ParkourManager {
         if (!hasReachedAllCheckpoints(player)) {
             msgManager.showMessage(player, "parkour_must_reach_all_checkpoints", "<red>You must reach all checkpoints before finishing!");
             return;
+        }
+
+        int i = parkour.nodes().size();
+        int expectedIndex = parkourTry.lastReachedNode() + 1;
+
+        if (i > expectedIndex) for (int skippedIndex = expectedIndex; skippedIndex < i; skippedIndex++) {
+            ParkourNode skippedNode = parkour.nodes().get(skippedIndex);
+            parkourTry.reachedNodes().add(ReachedNode.create(skippedNode.index(), true));
         }
 
         parkourTry.finish();
@@ -643,7 +651,7 @@ public class ParkourManager {
     }
 
     private void handlePointReached(@NotNull Player player, @NotNull ParkourTry parkourTry, @NotNull ParkourNode node, int i) {
-        parkourTry.reachedNodes().add(ReachedNode.create(node.index(), i, false));
+        parkourTry.reachedNodes().add(ReachedNode.create(node.index(), false));
         boolean isCheckpoint = node.isCheckpoint();
 
         parkourTry.setReached(i, isCheckpoint);

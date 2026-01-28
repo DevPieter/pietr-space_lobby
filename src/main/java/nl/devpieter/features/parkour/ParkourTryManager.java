@@ -38,7 +38,8 @@ public class ParkourTryManager {
     private final Scheduler scheduler = MinecraftServer.getSchedulerManager();
 
     private final Gson gson = new Gson();
-    private final URI uri = URI.create(configManager.getString("api_base_url") + "/api/mc/lobby/parkour/try");
+    //    private final URI uri = URI.create(configManager.getString("api_base_url") + "/api/mc/lobby/parkour/try");
+    private final URI uri = URI.create("http://localhost:5246/api/parkour/test");
 
     private final List<ParkourTry> queuedParkourTries = new ArrayList<>();
 
@@ -61,7 +62,8 @@ public class ParkourTryManager {
         queueTask = scheduler.scheduleTask(
                 this::handleQueuedParkourTries,
                 TaskSchedule.nextTick(),
-                TaskSchedule.seconds(30)
+//                TaskSchedule.seconds(30)
+                TaskSchedule.seconds(10)
         );
     }
 
@@ -183,6 +185,10 @@ public class ParkourTryManager {
 
                 String json = gson.toJson(parkourTry);
                 HttpRequest.BodyPublisher body = HttpRequest.BodyPublishers.ofString(json);
+
+                System.out.println("\n======= POST PARKOUR TRY =======");
+                System.out.println(json);
+                System.out.println("======= END =======\n");
 
                 HttpResponse<String> response = simplePost(uri, body);
                 if (response.statusCode() != 201) {
