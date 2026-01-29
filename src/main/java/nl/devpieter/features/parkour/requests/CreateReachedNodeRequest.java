@@ -5,14 +5,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public record CreateReachedNodeRequest(
-        int nodeIndex,
-        boolean skipped,
+        int fromNodeIndex,
+        int toNodeIndex,
         @Nullable Long timestamp
 ) {
     public static CreateReachedNodeRequest of(@NotNull ReachedNode node) {
         return new CreateReachedNodeRequest(
-                node.nodeIndex(),
-                node.skipped(),
+                node.fromNodeIndex(),
+                node.toNodeIndex(),
                 node.timestamp()
         );
     }

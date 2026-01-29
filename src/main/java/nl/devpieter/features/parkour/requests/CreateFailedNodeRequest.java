@@ -4,13 +4,15 @@ import nl.devpieter.features.parkour.models.parkourTry.FailedNode;
 import org.jetbrains.annotations.NotNull;
 
 public record CreateFailedNodeRequest(
-        int nodeIndex,
+        int fromNodeIndex,
+        int toNodeIndex,
         int failReason,
         long timestamp
 ) {
     public static CreateFailedNodeRequest of(@NotNull FailedNode node) {
         return new CreateFailedNodeRequest(
-                node.nodeIndex(),
+                node.fromNodeIndex(),
+                node.toNodeIndex(),
                 node.failReason().getValue(),
                 node.timestamp()
         );

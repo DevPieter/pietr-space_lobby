@@ -21,6 +21,7 @@ public class ParkourTry {
     private ParkourCancelReason cancelReason;
 
     private final List<ReachedNode> reachedNodes;
+    private final List<SkippedNode> skippedNodes;
     private final List<FailedNode> failedNodes;
 
     private int lastReachedNode;
@@ -37,6 +38,7 @@ public class ParkourTry {
         this.cancelReason = ParkourCancelReason.None;
 
         this.reachedNodes = new ArrayList<>();
+        this.skippedNodes = new ArrayList<>();
         this.failedNodes = new ArrayList<>();
 
         this.lastReachedNode = -1;
@@ -48,6 +50,7 @@ public class ParkourTry {
         lastCheckpoint = -1;
 
         reachedNodes.clear();
+        skippedNodes.clear();
         reached.clear();
     }
 
@@ -111,6 +114,10 @@ public class ParkourTry {
 
     public List<ReachedNode> reachedNodes() {
         return reachedNodes;
+    }
+
+    public List<SkippedNode> skippedNodes() {
+        return skippedNodes;
     }
 
     public List<FailedNode> failedNodes() {

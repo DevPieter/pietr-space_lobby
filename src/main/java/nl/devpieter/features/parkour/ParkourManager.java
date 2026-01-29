@@ -32,6 +32,7 @@ import nl.devpieter.features.parkour.models.parkour.*;
 import nl.devpieter.features.parkour.models.parkourTry.FailedNode;
 import nl.devpieter.features.parkour.models.parkourTry.ParkourTry;
 import nl.devpieter.features.parkour.models.parkourTry.ReachedNode;
+import nl.devpieter.features.parkour.models.parkourTry.SkippedNode;
 import nl.devpieter.features.signs.SignDecoder;
 import nl.devpieter.features.signs.SignManager;
 import nl.devpieter.features.signs.models.SignHolder;
@@ -55,6 +56,9 @@ public class ParkourManager {
 
     private static ParkourManager INSTANCE;
     private static final String SIGN_KEY = "<PARKOUR>";
+
+    private static final int START_NODE_INDEX = -1;
+    private static final int END_NODE_INDEX = -2;
 
     private final ComponentLogger logger = MinecraftServer.LOGGER;
 
@@ -291,9 +295,6 @@ public class ParkourManager {
                 if (node.isCheckpoint()) instance.setBlock(point, Block.AIR);
             }
 
-//            Entity leaderboardEntity = parkour.leaderboardEntity();
-//            if (leaderboardEntity != null) leaderboardEntity.remove();
-
             Acquirable<? extends Entity> leaderboardEntityAcquirable = parkour.leaderboardEntity();
             if (leaderboardEntityAcquirable != null) leaderboardEntityAcquirable.sync(Entity::remove);
         }
@@ -373,7 +374,105 @@ public class ParkourManager {
                 ));
             }
         }
+
+        /* TESTING - TODO Remove */
+//        String parkourId = "main:Simple";
+//        Instance instance = worldManager.getLoadedWorldById("main").instance();
+//
+////        Point between = getLocationBetweenNodes(parkourId, -1, -2, 0.5);
+////        debugMarkers.add(WorldUtils.placeMarker(
+////                instance,
+////                between.add(0, 0.7, 0),
+////                TextUtils.miniText("<#00ff00>Between Nodes <gray>%s", parkourId)
+////        ));
+//
+//        getStats().thenAccept(analytics -> {
+//            if (analytics == null) return;
+//
+//            Parkour parkour = parkours.get(parkourId);
+//            if (parkour == null) return;
+//
+//            for (ParkourNodeAnalytics nodeAnalytics : analytics.nodeAnalytics()) {
+//
+//                int currentIndex = nodeAnalytics.nodeId();
+//                int previousIndex = currentIndex - 1;
+////                int nextIndex = currentIndex + 1;
+////                if (nextIndex >= parkour.nodes().size()) nextIndex = -2;
+//
+//                Point pos = getLocationBetweenNodes(parkourId, previousIndex, currentIndex, 0.5);
+//
+//                debugMarkers.add(WorldUtils.placeMarker(
+//                        instance,
+//                        pos.add(0, 0, 0),
+//                        TextUtils.miniText(
+//                                """
+//                                        <green>Reached: <gray>%d
+//                                        <red>Failed: <gray>%d
+//                                        <yellow>Skipped: <gray>%d""",
+//                                nodeAnalytics.reachedCount(),
+//                                nodeAnalytics.failedCount(),
+//                                nodeAnalytics.skippedCount()
+//                        )
+//                ));
+//
+//            }
+//        });
     }
+
+//    record ParkourNodeAnalytics(
+//            int nodeId,
+//            int reachedCount,
+//            int failedCount,
+//            int skippedCount
+//    ) {
+//    }
+//
+//    record ParkourCourseAnalytics(
+//            List<ParkourNodeAnalytics> nodeAnalytics
+//    ) {
+//    }
+//
+//    private CompletableFuture<ParkourCourseAnalytics> getStats() {
+//        return new AsyncRequest<ParkourCourseAnalytics>() {
+//            @Override
+//            protected @Nullable ParkourCourseAnalytics requestAsync() throws Exception {
+//
+//                HttpResponse<String> response = simpleGet(URI.create("http://localhost:5246/api/parkour/test/analyze/019c09e5-ff6a-7c8e-8bbb-1b065a65ce63"));
+//                if (response.statusCode() != 200) {
+//                    logger.error("API returned {}, expected 201", response.statusCode());
+//                    throw new Exception("API returned " + response.statusCode() + ", expected 201");
+//                }
+//
+//                Gson gson = new Gson();
+//                return gson.fromJson(response.body(), ParkourCourseAnalytics.class);
+//            }
+//        }.execute().getFuture();
+//    }
+//
+//    private Point getLocationBetweenNodes(String parkourId, int fromIndex, int toIndex, double fraction) {
+//        Parkour parkour = parkours.get(parkourId);
+//        if (parkour == null) return Pos.ZERO;
+//
+//        Pos fromPos = getNodePosition(parkour, fromIndex);
+//        Pos toPos = getNodePosition(parkour, toIndex);
+//        if (fromPos == Pos.ZERO || toPos == Pos.ZERO) return Pos.ZERO;
+//
+//        double x = fromPos.x() + (toPos.x() - fromPos.x()) * fraction;
+//        double y = fromPos.y() + (toPos.y() - fromPos.y()) * fraction;
+//        double z = fromPos.z() + (toPos.z() - fromPos.z()) * fraction;
+//
+//        return new Pos(x, y, z);
+//    }
+//
+//    private Pos getNodePosition(@NonNull Parkour parkour, int index) {
+//        List<ParkourNode> nodes = parkour.nodes();
+//
+//        if (index == START_NODE_INDEX) return parkour.startPos();
+//        if (index == END_NODE_INDEX || index == nodes.size()) return parkour.endPos();
+//        if (index >= 0 && index < nodes.size()) return nodes.get(index).pos();
+//
+//        return Pos.ZERO;
+//    }
 
     public void clearDebugMarkers() {
         for (Entity marker : debugMarkers) marker.remove();
@@ -484,13 +583,10 @@ public class ParkourManager {
         if (parkour == null) return;
 
         if (reason == ParkourCancelReason.PlayerRequest) {
+            handlePointFailed(player, parkour, parkourTry, ParkourFailReason.Cancelled);
+
             player.sendMessage(TextUtils.miniText("<red>You cancelled the parkour!"));
             player.playSound(Sound.sound(SoundEvent.ENTITY_VILLAGER_NO, Sound.Source.MASTER, 1.0f, 1.0f));
-
-            if (parkourTry.lastReachedNode() >= 0 && parkourTry.lastReachedNode() < parkour.nodes().size()) {
-                ParkourNode lastReachedNode = parkour.nodes().get(parkourTry.lastReachedNode());
-                parkourTry.failedNodes().add(FailedNode.create(lastReachedNode.index(), ParkourFailReason.Cancelled));
-            }
         } else {
             player.sendMessage(TextUtils.miniText("<red>Parkour cancelled, please don't do that!"));
         }
@@ -506,17 +602,20 @@ public class ParkourManager {
         Parkour parkour = parkours.get(parkourTry.parkourId());
         if (parkour == null) return;
 
-        int lastReachedIndex = parkourTry.lastCheckpoint();
+        int lastReachedCheckpointIndex = parkourTry.lastCheckpoint();
         ParkourNode currentCheckpointNode = null;
 
-        if (lastReachedIndex >= 0 && lastReachedIndex < parkour.nodes().size()) {
-            currentCheckpointNode = parkour.nodes().get(lastReachedIndex);
+        if (lastReachedCheckpointIndex >= 0 && lastReachedCheckpointIndex < parkour.nodes().size()) {
+            currentCheckpointNode = parkour.nodes().get(lastReachedCheckpointIndex);
 
             if (!currentCheckpointNode.isCheckpoint()) {
                 // TODO - Log this as a warning, this should not happen
                 currentCheckpointNode = null;
             }
         }
+
+        // Log the failed point before rollback
+        handlePointFailed(player, parkour, parkourTry, reason);
 
         if (currentCheckpointNode == null) {
             parkourTry.resetProgress();
@@ -528,11 +627,6 @@ public class ParkourManager {
 
         player.sendActionBar(TextUtils.miniText("<red>You failed the jump!"));
         player.playSound(Sound.sound(SoundEvent.ENTITY_VILLAGER_NO, Sound.Source.MASTER, 1.0f, 1.0f));
-
-        if (lastReachedIndex < 0 || lastReachedIndex >= parkour.nodes().size()) return;
-
-        ParkourNode lastReachedNode = parkour.nodes().get(lastReachedIndex);
-        parkourTry.failedNodes().add(FailedNode.create(lastReachedNode.index(), reason));
     }
 
     public void checkNode(@NotNull Player player) {
@@ -560,11 +654,6 @@ public class ParkourManager {
             if (nodes.subList(expectedIndex, i).stream().anyMatch(ParkourNode::isCheckpoint)) {
                 msgManager.showMessage(player, "parkour_must_reach_checkpoint_first", "<red>You must reach the next checkpoint first!");
                 return;
-            }
-
-            for (int skippedIndex = expectedIndex; skippedIndex < i; skippedIndex++) {
-                ParkourNode skippedNode = nodes.get(skippedIndex);
-                parkourTry.reachedNodes().add(ReachedNode.create(skippedNode.index(), true));
             }
 
             handlePointReached(player, parkourTry, node, i);
@@ -596,13 +685,7 @@ public class ParkourManager {
             return;
         }
 
-        int i = parkour.nodes().size();
-        int expectedIndex = parkourTry.lastReachedNode() + 1;
-
-        if (i > expectedIndex) for (int skippedIndex = expectedIndex; skippedIndex < i; skippedIndex++) {
-            ParkourNode skippedNode = parkour.nodes().get(skippedIndex);
-            parkourTry.reachedNodes().add(ReachedNode.create(skippedNode.index(), true));
-        }
+        handlePointReached(player, parkourTry, null, parkour.nodes().size());
 
         parkourTry.finish();
         handleCleanup(player, parkour, parkourTry);
@@ -650,16 +733,72 @@ public class ParkourManager {
         return true;
     }
 
-    private void handlePointReached(@NotNull Player player, @NotNull ParkourTry parkourTry, @NotNull ParkourNode node, int i) {
-        parkourTry.reachedNodes().add(ReachedNode.create(node.index(), false));
-        boolean isCheckpoint = node.isCheckpoint();
+    private void handlePointFailed(@NotNull Player player, @NotNull Parkour parkour, @NotNull ParkourTry parkourTry, @NotNull ParkourFailReason reason) {
+        int lastReachedIndex = parkourTry.lastReachedNode();
 
+        int fromNodeIndex = START_NODE_INDEX;
+        int toNodeIndex = 0;
+
+        if (lastReachedIndex >= 0 && lastReachedIndex < parkour.nodes().size()) {
+            fromNodeIndex = parkour.nodes().get(lastReachedIndex).index();
+            toNodeIndex = fromNodeIndex + 1;
+
+            if (toNodeIndex >= parkour.nodes().size()) {
+                toNodeIndex = END_NODE_INDEX;
+            }
+        }
+
+        parkourTry.failedNodes().add(FailedNode.create(fromNodeIndex, toNodeIndex, reason));
+
+        if (EnvStatics.DEBUG) player.sendMessage(TextUtils.miniText(
+                "<green>[Debug] <gray>Jump from <red>Node %s</red> to <red>Node %s</red> failed!",
+                fromNodeIndex,
+                toNodeIndex)
+        );
+    }
+
+    private void handlePointReached(@NotNull Player player, @NotNull ParkourTry parkourTry, @Nullable ParkourNode node, int i) {
+        boolean isEndNode = node == null;
+
+        int from = parkourTry.lastReachedNode();
+        parkourTry.reachedNodes().add(ReachedNode.create(from, isEndNode ? END_NODE_INDEX : node.index()));
+
+        for (int skippedIndex = from + 1; skippedIndex < i; skippedIndex++) {
+            parkourTry.skippedNodes().add(SkippedNode.create(skippedIndex, from, isEndNode ? END_NODE_INDEX : node.index()));
+        }
+
+        boolean hasSkipped = i != parkourTry.lastReachedNode() + 1;
+        if (hasSkipped && EnvStatics.DEBUG) {
+            boolean oneSkipped = (i - (parkourTry.lastReachedNode() + 1)) == 1;
+
+            if (oneSkipped) player.sendMessage(TextUtils.miniText(
+                    "<green>[Debug] <gray>Jump <yellow>%d</yellow> made, node <red>%d</red> was skipped!",
+                    i,
+                    parkourTry.lastReachedNode() + 1
+            ));
+            else player.sendMessage(TextUtils.miniText(
+                    "<green>[Debug] <gray>Jump <yellow>%d</yellow> made, nodes <red>%d to %d</red> were skipped!",
+                    i,
+                    parkourTry.lastReachedNode() + 1,
+                    i - 1
+            ));
+        }
+
+        if (isEndNode) {
+            if (EnvStatics.DEBUG) player.sendActionBar(
+                    TextUtils.miniText("<dark_gray>End Node <green>reached!</green>")
+            );
+
+            return;
+        }
+
+        boolean isCheckpoint = node.isCheckpoint();
         parkourTry.setReached(i, isCheckpoint);
         if (isCheckpoint) handleCheckpointReached(player, parkourTry.parkourId());
 
-        if (EnvStatics.DEBUG) {
-            player.sendActionBar(TextUtils.miniText("<dark_gray>Node <green>%d</green> reached!", i));
-        }
+        if (EnvStatics.DEBUG) player.sendActionBar(
+                TextUtils.miniText("<dark_gray>Node <green>%d</green> reached!", i)
+        );
     }
 
     private void handleCheckpointReached(@NotNull Player player, @NotNull String parkourId) {
