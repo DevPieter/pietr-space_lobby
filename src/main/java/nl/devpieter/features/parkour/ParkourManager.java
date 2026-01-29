@@ -1,5 +1,6 @@
 package nl.devpieter.features.parkour;
 
+import com.google.gson.Gson;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -17,10 +18,14 @@ import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
+import net.minestom.server.particle.Particle;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.thread.Acquirable;
+import net.minestom.server.timer.SchedulerManager;
+import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.TagHelper;
+import nl.devpieter.api.request.AsyncRequest;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.enums.PlayerTags;
@@ -42,15 +47,16 @@ import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.models.GlowingBlockHolder;
 import nl.devpieter.models.SlotHolder;
-import nl.devpieter.utils.minestom.PacketUtils;
-import nl.devpieter.utils.minestom.PlayerUtils;
-import nl.devpieter.utils.minestom.TextUtils;
-import nl.devpieter.utils.minestom.WorldUtils;
+import nl.devpieter.utils.minestom.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
+import java.net.URI;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public class ParkourManager {
 
@@ -376,103 +382,187 @@ public class ParkourManager {
         }
 
         /* TESTING - TODO Remove */
-//        String parkourId = "main:Simple";
-//        Instance instance = worldManager.getLoadedWorldById("main").instance();
+        String parkourId = "main:Simple";
+        Instance instance = worldManager.getLoadedWorldById("main").instance();
+
+//        Point between = getLocationBetweenNodes(parkourId, -1, -2, 0.5);
+//        debugMarkers.add(WorldUtils.placeMarker(
+//                instance,
+//                between.add(0, 0.7, 0),
+//                TextUtils.miniText("<#00ff00>Between Nodes <gray>%s", parkourId)
+//        ));
+
+        SchedulerManager scheduler = MinecraftServer.getSchedulerManager();
+
+        for (Task task : debugTasks) task.cancel();
+        debugTasks.clear();
+
+        getStats().thenAccept(analytics -> {
+            if (analytics == null) return;
+
+            Parkour parkour = parkours.get(parkourId);
+            if (parkour == null) return;
+
+            for (ParkourNodeAnalytics nodeAnalytics : analytics.nodeAnalytics()) {
+
+                int fromNodeId = nodeAnalytics.fromNodeId();
+                int toNodeId = nodeAnalytics.toNodeId();
+//                int nextIndex = currentIndex + 1;
+//                if (nextIndex >= parkour.nodes().size()) nextIndex = -2;
+
+                Point pos = getLocationBetweenNodes(parkourId, fromNodeId, toNodeId, 0.5);
+
+                debugMarkers.add(WorldUtils.placeMarker(
+                        instance,
+                        pos.add(0, 0, 0),
+                        TextUtils.miniText(
+                                """
+                                        <gray>%s -> %s
+                                        <green>S: <gray>%d | <red>F: <gray>%d""",
+                                fromNodeId == START_NODE_INDEX ? "Start" : (fromNodeId == END_NODE_INDEX ? "End" : fromNodeId),
+                                toNodeId == START_NODE_INDEX ? "Start" : (toNodeId == END_NODE_INDEX ? "End" : toNodeId),
+                                nodeAnalytics.reachedCount(),
+                                nodeAnalytics.failedCount()
+                        )
+                ));
+
+//                debugTasks.add(scheduler.scheduleTask(() -> {
 //
-////        Point between = getLocationBetweenNodes(parkourId, -1, -2, 0.5);
-////        debugMarkers.add(WorldUtils.placeMarker(
-////                instance,
-////                between.add(0, 0.7, 0),
-////                TextUtils.miniText("<#00ff00>Between Nodes <gray>%s", parkourId)
-////        ));
+//                    double distance = getDistanceBetweenNodes(parkourId, fromNodeId, toNodeId);
+//                    int particleDistance = (int) (distance * 1.5);
 //
-//        getStats().thenAccept(analytics -> {
-//            if (analytics == null) return;
+//                    int particleDelay = 2;
+//                    int index = 0;
 //
-//            Parkour parkour = parkours.get(parkourId);
-//            if (parkour == null) return;
+//                    for (double f = 0; f <= 1.0; f += (1.0 / particleDistance)) {
+//                        Point point = getLocationBetweenNodes(parkourId, fromNodeId, toNodeId, f);
+//                        index++;
 //
-//            for (ParkourNodeAnalytics nodeAnalytics : analytics.nodeAnalytics()) {
-//
-//                int currentIndex = nodeAnalytics.nodeId();
-//                int previousIndex = currentIndex - 1;
-////                int nextIndex = currentIndex + 1;
-////                if (nextIndex >= parkour.nodes().size()) nextIndex = -2;
-//
-//                Point pos = getLocationBetweenNodes(parkourId, previousIndex, currentIndex, 0.5);
-//
-//                debugMarkers.add(WorldUtils.placeMarker(
-//                        instance,
-//                        pos.add(0, 0, 0),
-//                        TextUtils.miniText(
-//                                """
-//                                        <green>Reached: <gray>%d
-//                                        <red>Failed: <gray>%d
-//                                        <yellow>Skipped: <gray>%d""",
-//                                nodeAnalytics.reachedCount(),
-//                                nodeAnalytics.failedCount(),
-//                                nodeAnalytics.skippedCount()
-//                        )
-//                ));
-//
-//            }
-//        });
+//                        scheduler.scheduleTask(() -> {
+//                            ParticleUtils.spawnParticleToViewers(
+//                                    instance,
+//                                    Particle.FLAME,
+//                                    point.add(0, 0, 0),
+//                                    Pos.ZERO,
+//                                    0f,
+//                                    1
+//                            );
+//                        }, TaskSchedule.tick(particleDelay * index), TaskSchedule.stop());
+//                    }
+//                }, TaskSchedule.seconds(1), TaskSchedule.seconds(5)));
+
+                debugTasks.add(scheduler.scheduleTask(() -> {
+                    double distance = getDistanceBetweenNodes(parkourId, fromNodeId, toNodeId);
+
+                    int particleCount = (int) (distance * 1.5);
+                    int totalTicks = Math.max(20, particleCount / 2);
+
+                    scheduler.scheduleTask(new Runnable() {
+                        int tick = 0;
+
+                        @Override
+                        public void run() {
+
+                            double t = (double) tick / totalTicks;
+                            if (t > 1.0) return;
+
+                            int particlesPerTick = Math.max(1, particleCount / totalTicks);
+
+                            for (int i = 0; i < particlesPerTick; i++) {
+                                double offset = (double) i / particleCount;
+                                double progress = Math.min(1.0, t + offset);
+
+                                Point point = getLocationBetweenNodes(
+                                        parkourId, fromNodeId, toNodeId, progress
+                                );
+
+                                ParticleUtils.spawnParticleToViewers(
+                                        instance,
+                                        Particle.FLAME,
+                                        point,
+                                        Pos.ZERO,
+                                        0f,
+                                        1
+                                );
+                            }
+                            tick++;
+                        }
+
+                    }, TaskSchedule.immediate(), TaskSchedule.tick(1));
+
+                }, TaskSchedule.immediate(), TaskSchedule.seconds(5)));
+            }
+        });
     }
 
-//    record ParkourNodeAnalytics(
-//            int nodeId,
-//            int reachedCount,
-//            int failedCount,
-//            int skippedCount
-//    ) {
-//    }
-//
-//    record ParkourCourseAnalytics(
-//            List<ParkourNodeAnalytics> nodeAnalytics
-//    ) {
-//    }
-//
-//    private CompletableFuture<ParkourCourseAnalytics> getStats() {
-//        return new AsyncRequest<ParkourCourseAnalytics>() {
-//            @Override
-//            protected @Nullable ParkourCourseAnalytics requestAsync() throws Exception {
-//
-//                HttpResponse<String> response = simpleGet(URI.create("http://localhost:5246/api/parkour/test/analyze/019c09e5-ff6a-7c8e-8bbb-1b065a65ce63"));
-//                if (response.statusCode() != 200) {
-//                    logger.error("API returned {}, expected 201", response.statusCode());
-//                    throw new Exception("API returned " + response.statusCode() + ", expected 201");
-//                }
-//
-//                Gson gson = new Gson();
-//                return gson.fromJson(response.body(), ParkourCourseAnalytics.class);
-//            }
-//        }.execute().getFuture();
-//    }
-//
-//    private Point getLocationBetweenNodes(String parkourId, int fromIndex, int toIndex, double fraction) {
-//        Parkour parkour = parkours.get(parkourId);
-//        if (parkour == null) return Pos.ZERO;
-//
-//        Pos fromPos = getNodePosition(parkour, fromIndex);
-//        Pos toPos = getNodePosition(parkour, toIndex);
-//        if (fromPos == Pos.ZERO || toPos == Pos.ZERO) return Pos.ZERO;
-//
-//        double x = fromPos.x() + (toPos.x() - fromPos.x()) * fraction;
-//        double y = fromPos.y() + (toPos.y() - fromPos.y()) * fraction;
-//        double z = fromPos.z() + (toPos.z() - fromPos.z()) * fraction;
-//
-//        return new Pos(x, y, z);
-//    }
-//
-//    private Pos getNodePosition(@NonNull Parkour parkour, int index) {
-//        List<ParkourNode> nodes = parkour.nodes();
-//
-//        if (index == START_NODE_INDEX) return parkour.startPos();
-//        if (index == END_NODE_INDEX || index == nodes.size()) return parkour.endPos();
-//        if (index >= 0 && index < nodes.size()) return nodes.get(index).pos();
-//
-//        return Pos.ZERO;
-//    }
+    private final List<Task> debugTasks = new ArrayList<>();
+
+    record ParkourNodeAnalytics(
+            int fromNodeId,
+            int toNodeId,
+            int reachedCount,
+            int failedCount,
+            int skippedCount
+    ) {
+    }
+
+    record ParkourCourseAnalytics(
+            List<ParkourNodeAnalytics> nodeAnalytics
+    ) {
+    }
+
+    private CompletableFuture<ParkourCourseAnalytics> getStats() {
+        return new AsyncRequest<ParkourCourseAnalytics>() {
+            @Override
+            protected @Nullable ParkourCourseAnalytics requestAsync() throws Exception {
+
+                HttpResponse<String> response = simpleGet(URI.create("http://localhost:5246/api/parkour/test/analyze/019c0ab1-abab-74ae-9587-2aca186f2942"));
+                if (response.statusCode() != 200) {
+                    logger.error("API returned {}, expected 201", response.statusCode());
+                    throw new Exception("API returned " + response.statusCode() + ", expected 201");
+                }
+
+                Gson gson = new Gson();
+                return gson.fromJson(response.body(), ParkourCourseAnalytics.class);
+            }
+        }.execute().getFuture();
+    }
+
+    private Point getLocationBetweenNodes(String parkourId, int fromIndex, int toIndex, double fraction) {
+        Parkour parkour = parkours.get(parkourId);
+        if (parkour == null) return Pos.ZERO;
+
+        Pos fromPos = getNodePosition(parkour, fromIndex);
+        Pos toPos = getNodePosition(parkour, toIndex);
+        if (fromPos == Pos.ZERO || toPos == Pos.ZERO) return Pos.ZERO;
+
+        double x = fromPos.x() + (toPos.x() - fromPos.x()) * fraction;
+        double y = fromPos.y() + (toPos.y() - fromPos.y()) * fraction;
+        double z = fromPos.z() + (toPos.z() - fromPos.z()) * fraction;
+
+        return new Pos(x, y, z);
+    }
+
+    private double getDistanceBetweenNodes(String parkourId, int fromIndex, int toIndex) {
+        Parkour parkour = parkours.get(parkourId);
+        if (parkour == null) return 0.0;
+
+        Pos fromPos = getNodePosition(parkour, fromIndex);
+        Pos toPos = getNodePosition(parkour, toIndex);
+        if (fromPos == Pos.ZERO || toPos == Pos.ZERO) return 0.0;
+
+        return fromPos.distance(toPos);
+    }
+
+    private Pos getNodePosition(@NonNull Parkour parkour, int index) {
+        List<ParkourNode> nodes = parkour.nodes();
+
+        if (index == START_NODE_INDEX) return parkour.startPos();
+        if (index == END_NODE_INDEX || index == nodes.size()) return parkour.endPos();
+        if (index >= 0 && index < nodes.size()) return nodes.get(index).pos();
+
+        return Pos.ZERO;
+    }
 
     public void clearDebugMarkers() {
         for (Entity marker : debugMarkers) marker.remove();

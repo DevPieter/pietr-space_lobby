@@ -17,12 +17,17 @@ public record CreateParkourTryRequest(
         int cancelReason,
 
         List<CreateReachedNodeRequest> reachedNodes,
+        List<CreateSkippedNodeRequest> skippedNodes,
         List<CreateFailedNodeRequest> failedNodes
 ) {
 
     public static @NotNull CreateParkourTryRequest of(@NotNull ParkourTry parkourTry) {
         List<CreateReachedNodeRequest> reachedNodes = parkourTry.reachedNodes().stream()
                 .map(CreateReachedNodeRequest::of)
+                .toList();
+
+        List<CreateSkippedNodeRequest> skippedNodes = parkourTry.skippedNodes().stream()
+                .map(CreateSkippedNodeRequest::of)
                 .toList();
 
         List<CreateFailedNodeRequest> failedNodes = parkourTry.failedNodes().stream()
@@ -37,6 +42,7 @@ public record CreateParkourTryRequest(
                 parkourTry.isCancelled(),
                 parkourTry.cancelReason().getValue(),
                 reachedNodes,
+                skippedNodes,
                 failedNodes
         );
     }
