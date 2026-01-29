@@ -382,7 +382,8 @@ public class ParkourManager {
         }
 
         /* TESTING - TODO Remove */
-        String parkourId = "main:Simple";
+//        String parkourId = "main:Simple";
+        String parkourId = "main:Hard";
         Instance instance = worldManager.getLoadedWorldById("main").instance();
 
 //        Point between = getLocationBetweenNodes(parkourId, -1, -2, 0.5);
@@ -407,14 +408,12 @@ public class ParkourManager {
 
                 int fromNodeId = nodeAnalytics.fromNodeId();
                 int toNodeId = nodeAnalytics.toNodeId();
-//                int nextIndex = currentIndex + 1;
-//                if (nextIndex >= parkour.nodes().size()) nextIndex = -2;
 
-                Point pos = getLocationBetweenNodes(parkourId, fromNodeId, toNodeId, 0.5);
+                Point point = getLocationBetweenNodes(parkourId, fromNodeId, toNodeId, 0.5);
 
                 debugMarkers.add(WorldUtils.placeMarker(
                         instance,
-                        pos.add(0, 0, 0),
+                        point.add(0, 0, 0),
                         TextUtils.miniText(
                                 """
                                         <gray>%s -> %s
@@ -426,36 +425,11 @@ public class ParkourManager {
                         )
                 ));
 
-//                debugTasks.add(scheduler.scheduleTask(() -> {
-//
-//                    double distance = getDistanceBetweenNodes(parkourId, fromNodeId, toNodeId);
-//                    int particleDistance = (int) (distance * 1.5);
-//
-//                    int particleDelay = 2;
-//                    int index = 0;
-//
-//                    for (double f = 0; f <= 1.0; f += (1.0 / particleDistance)) {
-//                        Point point = getLocationBetweenNodes(parkourId, fromNodeId, toNodeId, f);
-//                        index++;
-//
-//                        scheduler.scheduleTask(() -> {
-//                            ParticleUtils.spawnParticleToViewers(
-//                                    instance,
-//                                    Particle.FLAME,
-//                                    point.add(0, 0, 0),
-//                                    Pos.ZERO,
-//                                    0f,
-//                                    1
-//                            );
-//                        }, TaskSchedule.tick(particleDelay * index), TaskSchedule.stop());
-//                    }
-//                }, TaskSchedule.seconds(1), TaskSchedule.seconds(5)));
-
                 debugTasks.add(scheduler.scheduleTask(() -> {
                     double distance = getDistanceBetweenNodes(parkourId, fromNodeId, toNodeId);
 
                     int particleCount = (int) (distance * 1.5);
-                    int totalTicks = Math.max(20, particleCount / 2);
+                    int totalTicks = 20;
 
                     scheduler.scheduleTask(new Runnable() {
                         int tick = 0;
@@ -489,8 +463,7 @@ public class ParkourManager {
                         }
 
                     }, TaskSchedule.immediate(), TaskSchedule.tick(1));
-
-                }, TaskSchedule.immediate(), TaskSchedule.seconds(5)));
+                }, TaskSchedule.immediate(), TaskSchedule.seconds(4)));
             }
         });
     }
@@ -516,7 +489,8 @@ public class ParkourManager {
             @Override
             protected @Nullable ParkourCourseAnalytics requestAsync() throws Exception {
 
-                HttpResponse<String> response = simpleGet(URI.create("http://localhost:5246/api/parkour/test/analyze/019c0ab1-abab-74ae-9587-2aca186f2942"));
+//                HttpResponse<String> response = simpleGet(URI.create("http://localhost:5246/api/parkour/test/analyze/019c0ab1-abab-74ae-9587-2aca186f2942")); // Simple
+                HttpResponse<String> response = simpleGet(URI.create("http://localhost:5246/api/parkour/test/analyze/019c0ad6-203f-7ed2-be4e-7fa30ee3cb8d")); // Hard
                 if (response.statusCode() != 200) {
                     logger.error("API returned {}, expected 201", response.statusCode());
                     throw new Exception("API returned " + response.statusCode() + ", expected 201");
