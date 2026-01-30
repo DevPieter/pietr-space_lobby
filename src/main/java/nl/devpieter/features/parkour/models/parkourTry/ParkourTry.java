@@ -3,13 +3,11 @@ package nl.devpieter.features.parkour.models.parkourTry;
 import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 
 import java.util.ArrayList;
-import java.util.BitSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
 public class ParkourTry {
-
-    private final BitSet reached = new BitSet();
 
     private final String parkourId;
     private final UUID playerUuid;
@@ -20,8 +18,8 @@ public class ParkourTry {
     private boolean isCancelled;
     private ParkourCancelReason cancelReason;
 
-    private final List<ReachedNode> reachedNodes;
-    private final List<SkippedNode> skippedNodes;
+    private final HashMap<Integer, ReachedNode> reachedNodesMap;
+    private final HashMap<Integer, SkippedNode> skippedNodesMap;
     private final List<FailedNode> failedNodes;
 
     private int lastReachedNode;
@@ -31,36 +29,32 @@ public class ParkourTry {
         this.parkourId = parkourId;
         this.playerUuid = playerUuid;
 
-        this.startTime = System.currentTimeMillis();
-        this.endTime = 0;
+        startTime = System.currentTimeMillis();
+        endTime = 0;
 
-        this.isCancelled = false;
-        this.cancelReason = ParkourCancelReason.None;
+        isCancelled = false;
+        cancelReason = ParkourCancelReason.None;
 
-        this.reachedNodes = new ArrayList<>();
-        this.skippedNodes = new ArrayList<>();
-        this.failedNodes = new ArrayList<>();
+        reachedNodesMap = new HashMap<>();
+        skippedNodesMap = new HashMap<>();
+        failedNodes = new ArrayList<>();
 
-        this.lastReachedNode = -1;
-        this.lastCheckpoint = -1;
-    }
-
-    public void resetProgress() {
         lastReachedNode = -1;
         lastCheckpoint = -1;
-
-        reachedNodes.clear();
-        skippedNodes.clear();
-        reached.clear();
     }
 
     public void rollbackToLastCheckpoint() {
-        if (lastCheckpoint < 0) return;
+        if (lastCheckpoint < 0) {
+            lastReachedNode = -1;
+            lastCheckpoint = -1;
 
-        for (int i = 0; i < reachedNodes.size(); i++) {
-            if (i <= lastCheckpoint) reached.set(i);
-            else reached.clear(i);
+            reachedNodesMap.clear();
+            skippedNodesMap.clear();
+            return;
         }
+
+        reachedNodesMap.entrySet().removeIf(entry -> entry.getKey() > lastCheckpoint);
+        skippedNodesMap.entrySet().removeIf(entry -> entry.getKey() > lastCheckpoint);
 
         lastReachedNode = lastCheckpoint;
     }
@@ -78,6 +72,18 @@ public class ParkourTry {
         this.endTime = System.currentTimeMillis();
         this.isCancelled = true;
         this.cancelReason = reason;
+    }
+
+    public void addReachedNode(ReachedNode node) {
+        reachedNodesMap.put(node.toNodeIndex(), node);
+    }
+
+    public void addSkippedNode(SkippedNode node) {
+        skippedNodesMap.put(node.nodeIndex(), node);
+    }
+
+    public void addFailedNode(FailedNode node) {
+        failedNodes.add(node);
     }
 
     public String parkourId() {
@@ -113,24 +119,22 @@ public class ParkourTry {
     }
 
     public List<ReachedNode> reachedNodes() {
-        return reachedNodes;
+        return new ArrayList<>(reachedNodesMap.values());
     }
 
     public List<SkippedNode> skippedNodes() {
-        return skippedNodes;
+        return new ArrayList<>(skippedNodesMap.values());
     }
 
     public List<FailedNode> failedNodes() {
-        return failedNodes;
+        return new ArrayList<>(failedNodes);
     }
 
     public boolean isReached(int nodeIndex) {
-        return reached.get(nodeIndex);
+        return reachedNodesMap.containsKey(nodeIndex);
     }
 
     public void setReached(int nodeIndex, boolean isCheckpoint) {
-        reached.set(nodeIndex);
-
         lastReachedNode = nodeIndex;
         if (isCheckpoint) lastCheckpoint = nodeIndex;
     }

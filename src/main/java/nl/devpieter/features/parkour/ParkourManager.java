@@ -680,14 +680,10 @@ public class ParkourManager {
 
         // Log the failed point before rollback
         handlePointFailed(player, parkour, parkourTry, reason);
+        parkourTry.rollbackToLastCheckpoint();
 
-        if (currentCheckpointNode == null) {
-            parkourTry.resetProgress();
-            PlayerUtils.teleport(player, parkour.startPos());
-        } else {
-            parkourTry.rollbackToLastCheckpoint();
-            PlayerUtils.teleport(player, currentCheckpointNode.pos());
-        }
+        if (currentCheckpointNode == null) PlayerUtils.teleport(player, parkour.startPos());
+        else PlayerUtils.teleport(player, currentCheckpointNode.pos());
 
         player.sendActionBar(TextUtils.miniText("<red>You failed the jump!"));
         player.playSound(Sound.sound(SoundEvent.ENTITY_VILLAGER_NO, Sound.Source.MASTER, 1.0f, 1.0f));
@@ -812,7 +808,7 @@ public class ParkourManager {
             }
         }
 
-        parkourTry.failedNodes().add(FailedNode.create(fromNodeIndex, toNodeIndex, reason));
+        parkourTry.addFailedNode(FailedNode.create(fromNodeIndex, toNodeIndex, reason));
 
         if (EnvStatics.DEBUG) player.sendMessage(TextUtils.miniText(
                 "<green>[Debug] <gray>Jump from <red>Node %s</red> to <red>Node %s</red> failed!",
@@ -825,10 +821,10 @@ public class ParkourManager {
         boolean isEndNode = node == null;
 
         int from = parkourTry.lastReachedNode();
-        parkourTry.reachedNodes().add(ReachedNode.create(from, isEndNode ? END_NODE_INDEX : node.index()));
+        parkourTry.addReachedNode(ReachedNode.create(from, isEndNode ? END_NODE_INDEX : node.index()));
 
         for (int skippedIndex = from + 1; skippedIndex < i; skippedIndex++) {
-            parkourTry.skippedNodes().add(SkippedNode.create(skippedIndex, from, isEndNode ? END_NODE_INDEX : node.index()));
+            parkourTry.addSkippedNode(SkippedNode.create(skippedIndex, from, isEndNode ? END_NODE_INDEX : node.index()));
         }
 
         boolean hasSkipped = i != parkourTry.lastReachedNode() + 1;
