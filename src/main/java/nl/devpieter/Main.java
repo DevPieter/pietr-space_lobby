@@ -249,18 +249,9 @@ public class Main {
 //        eventHandler.addListener(PlayerStartSneakingEvent.class, event -> {
 //            Player player = event.getPlayer();
 //
-//            Point hive = WorldUtils.findBlocks(
-//                    player.getInstance(),
-//                    player.getPosition(),
-//                    50,
-//                    Block.BEE_NEST,
-//                    Block.BEEHIVE
-//            ).stream().findFirst().orElse(null);
-//
-//            BeeEntity bee = new BeeEntity(hive, acquirable -> {
-//                acquirable.sync(BeeEntity::resetNectar);
-//            });
-//            bee.setInstance(player.getInstance(), player.getPosition().withY(player.getPosition().y() + 2));
+//            PlayLogger pLogger = PlayLogger.getInstance();
+//            pLogger.debug(player, "Testing 123, {} sneaking event {}", player.getName(), 321);
+//            pLogger.debug(player, true, "Testing 123, {} sneaking event {}", player.getName(), 321);
 //        });
 
         eventHandler.addListener(EntityAttackEvent.class, event -> {
