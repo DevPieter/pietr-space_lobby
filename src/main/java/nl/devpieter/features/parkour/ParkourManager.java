@@ -24,6 +24,7 @@ import net.minestom.server.thread.Acquirable;
 import net.minestom.server.timer.SchedulerManager;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
+import nl.devpieter.PlayLogger;
 import nl.devpieter.TagHelper;
 import nl.devpieter.api.request.AsyncRequest;
 import nl.devpieter.config.EnvStatics;
@@ -67,6 +68,7 @@ public class ParkourManager {
     private static final int END_NODE_INDEX = -2;
 
     private final ComponentLogger logger = MinecraftServer.LOGGER;
+    private final PlayLogger playLogger = PlayLogger.getInstance();
 
     private final MsgManager msgManager = MsgManager.getInstance();
     private final TipManager tipManager = TipManager.getInstance();
@@ -810,10 +812,12 @@ public class ParkourManager {
 
         parkourTry.addFailedNode(FailedNode.create(fromNodeIndex, toNodeIndex, reason));
 
-        if (EnvStatics.DEBUG) player.sendMessage(TextUtils.miniText(
-                "<green>[Debug] <gray>Jump from <red>Node %s</red> to <red>Node %s</red> failed!",
-                fromNodeIndex,
-                toNodeIndex)
+        playLogger.debug(
+                player,
+                "Jump from {} to {} failed: {}",
+                "Node " + fromNodeIndex,
+                "Node " + toNodeIndex,
+                reason.name()
         );
     }
 
@@ -827,26 +831,29 @@ public class ParkourManager {
             parkourTry.addSkippedNode(SkippedNode.create(skippedIndex, from, isEndNode ? END_NODE_INDEX : node.index()));
         }
 
-        boolean hasSkipped = i != parkourTry.lastReachedNode() + 1;
-        if (hasSkipped && EnvStatics.DEBUG) {
+        if (EnvStatics.DEBUG && i != parkourTry.lastReachedNode() + 1) {
             boolean oneSkipped = (i - (parkourTry.lastReachedNode() + 1)) == 1;
 
-            if (oneSkipped) player.sendMessage(TextUtils.miniText(
-                    "<green>[Debug] <gray>Jump <yellow>%d</yellow> made, node <red>%d</red> was skipped!",
+            if (oneSkipped) playLogger.debug(
+                    player,
+                    "Jump {} made, node {} was skipped",
                     i,
                     parkourTry.lastReachedNode() + 1
-            ));
-            else player.sendMessage(TextUtils.miniText(
-                    "<green>[Debug] <gray>Jump <yellow>%d</yellow> made, nodes <red>%d to %d</red> were skipped!",
+            );
+            else playLogger.debug(
+                    player,
+                    "Jump {} made, nodes {} to {} were skipped",
                     i,
                     parkourTry.lastReachedNode() + 1,
                     i - 1
-            ));
+            );
         }
 
         if (isEndNode) {
-            if (EnvStatics.DEBUG) player.sendActionBar(
-                    TextUtils.miniText("<dark_gray>End Node <green>reached!</green>")
+            playLogger.debug(
+                    player,
+                    true,
+                    "End Node reached"
             );
 
             return;
@@ -856,8 +863,12 @@ public class ParkourManager {
         parkourTry.setReached(i, isCheckpoint);
         if (isCheckpoint) handleCheckpointReached(player, parkourTry.parkourId());
 
-        if (EnvStatics.DEBUG) player.sendActionBar(
-                TextUtils.miniText("<dark_gray>Node <green>%d</green> reached!", i)
+        playLogger.debug(
+                player,
+                true,
+                "Node {} reached{}",
+                i,
+                isCheckpoint ? " (Checkpoint)" : ""
         );
     }
 
