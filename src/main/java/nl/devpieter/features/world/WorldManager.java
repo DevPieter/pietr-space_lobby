@@ -2,11 +2,9 @@ package nl.devpieter.features.world;
 
 import com.google.gson.Gson;
 import net.minestom.server.MinecraftServer;
-import net.minestom.server.instance.Instance;
-import net.minestom.server.instance.InstanceContainer;
-import net.minestom.server.instance.InstanceManager;
-import net.minestom.server.instance.Weather;
+import net.minestom.server.instance.*;
 import net.minestom.server.instance.anvil.AnvilLoader;
+import net.minestom.server.world.DimensionType;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.events.WorldManagerInitializedEvent;
 import nl.devpieter.features.world.models.LoadedWorld;
@@ -21,6 +19,7 @@ import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.FileReader;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -62,21 +61,28 @@ public class WorldManager {
         logger.info("Loading worlds...");
 
         for (World world : foundWorlds) {
+            var type = DimensionType.OVERWORLD;
+
             logger.info("Loading world: {} ({})", world.name(), world.id());
-            InstanceContainer instance = instanceManager.createInstanceContainer();
+            InstanceContainer instance = instanceManager.createInstanceContainer(type);
 
             WorldSettings settings = world.settings();
 
-            WorldTimeSetting timeSetting = settings.time();
-            instance.setTime(timeSetting.time());
-            instance.setTimeRate(timeSetting.cycle() ? 1 : 0);
+            Clock clock = instance.defaultClock();
+            if (clock != null) {
+                WorldTimeSetting timeSetting = settings.time();
+
+                clock.time(timeSetting.time());
+                clock.rate(timeSetting.cycle() ? 1 : 0);
+            }
 
             WorldWeatherSetting weatherSetting = settings.weather();
             if (weatherSetting.type().equalsIgnoreCase("rain")) instance.setWeather(Weather.RAIN);
             else if (weatherSetting.type().equalsIgnoreCase("thunder")) instance.setWeather(Weather.THUNDER);
             else instance.setWeather(Weather.CLEAR);
 
-            instance.setChunkLoader(new AnvilLoader(EnvStatics.WORLD_DATA_PATH + "/" + world.id()));
+            Path worldPath = Path.of(EnvStatics.WORLD_DATA_PATH, world.id());
+            instance.setChunkLoader(new AnvilLoader(worldPath, type.key()));
 
             loadedWorlds.put(world.id(), new LoadedWorld(world, instance));
         }

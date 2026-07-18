@@ -6,6 +6,7 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
+import nl.devpieter.PlayLogger;
 import nl.devpieter.features.tips.models.TipHolder;
 import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
@@ -25,7 +26,8 @@ public class TipManager {
     private static final String DEFAULT_TIP_PREFIX = "TIP";
     private static final Duration TIP_COOLDOWN = Duration.ofMinutes(20);
 
-    private static final Scheduler scheduler = MinecraftServer.getSchedulerManager();
+    private final Scheduler scheduler = MinecraftServer.getSchedulerManager();
+    private final PlayLogger playLogger = PlayLogger.getInstance();
 
     private final HashMap<UUID, List<TipHolder>> tips = new HashMap<>();
     private final HashMap<UUID, List<String>> receivedTips = new HashMap<>();
@@ -74,7 +76,11 @@ public class TipManager {
 
     public void showTip(@NotNull Player player, @NotNull String id, @NotNull Component message, boolean sound) {
         removeExpiredTips(player);
-        if (!canShowTip(player, id)) return;
+
+        if (!canShowTip(player, id)) {
+            playLogger.debug(player, true, "Tip {} not shown (conditions not met)", id);
+            return;
+        }
 
         List<TipHolder> tipHolders = tips.computeIfAbsent(player.getUuid(), _ -> new ArrayList<>());
         tipHolders.add(new TipHolder(id, System.currentTimeMillis()));
@@ -91,12 +97,19 @@ public class TipManager {
         ));
 
         if (sound) playSoundEffect(player);
+        playLogger.debug(player, true, "Tip {} shown (sound: {})", id, sound);
     }
 
     public void disableTips(@NotNull Player player, boolean disable) {
         if (disable) {
-            if (!tipsDisabled.contains(player.getUuid())) tipsDisabled.add(player.getUuid());
-        } else tipsDisabled.remove(player.getUuid());
+            if (!tipsDisabled.contains(player.getUuid())) {
+                tipsDisabled.add(player.getUuid());
+                playLogger.debug(player, true, "Disabled tips");
+            }
+        } else {
+            tipsDisabled.remove(player.getUuid());
+            playLogger.debug(player, true, "Enabled tips");
+        }
     }
 
     public boolean areTipsDisabled(@NotNull Player player) {
@@ -108,7 +121,11 @@ public class TipManager {
         if (received == null || !received.contains(tipId)) return false;
 
         List<String> ignored = ignoredTips.computeIfAbsent(player.getUuid(), _ -> new ArrayList<>());
-        if (!ignored.contains(tipId)) ignored.add(tipId);
+        if (ignored.contains(tipId)) return true;
+
+        ignored.add(tipId);
+        playLogger.debug(player, true, "Ignored tip {}", tipId);
+
         return true;
     }
 
@@ -121,7 +138,10 @@ public class TipManager {
 
     public void completeTip(@NotNull Player player, @NotNull String tipId) {
         List<String> completed = completedTips.computeIfAbsent(player.getUuid(), _ -> new ArrayList<>());
-        if (!completed.contains(tipId)) completed.add(tipId);
+        if (completed.contains(tipId)) return;
+
+        completed.add(tipId);
+        playLogger.debug(player, true, "Completed tip {}", tipId);
     }
 
     public boolean isTipCompleted(@NotNull Player player, @NotNull String tipId) {
@@ -134,6 +154,7 @@ public class TipManager {
     public void resetTips(@NotNull Player player) {
         receivedTips.remove(player.getUuid());
         tips.remove(player.getUuid());
+        playLogger.debug(player, true, "Reset tips");
     }
 
     private boolean canShowTip(@NotNull Player player, @NotNull String tipId) {
@@ -168,7 +189,7 @@ public class TipManager {
         tipHolders.removeIf(tipHolder -> (currentTime - tipHolder.timestamp()) >= TIP_COOLDOWN.toMillis());
     }
 
-    private static void playSoundEffect(Player player) {
+    private void playSoundEffect(Player player) {
         SoundUtils.playSoundForPlayer(player, SoundEvent.BLOCK_NOTE_BLOCK_HARP, 0.4f, 1.2f);
 
         scheduler.buildTask(() -> SoundUtils.playSoundForPlayer(player, SoundEvent.BLOCK_NOTE_BLOCK_HARP, 0.4f, 1.6f))
