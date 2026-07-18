@@ -38,8 +38,8 @@ public class ParkourTryManager {
     private final Scheduler scheduler = MinecraftServer.getSchedulerManager();
 
     private final Gson gson = new Gson();
-    //    private final URI uri = URI.create(configManager.getString("api_base_url") + "/api/mc/lobby/parkour/try");
-    private final URI uri = URI.create("http://localhost:5246/api/parkour/test");
+        private final URI uri = URI.create(configManager.getString("api_base_url") + "/api/mc/lobby/parkour/try");
+//    private final URI uri = URI.create("http://localhost:5246/api/parkour/test");
 
     private final List<ParkourTry> queuedParkourTries = new ArrayList<>();
 
@@ -62,8 +62,8 @@ public class ParkourTryManager {
         queueTask = scheduler.scheduleTask(
                 this::handleQueuedParkourTries,
                 TaskSchedule.nextTick(),
-//                TaskSchedule.seconds(30)
-                TaskSchedule.seconds(10)
+                TaskSchedule.seconds(30)
+//                TaskSchedule.seconds(10)
         );
     }
 
@@ -168,14 +168,14 @@ public class ParkourTryManager {
         List<ParkourTry> parkourTries = new ArrayList<>(queuedParkourTries);
         queuedParkourTries.clear();
 
-        for (ParkourTry parkourTry : parkourTries) {
-            CreateParkourTryRequest parkourTryRequest = CreateParkourTryRequest.of(parkourTry);
-
-            postParkourTry(parkourTryRequest).exceptionally(e -> {
-                logger.error("Failed to post ParkourTry for player: {} - {}", parkourTry.playerUuid(), e.getMessage());
-                return null;
-            });
-        }
+//        for (ParkourTry parkourTry : parkourTries) {
+//            CreateParkourTryRequest parkourTryRequest = CreateParkourTryRequest.of(parkourTry);
+//
+//            postParkourTry(parkourTryRequest).exceptionally(e -> {
+//                logger.error("Failed to post ParkourTry for player: {} - {}", parkourTry.playerUuid(), e.getMessage());
+//                return null;
+//            });
+//        }
     }
 
     private CompletableFuture<Void> postParkourTry(CreateParkourTryRequest parkourTry) {
