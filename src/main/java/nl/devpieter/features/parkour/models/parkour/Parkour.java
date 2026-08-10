@@ -10,20 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class Parkour/*(
-        String id,
-
-        String worldId,
-        Instance instance,
-
-        @Nullable ParkourSpawnNode spawnNode,
-        @Nullable ParkourLeaderboardNode leaderboardNode,
-
-        ParkourStartNode startNode,
-        ParkourEndNode endNode,
-
-        List<ParkourNode> nodes
-)*/ {
+public class Parkour {
 
     private final String id;
 
@@ -39,9 +26,17 @@ public class Parkour/*(
     private final List<ParkourNode> nodes;
 
     private Acquirable<@NotNull ? extends Entity> leaderboardEntityAcquirable;
-//    private Entity leaderboardEntity;
 
-    public Parkour(String id, String worldId, Instance instance, @Nullable ParkourSpawnNode spawnNode, @Nullable ParkourLeaderboardNode leaderboardNode, ParkourStartNode startNode, ParkourEndNode endNode, List<ParkourNode> nodes) {
+    public Parkour(
+            String id,
+            String worldId,
+            Instance instance,
+            @Nullable ParkourSpawnNode spawnNode,
+            @Nullable ParkourLeaderboardNode leaderboardNode,
+            ParkourStartNode startNode,
+            ParkourEndNode endNode,
+            List<ParkourNode> nodes
+    ) {
         this.id = id;
 
         this.worldId = worldId;
@@ -95,14 +90,6 @@ public class Parkour/*(
     public void setLeaderboardEntity(Acquirable<@NotNull ? extends Entity> leaderboardEntity) {
         this.leaderboardEntityAcquirable = leaderboardEntity;
     }
-
-//    public Entity leaderboardEntity() {
-//        return leaderboardEntity;
-//    }
-//
-//    public void setLeaderboardEntity(Entity leaderboardEntity) {
-//        this.leaderboardEntity = leaderboardEntity;
-//    }
 
     public @Nullable Pos spawnPos() {
         if (spawnNode == null) return null;

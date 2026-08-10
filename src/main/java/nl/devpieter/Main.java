@@ -15,6 +15,7 @@ import net.minestom.server.event.player.*;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
+import net.minestom.server.instance.block.BlockManager;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
@@ -83,10 +84,11 @@ public class Main {
         MinecraftServer server = MinecraftServer.init(auth);
         MinecraftServer.setBrandName("Pieter Space Lobby");
 
-        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:campfire"), CampfireBlockHandler::new);
-        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:jukebox"), JukeboxBlockHandler::new);
-        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:beehive"), BeehiveBlockHandler::new);
-        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:sign"), SignBlockHandler::new);
+        BlockManager blockManager = MinecraftServer.getBlockManager();
+        blockManager.registerHandler(Key.key("minecraft", "campfire"), CampfireBlockHandler::new);
+        blockManager.registerHandler(Key.key("minecraft", "jukebox"), JukeboxBlockHandler::new);
+        blockManager.registerHandler(Key.key("minecraft", "beehive"), BeehiveBlockHandler::new);
+        blockManager.registerHandler(Key.key("minecraft", "sign"), SignBlockHandler::new);
 //        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:bed"), BedBlockHandler::new);
 
         // TODO - A bit hacky, but I don't know a better way yet
