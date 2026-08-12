@@ -50,6 +50,7 @@ import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerMoveListener;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerSneakListener;
 import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
+import nl.devpieter.features.scoreboard.ScoreboardManager;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
 import nl.devpieter.features.world.WorldManager;
@@ -248,13 +249,13 @@ public class Main {
             }
         });
 
-//        eventHandler.addListener(PlayerStartSneakingEvent.class, event -> {
-//            Player player = event.getPlayer();
-//
-//            PlayLogger pLogger = PlayLogger.getInstance();
-//            pLogger.debug(player, "Testing 123, {} sneaking event {}", player.getName(), 321);
-//            pLogger.debug(player, true, "Testing 123, {} sneaking event {}", player.getName(), 321);
-//        });
+        eventHandler.addListener(PlayerInputEvent.class, event -> {
+            if (!event.hasPressedShiftKey()) return;
+            Player player = event.getPlayer();
+
+            ScoreboardManager scoreboardManager = ScoreboardManager.getInstance();
+            scoreboardManager.test(player);
+        });
 
         eventHandler.addListener(EntityAttackEvent.class, event -> {
             if (!(event.getEntity() instanceof Player player)) return;

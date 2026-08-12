@@ -11,6 +11,7 @@ import net.minestom.server.network.packet.server.play.TeamsPacket;
 import net.minestom.server.scoreboard.Team;
 import net.minestom.server.scoreboard.TeamBuilder;
 import net.minestom.server.scoreboard.TeamManager;
+import nl.devpieter.features.scoreboard.ScoreboardManager;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,6 +42,9 @@ public class PlayerLoadedListener implements EventListener<@NotNull PlayerLoaded
         if (team == null) team = new TeamBuilder("pietr", teamManager).build();
         team.updateCollisionRule(TeamsPacket.CollisionRule.NEVER);
         player.setTeam(team);
+
+        ScoreboardManager scoreboardManager = ScoreboardManager.getInstance();
+        scoreboardManager.test(player);
 
         player.setInvisible(false);
         player.setAutoViewable(true);
