@@ -1,17 +1,21 @@
 package nl.devpieter.features.world;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.instance.*;
 import net.minestom.server.instance.anvil.AnvilLoader;
+import net.minestom.server.registry.RegistryKey;
 import net.minestom.server.world.DimensionType;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.events.WorldManagerInitializedEvent;
+import nl.devpieter.features.world.enums.LoadedWorldType;
 import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.features.world.models.World;
 import nl.devpieter.features.world.models.settings.WorldSettings;
 import nl.devpieter.features.world.models.settings.WorldTimeSetting;
 import nl.devpieter.features.world.models.settings.WorldWeatherSetting;
+import nl.devpieter.features.world.setting.WorldSettingsGsonAdapter;
 import nl.devpieter.sees.Sees;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,12 +33,17 @@ public class WorldManager {
     private static WorldManager INSTANCE;
 
     private final Logger logger = MinecraftServer.LOGGER;
-    private final Gson gson = new Gson();
+    private final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(WorldSettings.class, new WorldSettingsGsonAdapter())
+            .serializeNulls()
+            .create();
 
     private final Sees sees = Sees.getSharedInstance();
     private final InstanceManager instanceManager = MinecraftServer.getInstanceManager();
 
-    private final List<World> foundWorlds = new ArrayList<>();
+    private final List<World> worldsFromDisk = new ArrayList<>();
+    private final List<World> dynamicWorlds = new ArrayList<>();
+
     private final HashMap<String, LoadedWorld> loadedWorlds = new HashMap<>();
 
     private WorldManager() {
@@ -46,48 +55,66 @@ public class WorldManager {
     }
 
     public void init() {
-        scanWorldFolders();
-        loadWorlds();
-
-        sees.dispatch(new WorldManagerInitializedEvent());
-    }
-
-    private void loadWorlds() {
         if (!loadedWorlds.isEmpty()) {
             logger.info("Worlds are already loaded, unloading first...");
             unloadWorlds();
         }
 
-        logger.info("Loading worlds...");
+        scanWorldFolders();
+        loadWorldsFromDisk();
 
-        for (World world : foundWorlds) {
-            var type = DimensionType.OVERWORLD;
+        sees.dispatch(new WorldManagerInitializedEvent());
+    }
 
-            logger.info("Loading world: {} ({})", world.name(), world.id());
-            InstanceContainer instance = instanceManager.createInstanceContainer(type);
+    public @Nullable LoadedWorld loadDynamicWorld(String id, String name, WorldSettings settings) {
+        id = "__dynamic__" + id;
 
-            WorldSettings settings = world.settings();
-
-            Clock clock = instance.defaultClock();
-            if (clock != null) {
-                WorldTimeSetting timeSetting = settings.time();
-
-                clock.time(timeSetting.time());
-                clock.rate(timeSetting.cycle() ? 1 : 0);
-            }
-
-            WorldWeatherSetting weatherSetting = settings.weather();
-            if (weatherSetting.type().equalsIgnoreCase("rain")) instance.setWeather(Weather.RAIN);
-            else if (weatherSetting.type().equalsIgnoreCase("thunder")) instance.setWeather(Weather.THUNDER);
-            else instance.setWeather(Weather.CLEAR);
-
-            Path worldPath = Path.of(EnvStatics.WORLD_DATA_PATH, world.id());
-            instance.setChunkLoader(new AnvilLoader(worldPath, type.key()));
-
-            loadedWorlds.put(world.id(), new LoadedWorld(world, instance));
+        if (loadedWorlds.containsKey(id)) {
+            logger.warn("World with id {} is already loaded, skipping...", id);
+            return null;
         }
 
-        logger.info("Worlds loaded");
+        World world = new World(id, name, settings);
+        dynamicWorlds.add(world);
+
+        return loadWorld(world, LoadedWorldType.DYNAMIC);
+    }
+
+    private void loadWorldsFromDisk() {
+        logger.info("Loading worlds from disk...");
+        for (World world : worldsFromDisk) loadWorld(world, LoadedWorldType.DISK);
+        logger.info("Finished loading worlds from disk. Loaded {} worlds.", loadedWorlds.size());
+    }
+
+    private LoadedWorld loadWorld(World world, LoadedWorldType type) {
+        RegistryKey<DimensionType> dimType = DimensionType.OVERWORLD;
+
+        logger.info("Loading world: {} ({})", world.name(), world.id());
+        InstanceContainer instance = instanceManager.createInstanceContainer(dimType);
+
+        WorldSettings settings = world.settings();
+        settings.freeze();
+
+        Clock clock = instance.defaultClock();
+        if (clock != null) {
+            WorldTimeSetting timeSetting = settings.time();
+
+            clock.time(timeSetting.time());
+            clock.rate(timeSetting.cycle() ? 1 : 0);
+        }
+
+        WorldWeatherSetting weatherSetting = settings.weather();
+        if (weatherSetting.type().equalsIgnoreCase("rain")) instance.setWeather(Weather.RAIN);
+        else if (weatherSetting.type().equalsIgnoreCase("thunder")) instance.setWeather(Weather.THUNDER);
+        else instance.setWeather(Weather.CLEAR);
+
+        Path worldPath = Path.of(EnvStatics.WORLD_DATA_PATH, world.id());
+        instance.setChunkLoader(new AnvilLoader(worldPath, dimType.key()));
+
+        LoadedWorld loadedWorld = new LoadedWorld(type, world, instance);
+        loadedWorlds.put(world.id(), loadedWorld);
+
+        return loadedWorld;
     }
 
     private void unloadWorlds() {
@@ -99,6 +126,8 @@ public class WorldManager {
 
             instance.getPlayers().forEach(player -> player.kick("World is unloading"));
             instanceManager.unregisterInstance(instance);
+
+            loadedWorld.world().settings().melt();
         }
 
         loadedWorlds.clear();
@@ -136,15 +165,15 @@ public class WorldManager {
             }
         }
 
-        this.foundWorlds.clear();
-        this.foundWorlds.addAll(foundWorlds);
+        this.worldsFromDisk.clear();
+        this.worldsFromDisk.addAll(foundWorlds);
 
         logger.info("Finished scanning worlds. Found {} worlds.", foundWorlds.size());
         return foundWorlds;
     }
 
     public List<World> getFoundWorlds() {
-        return new ArrayList<>(foundWorlds);
+        return new ArrayList<>(worldsFromDisk);
     }
 
     public List<LoadedWorld> getWorlds() {
@@ -154,7 +183,7 @@ public class WorldManager {
     public @Nullable World getWorldById(@Nullable String id) {
         if (id == null) return null;
 
-        for (World world : foundWorlds) {
+        for (World world : worldsFromDisk) {
             if (!world.id().equals(id)) continue;
             return world;
         }
