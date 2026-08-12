@@ -19,12 +19,9 @@ public class WorldSettings implements IFreezable {
     private boolean isFrozen = false;
 
     public WorldSettings() {
-        SimplePoint spawnPoint = new SimplePoint(0, 64, 0, 0, 0);
-        int worldBounds = 200;
-
-        spawn = new BakedSetting<>(spawnPoint);
-        markerSigns = new BakedSetting<>(WorldMarkerSignsSetting.defaults(spawnPoint.toVec(), worldBounds));
-        bounds = new BakedSetting<>(WorldBoundsSetting.defaults(worldBounds));
+        spawn = new BakedSetting<>(new SimplePoint(0, 64, 0, 0, 0));
+        markerSigns = new BakedSetting<>(WorldMarkerSignsSetting.disabled());
+        bounds = new BakedSetting<>(WorldBoundsSetting.disabled());
         time = new BakedSetting<>(WorldTimeSetting.defaults());
         weather = new BakedSetting<>(WorldWeatherSetting.defaults());
         features = new BakedSetting<>(WorldFeatureSettings.defaults());

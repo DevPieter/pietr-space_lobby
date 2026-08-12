@@ -2,19 +2,19 @@ package nl.devpieter.features.world.models.settings;
 
 import nl.devpieter.features.world.setting.IClonable;
 import org.jetbrains.annotations.Contract;
-import org.jspecify.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 public record WorldWeatherSetting(
         String type
 ) implements IClonable<WorldWeatherSetting> {
 
     @Contract(" -> new")
-    public static @NonNull WorldWeatherSetting defaults() {
+    public static @NotNull WorldWeatherSetting defaults() {
         return new WorldWeatherSetting("clear");
     }
 
     @Override
-    public @NonNull WorldWeatherSetting cloneObj() {
+    public @NotNull WorldWeatherSetting cloneObj() {
         return new WorldWeatherSetting(type);
     }
 }

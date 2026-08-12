@@ -3,8 +3,8 @@ package nl.devpieter.features.world.models.settings;
 import nl.devpieter.features.world.setting.IClonable;
 import nl.devpieter.models.SimpleVec;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
 public record WorldMarkerSignsSetting(
         boolean enabled,
@@ -12,17 +12,17 @@ public record WorldMarkerSignsSetting(
         int scanRadius
 ) implements IClonable<WorldMarkerSignsSetting> {
 
-    @Contract("_, _ -> new")
-    public static @NonNull WorldMarkerSignsSetting defaults(SimpleVec center, int scanRadius) {
+    @Contract(" -> new")
+    public static @NotNull WorldMarkerSignsSetting disabled() {
         return new WorldMarkerSignsSetting(
-                true,
-                center,
-                scanRadius
+                false,
+                null,
+                0
         );
     }
 
     @Override
-    public WorldMarkerSignsSetting cloneObj() {
+    public @NotNull WorldMarkerSignsSetting cloneObj() {
         return new WorldMarkerSignsSetting(
                 enabled,
                 center == null ? null : new SimpleVec(center.x(), center.y(), center.z()),
