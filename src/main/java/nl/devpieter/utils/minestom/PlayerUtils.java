@@ -8,6 +8,7 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.tag.Tag;
+import nl.devpieter.features.world.models.LoadedWorld;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,6 +18,11 @@ public class PlayerUtils {
 
     public static void teleport(@NotNull Player player, Pos pos) {
         player.teleport(pos);
+        player.setVelocity(new Vec(0));
+    }
+
+    public static void moveWorld(@NotNull Player player, @NotNull LoadedWorld world) {
+        player.setInstance(world.instance(), world.world().settings().spawn().toPoint());
         player.setVelocity(new Vec(0));
     }
 

@@ -91,6 +91,7 @@ public class WorldManager {
 
         logger.info("Loading world: {} ({})", world.name(), world.id());
         InstanceContainer instance = instanceManager.createInstanceContainer(dimType);
+        instance.setChunkSupplier(LightingChunk::new);
 
         WorldSettings settings = world.settings();
         settings.freeze();
@@ -108,8 +109,10 @@ public class WorldManager {
         else if (weatherSetting.type().equalsIgnoreCase("thunder")) instance.setWeather(Weather.THUNDER);
         else instance.setWeather(Weather.CLEAR);
 
-        Path worldPath = Path.of(EnvStatics.WORLD_DATA_PATH, world.id());
-        instance.setChunkLoader(new AnvilLoader(worldPath, dimType.key()));
+        if (type == LoadedWorldType.DISK) {
+            Path worldPath = Path.of(EnvStatics.WORLD_DATA_PATH, world.id());
+            instance.setChunkLoader(new AnvilLoader(worldPath, dimType.key()));
+        }
 
         LoadedWorld loadedWorld = new LoadedWorld(type, world, instance);
         loadedWorlds.put(world.id(), loadedWorld);
