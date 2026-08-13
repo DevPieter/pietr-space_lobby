@@ -42,10 +42,10 @@ import nl.devpieter.features.fishing.catchable.ICatchable;
 import nl.devpieter.features.fishing.listeners.PlayerUseItemListener;
 import nl.devpieter.features.fishing.rod.IRod;
 import nl.devpieter.features.jukebox.blockHandlers.JukeboxBlockHandler;
-import nl.devpieter.features.maze.Cell;
-import nl.devpieter.features.maze.Difficulty;
 import nl.devpieter.features.maze.MazeGenerator;
 import nl.devpieter.features.maze.MazeRenderer;
+import nl.devpieter.features.maze.enums.MazeDifficulty;
+import nl.devpieter.features.maze.models.MazeBlueprint;
 import nl.devpieter.features.parkour.ParkourManager;
 import nl.devpieter.features.parkour.ParkourReplayManager;
 import nl.devpieter.features.parkour.ParkourTryManager;
@@ -65,14 +65,15 @@ import nl.devpieter.listeners.PlayerDisconnectListener;
 import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
 import nl.devpieter.models.BlockHolder;
+import nl.devpieter.models.Simple2D;
 import nl.devpieter.models.SimplePoint;
+import nl.devpieter.models.SimpleVec;
 import nl.devpieter.sees.Sees;
 import nl.devpieter.utils.minestom.PlayerUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -271,55 +272,29 @@ public class Main {
             Random mazeRandom = new Random(seedRandom.nextLong());
             Random generationRandom = new Random(seedRandom.nextLong());
 
-//            final int originX = 0;
-//            final int originZ = 0;
-            final int floorY = 0;
-            final int wallY = floorY + 1;
+            final int size = 10;
             final int corridorWidth = 3;
             final int wallHeight = 8;
 
-            int mx = 20;
-            int my = 20;
-
-            // Maze configuration
-//            int startX = mx / 4;
-//            int startY = 0;
-//            int endX = (mx / 4) * 3;
-//            int endY = my - 1;
-
-            int startX = (int) (Math.random() * mx);
-            int startY = 0;
-            int endX = (int) (Math.random() * mx);
-            int endY = my - 1;
-
-//            int startX = mx / 4;
-//            int startY = 0;
-
-//            int endX = mx / 2;
-//            int endY = my / 2;
-
-            List<Cell> grid = new ArrayList<>();
-            for (int i = 0; i < mx; i++) for (int j = 0; j < my; j++) grid.add(new Cell(i, j));
-
-            MazeGenerator generator = new MazeGenerator(
-                    grid,
-                    Difficulty.MEDIUM,
-                    mazeRandom,
-                    startX,
-                    startY,
-                    endX,
-                    endY
+            MazeBlueprint blueprint = new MazeBlueprint(
+                    seed.hashCode(),
+                    size,
+                    corridorWidth,
+                    wallHeight,
+                    MazeDifficulty.MEDIUM,
+                    new Simple2D(
+                            (int) (Math.random() * size),
+                            0
+                    ),
+                    new Simple2D(
+                            (int) (Math.random() * size),
+                            size - 1
+                    )
             );
 
-            WorldSettings wSettings = new WorldSettings();
-            double cellStride = corridorWidth + 1.0;
-            double spawnOffset = corridorWidth / 2.0 + 1.0;
-
-            Cell startCell = generator.getStart();
-            double spawnX = startCell.getX() * cellStride + spawnOffset;
-            double spawnZ = startCell.getY() * cellStride + spawnOffset;
-            wSettings.withSpawn(new SimplePoint(spawnX, floorY + 1, spawnZ, 0, 0));
-            wSettings.withTime(new WorldTimeSetting(false, 18000));
+            WorldSettings wSettings = new WorldSettings()
+                    .withSpawn(blueprint.getWorldSpawn(SimplePoint.zero()))
+                    .withTime(new WorldTimeSetting(false, 18000));
 
             WorldManager wManager = WorldManager.getInstance();
             LoadedWorld world = wManager.loadDynamicWorld("maze_" + seed, "Maze", wSettings);
@@ -351,12 +326,17 @@ public class Main {
                     Block.DARK_OAK_LEAVES
             );
 
+            MazeGenerator generator = new MazeGenerator(
+                    blueprint,
+                    mazeRandom
+            );
+
             generator.generateAsync(cells -> {
                 MinecraftServer.getSchedulerManager().scheduleNextTick(() -> {
                     MazeRenderer renderer = new MazeRenderer(
-                            0, 0,
-                            floorY,
-                            wallY,
+                            SimpleVec.zero(),
+//                            0,
+//                            1,
                             corridorWidth,
                             wallHeight,
                             _ -> floorBlocks.get(generationRandom.nextInt(floorBlocks.size())),

@@ -12,6 +12,10 @@ public record SimplePoint(
         float pitch
 ) implements IClonable<SimplePoint> {
 
+    public static SimplePoint zero() {
+        return new SimplePoint(0, 0, 0, 0, 0);
+    }
+
     public Point toPoint() {
         return new Pos(x, y, z, yaw, pitch);
     }

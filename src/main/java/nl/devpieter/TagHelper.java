@@ -58,22 +58,22 @@ public class TagHelper {
 
     public static boolean canStartParkour(LobbyPlayer player) {
         if (player.hasTag(PlayerTags.IN_PARKOUR)) {
-            msgManager.showMessage(player, "cannot_start_parkour_in_parkour", "<red>You cannot start a parkour while already in a parkour!");
+            msgManager.showMessage(player, "cannot_start_parkour_in_parkour", "<red>You cannot localStart a parkour while already in a parkour!");
             return false;
         }
 
         if (player.hasTag(PlayerTags.IN_PARKOUR_REPLAY)) {
-            msgManager.showMessage(player, "cannot_start_parkour_in_replay", "<red>You cannot start a parkour while watching a replay!");
+            msgManager.showMessage(player, "cannot_start_parkour_in_replay", "<red>You cannot localStart a parkour while watching a replay!");
             return false;
         }
 
         if (player.hasTag(PlayerTags.SITTING)) {
-            msgManager.showMessage(player, "cannot_start_parkour_while_sitting", "<red>You cannot start a parkour while sitting!");
+            msgManager.showMessage(player, "cannot_start_parkour_while_sitting", "<red>You cannot localStart a parkour while sitting!");
             return false;
         }
 
         if (player.hasTag(PlayerTags.LAYING)) {
-            msgManager.showMessage(player, "cannot_start_parkour_while_laying", "<red>You cannot start a parkour while laying down!");
+            msgManager.showMessage(player, "cannot_start_parkour_while_laying", "<red>You cannot localStart a parkour while laying down!");
             return false;
         }
 
@@ -87,17 +87,17 @@ public class TagHelper {
         }
 
         if (player.hasTag(PlayerTags.IN_PARKOUR)) {
-            msgManager.showMessage(player, "cannot_start_replay_in_parkour", "<red>You cannot start a replay while doing a parkour!");
+            msgManager.showMessage(player, "cannot_start_replay_in_parkour", "<red>You cannot localStart a replay while doing a parkour!");
             return false;
         }
 
         if (player.hasTag(PlayerTags.SITTING)) {
-            msgManager.showMessage(player, "cannot_start_replay_while_sitting", "<red>You cannot start a replay while sitting!");
+            msgManager.showMessage(player, "cannot_start_replay_while_sitting", "<red>You cannot localStart a replay while sitting!");
             return false;
         }
 
         if (player.hasTag(PlayerTags.LAYING)) {
-            msgManager.showMessage(player, "cannot_start_replay_while_laying", "<red>You cannot start a replay while laying down!");
+            msgManager.showMessage(player, "cannot_start_replay_while_laying", "<red>You cannot localStart a replay while laying down!");
             return false;
         }
 

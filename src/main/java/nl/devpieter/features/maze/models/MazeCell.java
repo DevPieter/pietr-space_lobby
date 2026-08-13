@@ -1,9 +1,9 @@
-package nl.devpieter.features.maze;
+package nl.devpieter.features.maze.models;
 
-public class Cell {
+public class MazeCell {
 
     private final int x;
-    private final int y;
+    private final int z;
 
     private boolean visited = false;
     private final boolean[] walls = {true, true, true, true};
@@ -12,17 +12,17 @@ public class Cell {
         return walls;
     }
 
-    public Cell(int x, int y) {
+    public MazeCell(int x, int z) {
         this.x = x;
-        this.y = y;
+        this.z = z;
     }
 
     public int getX() {
         return x;
     }
 
-    public int getY() {
-        return y;
+    public int getZ() {
+        return z;
     }
 
     public boolean isVisited() {
@@ -33,7 +33,7 @@ public class Cell {
         this.visited = visited;
     }
 
-    public void removeWalls(Cell next) {
+    public void removeWalls(MazeCell next) {
         int x = this.x - next.x;
         // top 0, right 1, bottom 2, left 3
 
@@ -45,12 +45,12 @@ public class Cell {
             next.walls[3] = false;
         }
 
-        int y = this.y - next.y;
+        int z = this.z - next.z;
 
-        if (y == 1) {
+        if (z == 1) {
             walls[0] = false;
             next.walls[2] = false;
-        } else if (y == -1) {
+        } else if (z == -1) {
             walls[2] = false;
             next.walls[0] = false;
         }
@@ -61,7 +61,7 @@ public class Cell {
         final int prime = 31;
         int result = 1;
         result = prime * result + x;
-        result = prime * result + y;
+        result = prime * result + z;
         return result;
     }
 
@@ -71,8 +71,8 @@ public class Cell {
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
 
-        Cell other = (Cell) obj;
+        MazeCell other = (MazeCell) obj;
         if (x != other.x) return false;
-        return y == other.y;
+        return z == other.z;
     }
 }

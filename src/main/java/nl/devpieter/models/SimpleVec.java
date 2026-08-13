@@ -8,6 +8,10 @@ public record SimpleVec(
         double z
 ) {
 
+    public static SimpleVec zero() {
+        return new SimpleVec(0, 0, 0);
+    }
+
     public Vec toVec() {
         return new Vec(x, y, z);
     }

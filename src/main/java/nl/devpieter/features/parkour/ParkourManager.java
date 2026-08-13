@@ -155,9 +155,9 @@ public class ParkourManager {
 
                     leaderboardNodes.put(identifier, decodable.getNode(sign));
                 }
-                case "start" -> {
+                case "localStart" -> {
                     if (startNodes.containsKey(identifier)) {
-                        logger.warn("Duplicate start node for parkour: {} on sign at {}", identifier, point);
+                        logger.warn("Duplicate localStart node for parkour: {} on sign at {}", identifier, point);
                         continue;
                     }
 
@@ -181,9 +181,9 @@ public class ParkourManager {
                     containsIndex.put(indexKey, true);
                     normalNodes.computeIfAbsent(identifier, _ -> new ArrayList<>()).add(node);
                 }
-                case "end" -> {
+                case "localEnd" -> {
                     if (endNodes.containsKey(identifier)) {
-                        logger.warn("Duplicate end node for parkour: {} on sign at {}", identifier, point);
+                        logger.warn("Duplicate localEnd node for parkour: {} on sign at {}", identifier, point);
                         continue;
                     }
 
@@ -765,7 +765,7 @@ public class ParkourManager {
         Pos spawn = parkour.spawnPos();
         if (spawn == null) return;
 
-        player.sendMessage(TextUtils.miniText("<green>Returning to parkour start."));
+        player.sendMessage(TextUtils.miniText("<green>Returning to parkour localStart."));
         PlayerUtils.teleport(player, spawn);
 
         tipManager.completeTip(player, "parkour_sneak_return_to_start");
@@ -920,7 +920,7 @@ public class ParkourManager {
             ));
         }
 
-        // Setup return to start + tip
+        // Setup return to localStart + tip
         if (parkour.spawnPos() == null) return;
 
         returnHolders.put(player.getUuid(), new ParkourReturnHolder(

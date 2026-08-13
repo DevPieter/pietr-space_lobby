@@ -1,5 +1,9 @@
 package nl.devpieter.features.maze;
 
+import nl.devpieter.features.maze.enums.MazeDifficulty;
+import nl.devpieter.features.maze.models.MazeBlueprint;
+import nl.devpieter.features.maze.models.MazeCell;
+import nl.devpieter.models.Simple2D;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -8,49 +12,46 @@ import java.util.function.Consumer;
 
 public class MazeGenerator {
 
-    private final List<Cell> grid;
-    private final Difficulty difficulty;
-    private final Cell start;
-    private final Cell end;
+    private final List<MazeCell> grid = new ArrayList<>();
+    private final List<MazeCell> cells = new ArrayList<>();
+    private final Map<Simple2D, MazeCell> cellsByPosition;
 
-    private final Map<Position, Cell> cellsByPosition;
-    private final List<Cell> cells = new ArrayList<>();
+    private final MazeDifficulty difficulty;
+    private final MazeCell start;
+    private final MazeCell end;
 
     private final Random random;
 
-    private Cell current;
+    private MazeCell current;
 
     public MazeGenerator(
-            @NotNull List<Cell> grid,
-            Difficulty difficulty,
-            Random random,
-            int startX,
-            int startY,
-            int endX,
-            int endY
+            @NotNull MazeBlueprint blueprint,
+            @NotNull Random random
     ) {
-        this.grid = grid;
+        for (int i = 0; i < blueprint.size(); i++)
+            for (int j = 0; j < blueprint.size(); j++) this.grid.add(new MazeCell(i, j));
+
         if (this.grid.isEmpty())
             throw new IllegalArgumentException("The maze grid cannot be empty");
 
-        this.start = findCell(startX, startY);
-        if (this.start == null)
-            throw new IllegalArgumentException("The maze grid does not contain a cell at the start coordinates: (" + startX + ", " + startY + ")");
-
-        this.end = findCell(endX, endY);
-        if (this.end == null)
-            throw new IllegalArgumentException("The maze grid does not contain a cell at the end coordinates: (" + endX + ", " + endY + ")");
-
-        this.difficulty = difficulty;
         this.cellsByPosition = indexCells();
 
-        this.random = random == null ? new Random() : random;
+        this.start = findCell(blueprint.localStart());
+        if (this.start == null)
+            throw new IllegalArgumentException("The maze grid does not contain a cell at the localStart coordinates: " + blueprint.localStart());
+
+        this.end = findCell(blueprint.localEnd());
+        if (this.end == null)
+            throw new IllegalArgumentException("The maze grid does not contain a cell at the localEnd coordinates: " + blueprint.localEnd());
+
+        this.difficulty = blueprint.difficulty();
+        this.random = random;
 
         this.current = this.start;
         this.cells.add(this.current);
     }
 
-    public void generateAsync(Consumer<List<Cell>> onDone) {
+    public void generateAsync(Consumer<List<MazeCell>> onDone) {
         new Thread(() -> {
             while (!cells.isEmpty()) carve();
             onDone.accept(grid);
@@ -59,7 +60,7 @@ public class MazeGenerator {
 
     private void carve() {
         current.setVisited(true);
-        Cell next = selectNextNeighbour();
+        MazeCell next = selectNextNeighbour();
 
         if (next != null) {
             current.removeWalls(next);
@@ -72,7 +73,7 @@ public class MazeGenerator {
         }
     }
 
-    private Cell selectActiveCell() {
+    private MazeCell selectActiveCell() {
         int newestChance = switch (difficulty) {
             case BABBY -> 5;
             case EASY -> 25;
@@ -85,28 +86,28 @@ public class MazeGenerator {
                 : cells.get(random.nextInt(cells.size()));
     }
 
-    private Cell selectNextNeighbour() {
-        List<Cell> neighbours = new ArrayList<>(4);
+    private MazeCell selectNextNeighbour() {
+        List<MazeCell> neighbours = new ArrayList<>(4);
 
-        addIfUnvisited(neighbours, current.getX(), current.getY() - 1);
-        addIfUnvisited(neighbours, current.getX() + 1, current.getY());
-        addIfUnvisited(neighbours, current.getX(), current.getY() + 1);
-        addIfUnvisited(neighbours, current.getX() - 1, current.getY());
+        addIfUnvisited(neighbours, current.getX(), current.getZ() - 1);
+        addIfUnvisited(neighbours, current.getX() + 1, current.getZ());
+        addIfUnvisited(neighbours, current.getX(), current.getZ() + 1);
+        addIfUnvisited(neighbours, current.getX() - 1, current.getZ());
 
         if (neighbours.isEmpty()) return null;
         return neighbours.get(random.nextInt(neighbours.size()));
     }
 
-    private void addIfUnvisited(List<Cell> neighbours, int x, int y) {
-        Cell neighbour = cellsByPosition.get(new Position(x, y));
+    private void addIfUnvisited(List<MazeCell> neighbours, int x, int y) {
+        MazeCell neighbour = cellsByPosition.get(new Simple2D(x, y));
         if (neighbour != null && !neighbour.isVisited()) neighbours.add(neighbour);
     }
 
-    private Map<Position, Cell> indexCells() {
-        Map<Position, Cell> result = new HashMap<>(grid.size());
+    private Map<Simple2D, MazeCell> indexCells() {
+        Map<Simple2D, MazeCell> result = new HashMap<>(grid.size());
 
-        for (Cell cell : grid) {
-            Position position = new Position(cell.getX(), cell.getY());
+        for (MazeCell cell : grid) {
+            Simple2D position = new Simple2D(cell.getX(), cell.getZ());
             if (result.put(position, cell) == null) continue;
 
             throw new IllegalArgumentException("The maze grid contains duplicate cell coordinates: " + position);
@@ -115,19 +116,15 @@ public class MazeGenerator {
         return result;
     }
 
-    private @Nullable Cell findCell(int x, int y) {
-        for (Cell cell : grid) if (cell.getX() == x && cell.getY() == y) return cell;
-        return null;
+    private @Nullable MazeCell findCell(Simple2D position) {
+        return cellsByPosition.get(position);
     }
 
-    public Cell getStart() {
+    public MazeCell getStart() {
         return start;
     }
 
-    public Cell getEnd() {
+    public MazeCell getEnd() {
         return end;
-    }
-
-    private record Position(int x, int y) {
     }
 }
