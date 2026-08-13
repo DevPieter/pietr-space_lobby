@@ -6,7 +6,7 @@ import net.minestom.server.instance.block.Block;
 import java.util.List;
 import java.util.function.Function;
 
-public final class MinecraftMazeRenderer {
+public final class MazeRenderer {
 
     private final int originX;
     private final int originZ;
@@ -15,13 +15,11 @@ public final class MinecraftMazeRenderer {
     private final int corridorWidth;
     private final int wallHeight;
 
-//    private final Block floorBlock;
-//    private final Block wallBlock;
-
     private final Function<Void, Block> floorBlock;
     private final Function<Void, Block> wallBlock;
 
-    public MinecraftMazeRenderer(
+    // TODO - Use batch or idk generator for better performance, but this is fine for now
+    public MazeRenderer(
             int originX,
             int originZ,
             int floorY,

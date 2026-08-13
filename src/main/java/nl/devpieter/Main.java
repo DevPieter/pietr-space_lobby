@@ -42,6 +42,10 @@ import nl.devpieter.features.fishing.catchable.ICatchable;
 import nl.devpieter.features.fishing.listeners.PlayerUseItemListener;
 import nl.devpieter.features.fishing.rod.IRod;
 import nl.devpieter.features.jukebox.blockHandlers.JukeboxBlockHandler;
+import nl.devpieter.features.maze.Cell;
+import nl.devpieter.features.maze.Difficulty;
+import nl.devpieter.features.maze.MazeGenerator;
+import nl.devpieter.features.maze.MazeRenderer;
 import nl.devpieter.features.parkour.ParkourManager;
 import nl.devpieter.features.parkour.ParkourReplayManager;
 import nl.devpieter.features.parkour.ParkourTryManager;
@@ -53,17 +57,25 @@ import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
 import nl.devpieter.features.world.WorldManager;
+import nl.devpieter.features.world.models.LoadedWorld;
+import nl.devpieter.features.world.models.settings.WorldSettings;
+import nl.devpieter.features.world.models.settings.WorldTimeSetting;
 import nl.devpieter.listeners.PlayerConfigurationListener;
 import nl.devpieter.listeners.PlayerDisconnectListener;
 import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
 import nl.devpieter.models.BlockHolder;
+import nl.devpieter.models.SimplePoint;
 import nl.devpieter.sees.Sees;
 import nl.devpieter.utils.minestom.PlayerUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Main {
@@ -248,13 +260,117 @@ public class Main {
             }
         });
 
-//        eventHandler.addListener(PlayerStartSneakingEvent.class, event -> {
-//            Player player = event.getPlayer();
-//
-//            PlayLogger pLogger = PlayLogger.getInstance();
-//            pLogger.debug(player, "Testing 123, {} sneaking event {}", player.getName(), 321);
-//            pLogger.debug(player, true, "Testing 123, {} sneaking event {}", player.getName(), 321);
-//        });
+        eventHandler.addListener(PlayerUseItemEvent.class, event -> {
+            if (event.getItemStack().material() != Material.STICK) return;
+
+            Player player = event.getPlayer();
+            String seed = String.valueOf(UUID.randomUUID().hashCode());
+            player.sendMessage(TextUtils.miniText("<#586373>Generating maze... (Seed: " + seed + ")"));
+
+            Random seedRandom = new Random(seed.hashCode());
+            Random mazeRandom = new Random(seedRandom.nextLong());
+            Random generationRandom = new Random(seedRandom.nextLong());
+
+//            final int originX = 0;
+//            final int originZ = 0;
+            final int floorY = 0;
+            final int wallY = floorY + 1;
+            final int corridorWidth = 3;
+            final int wallHeight = 8;
+
+            int mx = 20;
+            int my = 20;
+
+            // Maze configuration
+//            int startX = mx / 4;
+//            int startY = 0;
+//            int endX = (mx / 4) * 3;
+//            int endY = my - 1;
+
+            int startX = (int) (Math.random() * mx);
+            int startY = 0;
+            int endX = (int) (Math.random() * mx);
+            int endY = my - 1;
+
+//            int startX = mx / 4;
+//            int startY = 0;
+
+//            int endX = mx / 2;
+//            int endY = my / 2;
+
+            List<Cell> grid = new ArrayList<>();
+            for (int i = 0; i < mx; i++) for (int j = 0; j < my; j++) grid.add(new Cell(i, j));
+
+            MazeGenerator generator = new MazeGenerator(
+                    grid,
+                    Difficulty.MEDIUM,
+                    mazeRandom,
+                    startX,
+                    startY,
+                    endX,
+                    endY
+            );
+
+            WorldSettings wSettings = new WorldSettings();
+            double cellStride = corridorWidth + 1.0;
+            double spawnOffset = corridorWidth / 2.0 + 1.0;
+
+            Cell startCell = generator.getStart();
+            double spawnX = startCell.getX() * cellStride + spawnOffset;
+            double spawnZ = startCell.getY() * cellStride + spawnOffset;
+            wSettings.withSpawn(new SimplePoint(spawnX, floorY + 1, spawnZ, 0, 0));
+            wSettings.withTime(new WorldTimeSetting(false, 18000));
+
+            WorldManager wManager = WorldManager.getInstance();
+            LoadedWorld world = wManager.loadDynamicWorld("maze_" + seed, "Maze", wSettings);
+            if (world == null) {
+                player.sendMessage(TextUtils.miniText("<#FF0000>Failed to load maze world!"));
+                return;
+            }
+
+            final List<Block> floorBlocks = List.of(
+                    Block.DIRT_PATH,
+                    Block.DIRT,
+                    Block.GRASS_BLOCK,
+                    Block.COARSE_DIRT,
+                    Block.PODZOL
+            );
+
+//            final List<Block> wallBlocks = List.of(
+//                    Block.STONE_BRICKS,
+//                    Block.DEEPSLATE_BRICKS,
+//                    Block.COBBLESTONE,
+//                    Block.MOSSY_COBBLESTONE,
+//                    Block.MOSSY_STONE_BRICKS
+//            );
+
+            final List<Block> wallBlocks = List.of(
+                    Block.MOSS_BLOCK,
+                    Block.MOSSY_COBBLESTONE,
+                    Block.MOSSY_STONE_BRICKS,
+                    Block.DARK_OAK_LEAVES
+            );
+
+            generator.generateAsync(cells -> {
+                MinecraftServer.getSchedulerManager().scheduleNextTick(() -> {
+                    MazeRenderer renderer = new MazeRenderer(
+                            0, 0,
+                            floorY,
+                            wallY,
+                            corridorWidth,
+                            wallHeight,
+                            _ -> floorBlocks.get(generationRandom.nextInt(floorBlocks.size())),
+                            _ -> wallBlocks.get(generationRandom.nextInt(wallBlocks.size()))
+                    );
+
+                    renderer.render(world.instance(), cells, generator.getStart(), generator.getEnd());
+                    player.sendMessage(TextUtils.miniText("<#586373>Maze generation complete! Sending you there now..."));
+                    PlayerUtils.moveWorld(player, world);
+
+//                    player.addEffect(new Potion(PotionEffect.BLINDNESS, 1, Potion.INFINITE_DURATION));
+                });
+            });
+        });
 
         eventHandler.addListener(EntityAttackEvent.class, event -> {
             if (!(event.getEntity() instanceof Player player)) return;
