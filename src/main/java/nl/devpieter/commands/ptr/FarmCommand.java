@@ -1,33 +1,22 @@
-package nl.devpieter.commands.world;
+package nl.devpieter.commands.ptr;
 
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.entity.Player;
-import nl.devpieter.features.parkour.ParkourManager;
+import nl.devpieter.features.farming.FarmManager;
 
-import java.util.UUID;
+public class FarmCommand extends Command {
 
-public class ParkourCommand extends Command {
+    private final FarmManager farmManager = FarmManager.getInstance();
 
-    private final ParkourManager parkourManager = ParkourManager.getInstance();
-
-    public ParkourCommand() {
-        super("parkour");
-
-        setCondition((sender, commandString) -> {
-            if (!(sender instanceof Player player)) return false;
-            return player.getUuid().equals(UUID.fromString("c292f4e0-f990-4592-a067-f5f77c15d408"));
-        });
-
-        setDefaultExecutor((sender, context) -> {
-            sender.sendMessage("Usage: /parkour <init|revert|debug>");
-        });
+    public FarmCommand() {
+        super("farm");
 
         Command init = new Command("init");
         init.setDefaultExecutor((sender, context) -> {
             if (!(sender instanceof Player player)) return;
 
             player.sendMessage("Initializing, this may take a while...");
-            parkourManager.init();
+            farmManager.init();
             player.sendMessage("Initialization complete.");
         });
 
@@ -35,20 +24,20 @@ public class ParkourCommand extends Command {
         revert.setDefaultExecutor((sender, context) -> {
             if (!(sender instanceof Player player)) return;
 
-            parkourManager.revertParkours();
-            player.sendMessage("All parkours reverted to original state.");
+            farmManager.revertFarms();
+            player.sendMessage("All farms reverted to original state.");
         });
 
         Command debug = new Command("debug");
         debug.setDefaultExecutor((sender, context) -> {
-            sender.sendMessage("Usage: /parkour debug <place|clear>");
+            sender.sendMessage("Usage: /farm debug <place|clear>");
         });
 
         Command debugPlace = new Command("place");
         debugPlace.setDefaultExecutor((sender, context) -> {
             if (!(sender instanceof Player player)) return;
 
-            parkourManager.placeDebugMarkers();
+            farmManager.placeDebugMarkers();
             player.sendMessage("Debug markers placed.");
         });
 
@@ -56,7 +45,7 @@ public class ParkourCommand extends Command {
         debugClear.setDefaultExecutor((sender, context) -> {
             if (!(sender instanceof Player player)) return;
 
-            parkourManager.clearDebugMarkers();
+            farmManager.clearDebugMarkers();
             player.sendMessage("Debug markers cleared.");
         });
 

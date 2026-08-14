@@ -25,11 +25,11 @@ import nl.devpieter.blockHandler.BeehiveBlockHandler;
 import nl.devpieter.blockHandler.DoorBlockHandler;
 import nl.devpieter.blockHandler.SignBlockHandler;
 import nl.devpieter.commands.ReplayCommand;
-import nl.devpieter.commands.ServerCommand;
-import nl.devpieter.commands.TestCommand;
 import nl.devpieter.commands.TipCommand;
 import nl.devpieter.commands.player.GamemodeCommand;
-import nl.devpieter.commands.world.*;
+import nl.devpieter.commands.ptr.PtrCommand;
+import nl.devpieter.commands.world.TimeCommand;
+import nl.devpieter.commands.world.WeatherCommand;
 import nl.devpieter.config.ConfigManager;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.entities.LobbyPlayer;
@@ -264,26 +264,20 @@ public class Main {
         });
 
         CommandManager commandManager = MinecraftServer.getCommandManager();
+        commandManager.register(new PtrCommand());
 
         // Player
         commandManager.register(new GamemodeCommand());
 
         // World
-        commandManager.register(new WorldCommand());
-        commandManager.register(new SignCommand());
-        commandManager.register(new CreatureCommand());
-        commandManager.register(new FarmCommand());
-        commandManager.register(new ParkourCommand());
-        commandManager.register(new PortalCommand());
-
         commandManager.register(new TimeCommand());
         commandManager.register(new WeatherCommand());
 
         // Misc
         commandManager.register(new ReplayCommand());
         commandManager.register(new TipCommand());
-        commandManager.register(new TestCommand());
-        commandManager.register(new ServerCommand());
+//        commandManager.register(new TestCommand());
+//        commandManager.register(new ServerCommand());
 
         MinecraftServer.getConnectionManager().setPlayerProvider(LobbyPlayer::new);
 

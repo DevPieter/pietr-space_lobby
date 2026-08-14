@@ -9,6 +9,8 @@ import net.minestom.server.thread.Acquirable;
 import nl.devpieter.TagHelper;
 import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.enums.PlayerTags;
+import nl.devpieter.features.world.WorldManager;
+import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.utils.minestom.PlayerUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,6 +21,7 @@ public class SitManager {
 
     private static SitManager INSTANCE;
 
+    private final WorldManager worldManager = WorldManager.getInstance();
     private final HashMap<UUID, Acquirable<@NotNull ? extends LivingEntity>> sittingPlayers = new HashMap<>();
 
     private SitManager() {
@@ -30,6 +33,10 @@ public class SitManager {
     }
 
     public void sitPlayer(@NotNull LobbyPlayer player, Block block, BlockVec blockVec) {
+
+        LoadedWorld loadedWorld = worldManager.getLoadedWorldByInstance(player.getInstance());
+        if (loadedWorld == null || !loadedWorld.features().sitting().enabled()) return;
+
         if (!TagHelper.canSitPlayer(player)) return;
         if (!player.addTag(PlayerTags.SITTING)) return;
 
