@@ -23,6 +23,7 @@ import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.blockHandler.BeehiveBlockHandler;
 import nl.devpieter.blockHandler.DoorBlockHandler;
+import nl.devpieter.blockHandler.HangingSignBlockHandler;
 import nl.devpieter.blockHandler.SignBlockHandler;
 import nl.devpieter.commands.ReplayCommand;
 import nl.devpieter.commands.TipCommand;
@@ -89,6 +90,7 @@ public class Main {
         blockManager.registerHandler(Key.key("minecraft", "jukebox"), JukeboxBlockHandler::new);
         blockManager.registerHandler(Key.key("minecraft", "beehive"), BeehiveBlockHandler::new);
         blockManager.registerHandler(Key.key("minecraft", "sign"), SignBlockHandler::new);
+        blockManager.registerHandler(Key.key("minecraft", "hanging_sign"), HangingSignBlockHandler::new);
 //        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:bed"), BedBlockHandler::new);
 
         // TODO - A bit hacky, but I don't know a better way yet
