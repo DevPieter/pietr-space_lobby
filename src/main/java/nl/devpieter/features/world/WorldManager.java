@@ -15,7 +15,9 @@ import nl.devpieter.features.world.models.World;
 import nl.devpieter.features.world.models.settings.WorldSettings;
 import nl.devpieter.features.world.models.settings.WorldTimeSetting;
 import nl.devpieter.features.world.models.settings.WorldWeatherSetting;
-import nl.devpieter.features.world.setting.WorldSettingsGsonAdapter;
+import nl.devpieter.features.world.models.settings.features.WorldFeatureSettings;
+import nl.devpieter.features.world.setting.gsonAdapters.WorldFeatureSettingsGsonAdapter;
+import nl.devpieter.features.world.setting.gsonAdapters.WorldSettingsGsonAdapter;
 import nl.devpieter.sees.Sees;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,6 +25,7 @@ import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.FileReader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,7 +38,9 @@ public class WorldManager {
     private final Logger logger = MinecraftServer.LOGGER;
     private final Gson gson = new GsonBuilder()
             .registerTypeAdapter(WorldSettings.class, new WorldSettingsGsonAdapter())
+            .registerTypeAdapter(WorldFeatureSettings.class, new WorldFeatureSettingsGsonAdapter())
             .serializeNulls()
+            .setPrettyPrinting()
             .create();
 
     private final Sees sees = Sees.getSharedInstance();
@@ -64,6 +69,48 @@ public class WorldManager {
         loadWorldsFromDisk();
 
         sees.dispatch(new WorldManagerInitializedEvent());
+    }
+
+    public boolean createWorldFolder(String id, String name, WorldSettings settings) {
+        Path worldPath = Path.of(EnvStatics.WORLD_DATA_PATH, id);
+        File worldDir = worldPath.toFile();
+
+        if (worldDir.exists()) {
+            logger.warn("World folder already exists: {}", worldPath);
+            return false;
+        }
+
+        if (!worldDir.mkdirs()) {
+            logger.error("Failed to create world folder: {}", worldPath);
+            return false;
+        }
+
+        World world = new World(id, name, settings);
+
+        Path regionPath = Path.of(worldPath.toString(), "dimensions", "minecraft", "overworld", "region");
+        File regionDir = regionPath.toFile();
+        if (!regionDir.mkdirs()) {
+            logger.error("Failed to create region folder: {}", regionPath);
+            return false;
+        }
+
+        try {
+            File worldJson = new File(worldDir, "world.json");
+            if (!worldJson.createNewFile()) {
+                logger.error("Failed to create world.json file in folder: {}", worldPath);
+                return false;
+            }
+
+            String json = gson.toJson(world);
+            Files.writeString(worldJson.toPath(), json);
+
+            logger.info("Created new world folder: {} ({})", name, id);
+            worldsFromDisk.add(world);
+            return true;
+        } catch (Exception e) {
+            logger.error("Failed to create world.json file in folder: {}", worldPath, e);
+            return false;
+        }
     }
 
     public @Nullable LoadedWorld loadDynamicWorld(String id, String name, WorldSettings settings) {

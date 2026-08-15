@@ -14,7 +14,8 @@ public class WorldSettings implements IFreezable {
     private final BakedSetting<WorldBoundsSetting> bounds;
     private final BakedSetting<WorldTimeSetting> time;
     private final BakedSetting<WorldWeatherSetting> weather;
-    private final BakedSetting<WorldFeatureSettings> features;
+
+    private WorldFeatureSettings features;
 
     private boolean isFrozen = false;
 
@@ -24,7 +25,8 @@ public class WorldSettings implements IFreezable {
         bounds = new BakedSetting<>(WorldBoundsSetting.disabled());
         time = new BakedSetting<>(WorldTimeSetting.defaults());
         weather = new BakedSetting<>(WorldWeatherSetting.defaults());
-        features = new BakedSetting<>(WorldFeatureSettings.defaults());
+
+        features = new WorldFeatureSettings();
     }
 
     @Override
@@ -102,11 +104,11 @@ public class WorldSettings implements IFreezable {
     }
 
     public WorldSettings withFeatures(WorldFeatureSettings features) {
-        this.features.setValue(features);
+        this.features = features;
         return this;
     }
 
     public WorldFeatureSettings features() {
-        return features.value();
+        return features;
     }
 }

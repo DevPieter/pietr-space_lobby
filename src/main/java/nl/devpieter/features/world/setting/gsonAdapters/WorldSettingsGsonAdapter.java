@@ -1,12 +1,12 @@
-package nl.devpieter.features.world.setting;
+package nl.devpieter.features.world.setting.gsonAdapters;
 
 import com.google.gson.*;
 import nl.devpieter.features.world.models.settings.*;
 import nl.devpieter.features.world.models.settings.features.WorldFeatureSettings;
+import nl.devpieter.features.world.setting.utils.JsonUtils;
 import nl.devpieter.models.SimplePoint;
 
 import java.lang.reflect.Type;
-import java.util.function.Consumer;
 
 public final class WorldSettingsGsonAdapter implements JsonSerializer<WorldSettings>, JsonDeserializer<WorldSettings> {
 
@@ -31,26 +31,13 @@ public final class WorldSettingsGsonAdapter implements JsonSerializer<WorldSetti
         JsonObject object = json.getAsJsonObject();
         WorldSettings settings = new WorldSettings();
 
-        setIfPresent(object, "spawn", SimplePoint.class, context, settings::withSpawn);
-        setIfPresent(object, "markerSigns", WorldMarkerSignsSetting.class, context, settings::withMarkerSigns);
-        setIfPresent(object, "bounds", WorldBoundsSetting.class, context, settings::withBounds);
-        setIfPresent(object, "time", WorldTimeSetting.class, context, settings::withTime);
-        setIfPresent(object, "weather", WorldWeatherSetting.class, context, settings::withWeather);
-        setIfPresent(object, "features", WorldFeatureSettings.class, context, settings::withFeatures);
+        JsonUtils.setIfPresent(object, "spawn", SimplePoint.class, context, settings::withSpawn);
+        JsonUtils.setIfPresent(object, "markerSigns", WorldMarkerSignsSetting.class, context, settings::withMarkerSigns);
+        JsonUtils.setIfPresent(object, "bounds", WorldBoundsSetting.class, context, settings::withBounds);
+        JsonUtils.setIfPresent(object, "time", WorldTimeSetting.class, context, settings::withTime);
+        JsonUtils.setIfPresent(object, "weather", WorldWeatherSetting.class, context, settings::withWeather);
+        JsonUtils.setIfPresent(object, "features", WorldFeatureSettings.class, context, settings::withFeatures);
 
         return settings;
-    }
-
-    private static <T> void setIfPresent(
-            JsonObject object,
-            String property,
-            Class<T> type,
-            JsonDeserializationContext context,
-            Consumer<T> setter
-    ) {
-        JsonElement value = object.get(property);
-        if (value == null || value instanceof JsonNull) return;
-
-        setter.accept(context.deserialize(value, type));
     }
 }

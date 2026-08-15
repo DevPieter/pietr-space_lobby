@@ -1,10 +1,8 @@
-package nl.devpieter.commands.world;
+package nl.devpieter.commands.ptr;
 
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.entity.Player;
 import nl.devpieter.features.creatures.CreatureManager;
-
-import java.util.UUID;
 
 public class CreatureCommand extends Command {
 
@@ -12,15 +10,6 @@ public class CreatureCommand extends Command {
 
     public CreatureCommand() {
         super("creature");
-
-        setCondition((sender, commandString) -> {
-            if (!(sender instanceof Player player)) return false;
-            return player.getUuid().equals(UUID.fromString("c292f4e0-f990-4592-a067-f5f77c15d408"));
-        });
-
-        setDefaultExecutor((sender, context) -> {
-            sender.sendMessage("Usage: /creature <init|revert|debug>");
-        });
 
         Command init = new Command("init");
         init.setDefaultExecutor((sender, context) -> {

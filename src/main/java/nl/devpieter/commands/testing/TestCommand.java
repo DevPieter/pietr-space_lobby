@@ -1,4 +1,4 @@
-package nl.devpieter.commands;
+package nl.devpieter.commands.testing;
 
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.entity.Player;

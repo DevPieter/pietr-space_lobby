@@ -23,13 +23,14 @@ import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.blockHandler.BeehiveBlockHandler;
 import nl.devpieter.blockHandler.DoorBlockHandler;
+import nl.devpieter.blockHandler.HangingSignBlockHandler;
 import nl.devpieter.blockHandler.SignBlockHandler;
 import nl.devpieter.commands.ReplayCommand;
-import nl.devpieter.commands.ServerCommand;
-import nl.devpieter.commands.TestCommand;
 import nl.devpieter.commands.TipCommand;
 import nl.devpieter.commands.player.GamemodeCommand;
-import nl.devpieter.commands.world.*;
+import nl.devpieter.commands.ptr.PtrCommand;
+import nl.devpieter.commands.world.TimeCommand;
+import nl.devpieter.commands.world.WeatherCommand;
 import nl.devpieter.config.ConfigManager;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.entities.LobbyPlayer;
@@ -102,6 +103,7 @@ public class Main {
         blockManager.registerHandler(Key.key("minecraft", "jukebox"), JukeboxBlockHandler::new);
         blockManager.registerHandler(Key.key("minecraft", "beehive"), BeehiveBlockHandler::new);
         blockManager.registerHandler(Key.key("minecraft", "sign"), SignBlockHandler::new);
+        blockManager.registerHandler(Key.key("minecraft", "hanging_sign"), HangingSignBlockHandler::new);
 //        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:bed"), BedBlockHandler::new);
 
         // TODO - A bit hacky, but I don't know a better way yet
@@ -360,26 +362,20 @@ public class Main {
         });
 
         CommandManager commandManager = MinecraftServer.getCommandManager();
+        commandManager.register(new PtrCommand());
 
         // Player
         commandManager.register(new GamemodeCommand());
 
         // World
-        commandManager.register(new WorldCommand());
-        commandManager.register(new SignCommand());
-        commandManager.register(new CreatureCommand());
-        commandManager.register(new FarmCommand());
-        commandManager.register(new ParkourCommand());
-        commandManager.register(new PortalCommand());
-
         commandManager.register(new TimeCommand());
         commandManager.register(new WeatherCommand());
 
         // Misc
         commandManager.register(new ReplayCommand());
         commandManager.register(new TipCommand());
-        commandManager.register(new TestCommand());
-        commandManager.register(new ServerCommand());
+//        commandManager.register(new TestCommand());
+//        commandManager.register(new ServerCommand());
 
         MinecraftServer.getConnectionManager().setPlayerProvider(LobbyPlayer::new);
 
