@@ -77,7 +77,7 @@ public class PlayerUtils {
 
     public static boolean hasLowHeadroom(Player player) {
         Block above = player.getInstance().getBlock(player.getPosition().add(0, 1, 0));
-        return !above.isAir();
+        return !above.air();
     }
 
     public static boolean isPlayerInWater(Player player) {
@@ -131,7 +131,7 @@ public class PlayerUtils {
     );
 
     private static boolean isConsideredLiquidBlock(Block block) {
-        if (block.isLiquid()) return true;
+        if (block.liquid()) return true;
         return CONSIDERED_LIQUID_BLOCKS.contains(block);
     }
 }

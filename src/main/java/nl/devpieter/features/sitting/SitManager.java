@@ -68,7 +68,7 @@ public class SitManager {
 
         if (!player.addTag(PlayerTags.SITTING)) return;
 
-        Point bounding = block.registry().collisionShape().relativeEnd();
+        Point bounding = block.collisionShape().relativeEnd();
 
         LivingEntity entity = new LivingEntity(EntityType.ARMOR_STAND);
         entity.setInstance(player.getInstance(), blockVec.add(0.5, bounding.y() - 1.9, 0.5));
@@ -123,6 +123,6 @@ public class SitManager {
             if (open == null || open.equals("true")) return false;
         }
 
-        return block.registry().isSolid();
+        return block.solid();
     }
 }
