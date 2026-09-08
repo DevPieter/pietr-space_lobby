@@ -4,6 +4,7 @@ import net.kyori.adventure.key.Key;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandManager;
+import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.EntityPose;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
@@ -16,6 +17,7 @@ import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.instance.block.BlockManager;
+import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
@@ -35,6 +37,7 @@ import nl.devpieter.config.ConfigManager;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.entities.bee.BeeEntity;
+import nl.devpieter.entities.horse.HorseEntity;
 import nl.devpieter.features.cooking.blockHandlers.CampfireBlockHandler;
 import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.features.fishing.FishingManager;
@@ -54,17 +57,22 @@ import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
 import nl.devpieter.features.world.WorldManager;
+import nl.devpieter.features.world.models.LoadedWorld;
+import nl.devpieter.features.world.models.settings.WorldSettings;
 import nl.devpieter.listeners.PlayerConfigurationListener;
 import nl.devpieter.listeners.PlayerDisconnectListener;
 import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
 import nl.devpieter.models.BlockHolder;
+import nl.devpieter.models.SimplePoint;
 import nl.devpieter.sees.Sees;
 import nl.devpieter.utils.minestom.PlayerUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
 import org.slf4j.Logger;
 
+import java.util.HashMap;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Main {
@@ -165,6 +173,56 @@ public class Main {
         eventHandler.addListener(new PortalPlayerMoveListener());
         eventHandler.addListener(new ParkourPlayerMoveListener());
         eventHandler.addListener(new ParkourPlayerSneakListener());
+
+        /* =============== HORSE =============== */
+        final HashMap<UUID, HorseEntity> horseMap = new HashMap<>();
+
+        eventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {
+            if (!(event.getPlayer() instanceof LobbyPlayer lobbyPlayer)) return;
+            lobbyPlayer.addItemToMainInventory(ItemStack.of(Material.STICK));
+        });
+
+        eventHandler.addListener(PlayerUseItemEvent.class, event -> {
+            if (event.getItemStack().material() != Material.STICK) return;
+
+            Player player = event.getPlayer();
+
+            WorldSettings settings = new WorldSettings()
+                    .withSpawn(new SimplePoint(0, 64, 0, 0, 0));
+
+            LoadedWorld world = worldManager.loadDynamicWorld("horse_world", "Horse World", settings);
+            if (world != null) {
+                world.instance().setGenerator(unit -> {
+                    unit.modifier().fillHeight(60, 63, Block.DIRT);
+                    unit.modifier().fillHeight(63, 64, Block.GRASS_BLOCK);
+                });
+
+                PlayerUtils.moveWorld(player, world);
+            }
+
+            HorseEntity horse = new HorseEntity();
+            horse.setInstance(world.instance(), new Pos(0, 64, 0));
+        });
+
+        eventHandler.addListener(PlayerEntityInteractEvent.class, event -> {
+            if (!(event.getTarget() instanceof HorseEntity horse)) return;
+
+            Player player = event.getPlayer();
+
+            horse.addPassenger(player);
+            horseMap.put(player.getUuid(), horse);
+        });
+
+        eventHandler.addListener(PlayerInputEvent.class, event -> {
+            if (!event.hasPressedShiftKey()) return;
+            Player player = event.getPlayer();
+
+            if (!(player.getVehicle() instanceof HorseEntity horse)) return;
+
+            horse.removePassenger(player);
+            horseMap.remove(player.getUuid());
+        });
+        /* =============== HORSE =============== */
 
         // TODO - Temporary parkour listeners
         MinecraftServer.getGlobalEventHandler().addListener(PlayerUseItemEvent.class, event -> {
