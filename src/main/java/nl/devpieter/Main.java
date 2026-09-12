@@ -9,6 +9,7 @@ import net.minestom.server.entity.EntityPose;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerHand;
+import net.minestom.server.entity.attribute.Attribute;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.entity.EntityAttackEvent;
 import net.minestom.server.event.item.PickupItemEvent;
@@ -65,6 +66,7 @@ import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
 import nl.devpieter.models.BlockHolder;
 import nl.devpieter.models.SimplePoint;
+import nl.devpieter.models.SlotHolder;
 import nl.devpieter.sees.Sees;
 import nl.devpieter.utils.minestom.PlayerUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
@@ -175,7 +177,14 @@ public class Main {
         eventHandler.addListener(new ParkourPlayerSneakListener());
 
         /* =============== HORSE =============== */
+        final PlayLogger pLogger = PlayLogger.getInstance();
         final HashMap<UUID, HorseEntity> horseMap = new HashMap<>();
+
+        final double horseMaxSpeed = 5.0D;
+        final double horseMinSpeed = 0.1D;
+
+        final double horseMaxJumpStrength = 5.0D;
+        final double horseMinJumpStrength = 0.1D;
 
         eventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {
             if (!(event.getPlayer() instanceof LobbyPlayer lobbyPlayer)) return;
@@ -183,22 +192,21 @@ public class Main {
         });
 
         eventHandler.addListener(PlayerUseItemEvent.class, event -> {
+            if (!(event.getPlayer() instanceof LobbyPlayer player)) return;
             if (event.getItemStack().material() != Material.STICK) return;
-
-            Player player = event.getPlayer();
 
             WorldSettings settings = new WorldSettings()
                     .withSpawn(new SimplePoint(0, 64, 0, 0, 0));
 
             LoadedWorld world = worldManager.loadDynamicWorld("horse_world", "Horse World", settings);
-            if (world != null) {
-                world.instance().setGenerator(unit -> {
-                    unit.modifier().fillHeight(60, 63, Block.DIRT);
-                    unit.modifier().fillHeight(63, 64, Block.GRASS_BLOCK);
-                });
+            if (world == null) return;
 
-                PlayerUtils.moveWorld(player, world);
-            }
+            world.instance().setGenerator(unit -> {
+                unit.modifier().fillHeight(60, 63, Block.DIRT);
+                unit.modifier().fillHeight(63, 64, Block.GRASS_BLOCK);
+            });
+
+            PlayerUtils.moveWorld(player, world);
 
             HorseEntity horse = new HorseEntity();
             horse.setInstance(world.instance(), new Pos(0, 64, 0));
@@ -206,21 +214,91 @@ public class Main {
 
         eventHandler.addListener(PlayerEntityInteractEvent.class, event -> {
             if (!(event.getTarget() instanceof HorseEntity horse)) return;
-
-            Player player = event.getPlayer();
+            if (!(event.getPlayer() instanceof LobbyPlayer player)) return;
 
             horse.addPassenger(player);
             horseMap.put(player.getUuid(), horse);
+
+            player.switchToDynamicInventory();
+            player.fillDynamicInventory(
+                    new SlotHolder(0, ItemStack.of(Material.FEATHER)),
+                    new SlotHolder(1, ItemStack.of(Material.RABBIT_FOOT))
+            );
         });
 
         eventHandler.addListener(PlayerInputEvent.class, event -> {
             if (!event.hasPressedShiftKey()) return;
-            Player player = event.getPlayer();
+            if (!(event.getPlayer() instanceof LobbyPlayer player)) return;
 
             if (!(player.getVehicle() instanceof HorseEntity horse)) return;
 
+            player.switchToMainInventory();
+
             horse.removePassenger(player);
             horseMap.remove(player.getUuid());
+        });
+
+        // Left click
+        eventHandler.addListener(PlayerHandAnimationEvent.class, event -> {
+            if (!(event.getPlayer() instanceof LobbyPlayer player)) return;
+            if (!player.isDynamicInventoryActive()) return;
+            if (event.getHand() != PlayerHand.MAIN) return;
+
+            HorseEntity horse = horseMap.get(player.getUuid());
+            if (horse == null) return;
+
+            Material material = player.getItemInMainHand().material();
+
+            if (material == Material.FEATHER) {
+                double speed = horse.getAttribute(Attribute.MOVEMENT_SPEED).getBaseValue();
+
+                if (speed < horseMaxSpeed) {
+                    speed += 0.1D;
+                    horse.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(speed);
+                    pLogger.info(player, true, "Horse speed increased to {}", Math.round(speed * 100.0) / 100.0);
+                }
+            }
+
+            if (material == Material.RABBIT_FOOT) {
+                double jumpStrength = horse.getAttribute(Attribute.JUMP_STRENGTH).getBaseValue();
+
+                if (jumpStrength < horseMaxJumpStrength) {
+                    jumpStrength += 0.1D;
+                    horse.getAttribute(Attribute.JUMP_STRENGTH).setBaseValue(jumpStrength);
+                    pLogger.info(player, true, "Horse jump strength increased to {}", Math.round(jumpStrength * 100.0) / 100.0);
+                }
+            }
+        });
+
+        // Right click
+        eventHandler.addListener(PlayerUseItemEvent.class, event -> {
+            if (!(event.getPlayer() instanceof LobbyPlayer player)) return;
+            if (!player.isDynamicInventoryActive()) return;
+
+            HorseEntity horse = horseMap.get(player.getUuid());
+            if (horse == null) return;
+
+            Material material = event.getItemStack().material();
+
+            if (material == Material.FEATHER) {
+                double speed = horse.getAttribute(Attribute.MOVEMENT_SPEED).getBaseValue();
+
+                if (speed > horseMinSpeed) {
+                    speed -= 0.1D;
+                    horse.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(speed);
+                    pLogger.info(player, true, "Horse speed decreased to {}", Math.round(speed * 100.0) / 100.0);
+                }
+            }
+
+            if (material == Material.RABBIT_FOOT) {
+                double jumpStrength = horse.getAttribute(Attribute.JUMP_STRENGTH).getBaseValue();
+
+                if (jumpStrength > horseMinJumpStrength) {
+                    jumpStrength -= 0.1D;
+                    horse.getAttribute(Attribute.JUMP_STRENGTH).setBaseValue(jumpStrength);
+                    pLogger.info(player, true, "Horse jump strength decreased to {}", Math.round(jumpStrength * 100.0) / 100.0);
+                }
+            }
         });
         /* =============== HORSE =============== */
 

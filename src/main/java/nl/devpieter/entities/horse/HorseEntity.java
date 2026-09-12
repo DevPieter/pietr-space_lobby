@@ -22,8 +22,8 @@ public class HorseEntity extends EntityCreature {
 
         meta.setTamed(true);
         setEquipment(EquipmentSlot.SADDLE, ItemStack.of(Material.SADDLE));
-        getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(1.0);
-        getAttribute(Attribute.JUMP_STRENGTH).setBaseValue(1.0);
+        getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(1.0D);
+        getAttribute(Attribute.JUMP_STRENGTH).setBaseValue(1.0D);
     }
 
     @Override
