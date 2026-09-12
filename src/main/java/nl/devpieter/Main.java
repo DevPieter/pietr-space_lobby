@@ -3,13 +3,13 @@ package nl.devpieter;
 import net.kyori.adventure.key.Key;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.command.CommandManager;
-import net.minestom.server.coordinate.Pos;
+import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.EntityPose;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerHand;
-import net.minestom.server.entity.attribute.Attribute;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.entity.EntityAttackEvent;
 import net.minestom.server.event.item.PickupItemEvent;
@@ -59,22 +59,24 @@ import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
-import nl.devpieter.features.world.models.settings.WorldSettings;
 import nl.devpieter.listeners.PlayerConfigurationListener;
 import nl.devpieter.listeners.PlayerDisconnectListener;
 import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
 import nl.devpieter.models.BlockHolder;
-import nl.devpieter.models.SimplePoint;
 import nl.devpieter.models.SlotHolder;
 import nl.devpieter.sees.Sees;
 import nl.devpieter.utils.minestom.PlayerUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
+import nl.devpieter.utils.minestom.WorldUtils;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Main {
@@ -177,14 +179,24 @@ public class Main {
         eventHandler.addListener(new ParkourPlayerSneakListener());
 
         /* =============== HORSE =============== */
+        AtomicInteger counter = new AtomicInteger();
+
         final PlayLogger pLogger = PlayLogger.getInstance();
         final HashMap<UUID, HorseEntity> horseMap = new HashMap<>();
 
-        final double horseMaxSpeed = 5.0D;
-        final double horseMinSpeed = 0.1D;
+        final HashMap<String, Long> missedFenceCooldowns = new HashMap<>();
+        final HashMap<String, Long> passedFenceCooldowns = new HashMap<>();
 
-        final double horseMaxJumpStrength = 5.0D;
-        final double horseMinJumpStrength = 0.1D;
+        record HorseBrushFence(
+                int id,
+                Point failPos,
+                BoundingBox failBox,
+                Point passPos,
+                BoundingBox passBox
+        ) {
+        }
+
+        final List<HorseBrushFence> horseBrushFences = new ArrayList<>();
 
         eventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {
             if (!(event.getPlayer() instanceof LobbyPlayer lobbyPlayer)) return;
@@ -195,21 +207,109 @@ public class Main {
             if (!(event.getPlayer() instanceof LobbyPlayer player)) return;
             if (event.getItemStack().material() != Material.STICK) return;
 
-            WorldSettings settings = new WorldSettings()
-                    .withSpawn(new SimplePoint(0, 64, 0, 0, 0));
-
-            LoadedWorld world = worldManager.loadDynamicWorld("horse_world", "Horse World", settings);
+            LoadedWorld world = worldManager.getLoadedWorldById("horse_testing");
             if (world == null) return;
-
-            world.instance().setGenerator(unit -> {
-                unit.modifier().fillHeight(60, 63, Block.DIRT);
-                unit.modifier().fillHeight(63, 64, Block.GRASS_BLOCK);
-            });
 
             PlayerUtils.moveWorld(player, world);
 
             HorseEntity horse = new HorseEntity();
-            horse.setInstance(world.instance(), new Pos(0, 64, 0));
+            horse.setInstance(world.instance(), world.settings().spawn().toPoint());
+
+            List<Point> oakFences = WorldUtils.findBlocks(
+                    world.instance(),
+                    world.settings().spawn().toPoint(),
+                    100,
+                    Block.OAK_FENCE
+            );
+
+            for (Point fencePos : oakFences) {
+
+                int width = 5;
+
+                world.instance().setBlock(fencePos, Block.AIR);
+                for (int x = -width / 2; x <= width / 2; x++) {
+                    WorldUtils.placeFallingBlock(
+                            world.instance(),
+                            fencePos.add(x + 0.5, 0, 0.5),
+                            Block.OAK_LOG
+                    );
+
+                    WorldUtils.placeFallingBlock(
+                            world.instance(),
+                            fencePos.add(x + 0.5, 1, 0.5),
+                            Block.OAK_SLAB
+                    );
+                }
+
+                Point posCenter = fencePos.add(0.5, 0, 0.5);
+
+                BoundingBox failBox = new BoundingBox(width, 1.5, 1);
+                BoundingBox passBox = new BoundingBox(width, 3, 0.2);
+
+                WorldUtils.placeMarker(
+                        world.instance(),
+                        posCenter.add(0, failBox.height() + 0.5, 0),
+                        TextUtils.miniText("<#586373>Horse Brush Fence")
+                );
+
+//                WorldUtils.placeBoundingBox(
+//                        world.instance(),
+//                        posCenter,
+//                        failBox
+//                );
+//
+//                WorldUtils.placeBoundingBox(
+//                        world.instance(),
+//                        posCenter.add(0, failBox.height(), 0),
+//                        passBox
+//                );
+
+                horseBrushFences.add(new HorseBrushFence(
+                        counter.getAndIncrement(),
+                        posCenter,
+                        failBox,
+                        posCenter.add(0, failBox.height(), 0),
+                        passBox
+                ));
+            }
+        });
+
+        eventHandler.addListener(PlayerMoveEvent.class, event -> {
+            if (!(event.getPlayer() instanceof LobbyPlayer player)) return;
+
+            HorseEntity horse = horseMap.get(player.getUuid());
+            if (horse == null) return;
+
+            for (HorseBrushFence fence : horseBrushFences) {
+
+                String key = player.getUuid() + "_" + fence.id();
+                long currentTime = System.currentTimeMillis();
+                long cooldownTime = 3_000;
+
+                if (PlayerUtils.isInsideBox(horse, fence.failPos(), fence.failBox())) {
+                    if (missedFenceCooldowns.containsKey(key)) {
+                        long lastMissedTime = missedFenceCooldowns.get(key);
+                        if (currentTime - lastMissedTime < cooldownTime) return;
+                    }
+
+                    horse.crash();
+                    missedFenceCooldowns.put(key, currentTime);
+
+                    pLogger.info(player, true, "You missed the horse brush fence!");
+                }
+
+                if (PlayerUtils.isInsideBox(horse, fence.passPos(), fence.passBox())) {
+                    if (passedFenceCooldowns.containsKey(key)) {
+                        long lastPassedTime = passedFenceCooldowns.get(key);
+                        if (currentTime - lastPassedTime < cooldownTime) return;
+                    }
+
+                    horse.grandBoostPower(3);
+                    passedFenceCooldowns.put(key, currentTime);
+
+                    pLogger.info(player, true, "You passed the horse brush fence!");
+                }
+            }
         });
 
         eventHandler.addListener(PlayerEntityInteractEvent.class, event -> {
@@ -248,26 +348,6 @@ public class Main {
             if (horse == null) return;
 
             Material material = player.getItemInMainHand().material();
-
-            if (material == Material.FEATHER) {
-                double speed = horse.getAttribute(Attribute.MOVEMENT_SPEED).getBaseValue();
-
-                if (speed < horseMaxSpeed) {
-                    speed += 0.1D;
-                    horse.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(speed);
-                    pLogger.info(player, true, "Horse speed increased to {}", Math.round(speed * 100.0) / 100.0);
-                }
-            }
-
-            if (material == Material.RABBIT_FOOT) {
-                double jumpStrength = horse.getAttribute(Attribute.JUMP_STRENGTH).getBaseValue();
-
-                if (jumpStrength < horseMaxJumpStrength) {
-                    jumpStrength += 0.1D;
-                    horse.getAttribute(Attribute.JUMP_STRENGTH).setBaseValue(jumpStrength);
-                    pLogger.info(player, true, "Horse jump strength increased to {}", Math.round(jumpStrength * 100.0) / 100.0);
-                }
-            }
         });
 
         // Right click
@@ -279,26 +359,6 @@ public class Main {
             if (horse == null) return;
 
             Material material = event.getItemStack().material();
-
-            if (material == Material.FEATHER) {
-                double speed = horse.getAttribute(Attribute.MOVEMENT_SPEED).getBaseValue();
-
-                if (speed > horseMinSpeed) {
-                    speed -= 0.1D;
-                    horse.getAttribute(Attribute.MOVEMENT_SPEED).setBaseValue(speed);
-                    pLogger.info(player, true, "Horse speed decreased to {}", Math.round(speed * 100.0) / 100.0);
-                }
-            }
-
-            if (material == Material.RABBIT_FOOT) {
-                double jumpStrength = horse.getAttribute(Attribute.JUMP_STRENGTH).getBaseValue();
-
-                if (jumpStrength > horseMinJumpStrength) {
-                    jumpStrength -= 0.1D;
-                    horse.getAttribute(Attribute.JUMP_STRENGTH).setBaseValue(jumpStrength);
-                    pLogger.info(player, true, "Horse jump strength decreased to {}", Math.round(jumpStrength * 100.0) / 100.0);
-                }
-            }
         });
         /* =============== HORSE =============== */
 

@@ -9,6 +9,7 @@ import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.metadata.display.AbstractDisplayMeta;
 import net.minestom.server.entity.metadata.display.BlockDisplayMeta;
 import net.minestom.server.entity.metadata.display.TextDisplayMeta;
+import net.minestom.server.entity.metadata.other.FallingBlockMeta;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
@@ -53,6 +54,18 @@ public class WorldUtils {
             textDisplayMeta.setBillboardRenderConstraints(AbstractDisplayMeta.BillboardConstraints.CENTER);
             textDisplayMeta.setAlignment(TextDisplayMeta.Alignment.CENTER);
             textDisplayMeta.setHasNoGravity(true);
+        });
+
+        return entity;
+    }
+
+    public static Entity placeFallingBlock(@NotNull Instance instance, @NotNull Point point, @NotNull Block block) {
+        Entity entity = new Entity(EntityType.FALLING_BLOCK);
+        entity.setInstance(instance, point);
+
+        entity.editEntityMeta(FallingBlockMeta.class, meta -> {
+            meta.setBlock(block);
+            meta.setHasNoGravity(true);
         });
 
         return entity;

@@ -4,6 +4,7 @@ import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
+import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
@@ -44,7 +45,7 @@ public class PlayerUtils {
         return true;
     }
 
-    public static boolean isInsideBox(@NotNull Player player, @NotNull Point origin, @NotNull BoundingBox box) {
+    public static boolean isInsideBox(@NotNull Entity player, @NotNull Point origin, @NotNull BoundingBox box) {
         BoundingBox playerBB = player.getBoundingBox();
         Pos playerPos = player.getPosition();
 
