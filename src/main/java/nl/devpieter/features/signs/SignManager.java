@@ -46,7 +46,7 @@ public class SignManager {
     public void init() {
         revertSigns();
 
-        worldManager.getWorlds().forEach(this::scanSigns);
+        worldManager.getLoadedWorlds().forEach(this::scanSigns);
         if (EnvStatics.DEBUG) placeDebugMarkers();
     }
 
