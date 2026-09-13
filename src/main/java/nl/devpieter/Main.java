@@ -1,6 +1,10 @@
 package nl.devpieter;
 
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.nbt.BinaryTagIO;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.ListBinaryTag;
+import net.kyori.adventure.nbt.TagStringIO;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.collision.BoundingBox;
@@ -72,6 +76,8 @@ import nl.devpieter.utils.minestom.TextUtils;
 import nl.devpieter.utils.minestom.WorldUtils;
 import org.slf4j.Logger;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -218,7 +224,7 @@ public class Main {
             List<Point> oakFences = WorldUtils.findBlocks(
                     world.instance(),
                     world.settings().spawn().toPoint(),
-                    100,
+                    400,
                     Block.OAK_FENCE
             );
 
@@ -322,7 +328,8 @@ public class Main {
             player.switchToDynamicInventory();
             player.fillDynamicInventory(
                     new SlotHolder(0, ItemStack.of(Material.FEATHER)),
-                    new SlotHolder(1, ItemStack.of(Material.RABBIT_FOOT))
+                    new SlotHolder(1, ItemStack.of(Material.RABBIT_FOOT)),
+                    new SlotHolder(8, ItemStack.of(Material.BARRIER))
             );
         });
 
@@ -331,11 +338,7 @@ public class Main {
             if (!(event.getPlayer() instanceof LobbyPlayer player)) return;
 
             if (!(player.getVehicle() instanceof HorseEntity horse)) return;
-
-            player.switchToMainInventory();
-
-            horse.removePassenger(player);
-            horseMap.remove(player.getUuid());
+            horse.boost(player);
         });
 
         // Left click
@@ -359,6 +362,13 @@ public class Main {
             if (horse == null) return;
 
             Material material = event.getItemStack().material();
+
+            if (material == Material.BARRIER) {
+                player.switchToMainInventory();
+
+                horse.removePassenger(player);
+                horseMap.remove(player.getUuid());
+            }
         });
         /* =============== HORSE =============== */
 

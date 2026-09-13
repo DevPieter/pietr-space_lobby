@@ -10,7 +10,11 @@ import net.minestom.server.entity.metadata.animal.HorseMeta;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.network.packet.server.SendablePacket;
+import net.minestom.server.network.packet.server.play.EntityEffectPacket;
 import net.minestom.server.network.packet.server.play.EntityVelocityPacket;
+import net.minestom.server.network.packet.server.play.RemoveEntityEffectPacket;
+import net.minestom.server.potion.Potion;
+import net.minestom.server.potion.PotionEffect;
 import net.minestom.server.timer.SchedulerManager;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
@@ -23,11 +27,12 @@ public class HorseEntity extends EntityCreature {
 
     private Task stageOneCrashTask;
     private Task stageTwoCrashTask;
+    private Task boostTask;
 
     private final AttributeInstance movementSpeedAttr = getAttribute(Attribute.MOVEMENT_SPEED);
     private final AttributeInstance jumpStrengthAttr = getAttribute(Attribute.JUMP_STRENGTH);
 
-    private final PenaltyValue movementSpeed = new PenaltyValue(0.5);
+    private final PenaltyValue movementSpeed = new PenaltyValue(0.4);
     private final PenaltyValue jumpStrength = new PenaltyValue(0.8);
 
     private final BossBar boostBarBoosts;
@@ -84,12 +89,31 @@ public class HorseEntity extends EntityCreature {
         stageOneCrashTask = scheduler.buildTask(() -> {
             meta.setRearing(false);
             jumpStrength.addPenalty("crash", PenaltyValue.Type.SUBTRACTIVE_PERCENTAGE, 50);
-        }).delay(TaskSchedule.millis(500)).schedule();
+        }).delay(TaskSchedule.seconds(1)).schedule();
 
         stageTwoCrashTask = scheduler.buildTask(() -> {
             movementSpeed.removePenalty("crash");
             jumpStrength.removePenalty("crash");
-        }).delay(TaskSchedule.seconds(2)).schedule();
+        }).delay(TaskSchedule.seconds(3)).schedule();
+    }
+
+    public void boost(Player player) {
+        if (currentBoostPower < boostCost) return;
+
+        currentBoostPower -= boostCost;
+        updateBoostBar();
+
+        Potion potion = new Potion(PotionEffect.SPEED, 6, Potion.INFINITE_DURATION, Potion.ICON_FLAG | Potion.AMBIENT_FLAG);
+        player.sendPackets(new EntityEffectPacket(player.getEntityId(), potion));
+
+        movementSpeed.addPenalty("boost", PenaltyValue.Type.ADDITIVE_PERCENTAGE, 40);
+
+        if (boostTask != null) boostTask.cancel();
+
+        boostTask = scheduler.buildTask(() -> {
+            movementSpeed.removePenalty("boost");
+            player.sendPacket(new RemoveEntityEffectPacket(player.getEntityId(), PotionEffect.SPEED));
+        }).delay(TaskSchedule.seconds(4)).schedule();
     }
 
     @Override
