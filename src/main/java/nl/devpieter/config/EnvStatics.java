@@ -8,4 +8,5 @@ public class EnvStatics {
 
     public static final String APP_CONFIG_PATH = EnvUtils.readString("APP_CONFIG_PATH", "/app/data/config.json");
     public static final String WORLD_DATA_PATH = EnvUtils.readString("WORLD_PATH_BASE", "/app/data/worlds");
+    public static final String STRUCTURE_DATA_PATH = EnvUtils.readString("STRUCTURE_PATH_BASE", "/app/data/structures");
 }
