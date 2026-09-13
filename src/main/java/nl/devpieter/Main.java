@@ -5,7 +5,6 @@ import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.entity.EntityPose;
-import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.event.GlobalEventHandler;
@@ -15,6 +14,8 @@ import net.minestom.server.event.player.*;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
+import net.minestom.server.instance.block.BlockManager;
+import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
@@ -22,19 +23,19 @@ import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.blockHandler.BeehiveBlockHandler;
 import nl.devpieter.blockHandler.DoorBlockHandler;
+import nl.devpieter.blockHandler.HangingSignBlockHandler;
 import nl.devpieter.blockHandler.SignBlockHandler;
 import nl.devpieter.commands.ReplayCommand;
-import nl.devpieter.commands.ServerCommand;
-import nl.devpieter.commands.TestCommand;
 import nl.devpieter.commands.TipCommand;
 import nl.devpieter.commands.player.GamemodeCommand;
-import nl.devpieter.commands.world.*;
+import nl.devpieter.commands.ptr.PtrCommand;
+import nl.devpieter.commands.world.TimeCommand;
+import nl.devpieter.commands.world.WeatherCommand;
 import nl.devpieter.config.ConfigManager;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.entities.bee.BeeEntity;
 import nl.devpieter.features.cooking.blockHandlers.CampfireBlockHandler;
-import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.FishingReferenceHolder;
 import nl.devpieter.features.fishing.catchable.ICatchable;
@@ -52,12 +53,15 @@ import nl.devpieter.features.parkour.listeners.ParkourPlayerSneakListener;
 import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
+import nl.devpieter.features.structures.StructureManager;
+import nl.devpieter.features.structures.StructurePlacer;
+import nl.devpieter.features.structures.models.Structure;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.listeners.PlayerConfigurationListener;
 import nl.devpieter.listeners.PlayerDisconnectListener;
 import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
-import nl.devpieter.models.BlockHolder;
+import nl.devpieter.models.SimpleVec;
 import nl.devpieter.sees.Sees;
 import nl.devpieter.utils.minestom.PlayerUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
@@ -84,10 +88,12 @@ public class Main {
         MinecraftServer server = MinecraftServer.init(auth);
         MinecraftServer.setBrandName("Pieter Space Lobby");
 
-        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:campfire"), CampfireBlockHandler::new);
-        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:jukebox"), JukeboxBlockHandler::new);
-        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:beehive"), BeehiveBlockHandler::new);
-        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:sign"), SignBlockHandler::new);
+        BlockManager blockManager = MinecraftServer.getBlockManager();
+        blockManager.registerHandler(Key.key("minecraft", "campfire"), CampfireBlockHandler::new);
+        blockManager.registerHandler(Key.key("minecraft", "jukebox"), JukeboxBlockHandler::new);
+        blockManager.registerHandler(Key.key("minecraft", "beehive"), BeehiveBlockHandler::new);
+        blockManager.registerHandler(Key.key("minecraft", "sign"), SignBlockHandler::new);
+        blockManager.registerHandler(Key.key("minecraft", "hanging_sign"), HangingSignBlockHandler::new);
 //        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:bed"), BedBlockHandler::new);
 
         // TODO - A bit hacky, but I don't know a better way yet
@@ -144,6 +150,9 @@ public class Main {
         Sees sees = Sees.getSharedInstance();
         sees.subscribe(new MainListener());
 
+        StructureManager structureManager = StructureManager.getInstance();
+        structureManager.init();
+
         WorldManager worldManager = WorldManager.getInstance();
         worldManager.init();
 
@@ -164,6 +173,32 @@ public class Main {
         eventHandler.addListener(new ParkourPlayerSneakListener());
 
         eventHandler.addChild(MiningManager.getInstance().getEventNode());
+
+        eventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {
+            if (!(event.getPlayer() instanceof LobbyPlayer lobbyPlayer)) return;
+            lobbyPlayer.addItemToMainInventory(ItemStack.of(Material.WOODEN_HOE));
+        });
+
+        eventHandler.addListener(PlayerBlockInteractEvent.class, event -> {
+            if (!(event.getPlayer() instanceof LobbyPlayer player)) return;
+            if (player.getItemInHand(event.getHand()).material() != Material.WOODEN_HOE) return;
+
+            event.setCancelled(true);
+
+            double x = event.getBlockPosition().x();
+            double y = event.getBlockPosition().y();
+            double z = event.getBlockPosition().z();
+
+            Structure structure = structureManager.getStructure("testing_horse_1");
+            StructurePlacer.placeStructure(
+                    event.getInstance(),
+                    new SimpleVec(x, y + 1, z),
+                    structure,
+                    StructurePlacer.Rotation.ROTATE_0,
+                    StructurePlacer.Mirror.NONE
+            );
+
+        });
 
         // TODO - Temporary parkour listeners
         MinecraftServer.getGlobalEventHandler().addListener(PlayerUseItemEvent.class, event -> {
@@ -252,18 +287,9 @@ public class Main {
 //        eventHandler.addListener(PlayerStartSneakingEvent.class, event -> {
 //            Player player = event.getPlayer();
 //
-//            Point hive = WorldUtils.findBlocks(
-//                    player.getInstance(),
-//                    player.getPosition(),
-//                    50,
-//                    Block.BEE_NEST,
-//                    Block.BEEHIVE
-//            ).stream().findFirst().orElse(null);
-//
-//            BeeEntity bee = new BeeEntity(hive, acquirable -> {
-//                acquirable.sync(BeeEntity::resetNectar);
-//            });
-//            bee.setInstance(player.getInstance(), player.getPosition().withY(player.getPosition().y() + 2));
+//            PlayLogger pLogger = PlayLogger.getInstance();
+//            pLogger.debug(player, "Testing 123, {} sneaking event {}", player.getName(), 321);
+//            pLogger.debug(player, true, "Testing 123, {} sneaking event {}", player.getName(), 321);
 //        });
 
         eventHandler.addListener(EntityAttackEvent.class, event -> {
@@ -274,26 +300,20 @@ public class Main {
         });
 
         CommandManager commandManager = MinecraftServer.getCommandManager();
+        commandManager.register(new PtrCommand());
 
         // Player
         commandManager.register(new GamemodeCommand());
 
         // World
-        commandManager.register(new WorldCommand());
-        commandManager.register(new SignCommand());
-        commandManager.register(new CreatureCommand());
-        commandManager.register(new FarmCommand());
-        commandManager.register(new ParkourCommand());
-        commandManager.register(new PortalCommand());
-
         commandManager.register(new TimeCommand());
         commandManager.register(new WeatherCommand());
 
         // Misc
         commandManager.register(new ReplayCommand());
         commandManager.register(new TipCommand());
-        commandManager.register(new TestCommand());
-        commandManager.register(new ServerCommand());
+//        commandManager.register(new TestCommand());
+//        commandManager.register(new ServerCommand());
 
         MinecraftServer.getConnectionManager().setPlayerProvider(LobbyPlayer::new);
 

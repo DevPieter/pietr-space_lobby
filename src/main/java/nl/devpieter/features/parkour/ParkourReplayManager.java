@@ -9,9 +9,9 @@ import net.minestom.server.timer.TaskSchedule;
 import nl.devpieter.TagHelper;
 import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.enums.PlayerTags;
-import nl.devpieter.features.parkour.models.parkourReplay.FinishedPlayerReplay;
-import nl.devpieter.features.parkour.models.parkourReplay.PlayerReplay;
-import nl.devpieter.features.parkour.models.parkourReplay.PlayerReplayFrame;
+import nl.devpieter.features.parkour.models.replay.FinishedPlayerReplay;
+import nl.devpieter.features.parkour.models.replay.PlayerReplay;
+import nl.devpieter.features.parkour.models.replay.PlayerReplayFrame;
 import nl.devpieter.models.TaskRunnable;
 import org.jetbrains.annotations.Nullable;
 

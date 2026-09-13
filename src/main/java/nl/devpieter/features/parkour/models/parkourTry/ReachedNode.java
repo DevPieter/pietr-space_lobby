@@ -1,12 +1,15 @@
 package nl.devpieter.features.parkour.models.parkourTry;
 
+import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.NonNull;
+
 public record ReachedNode(
-        int nodeIndex,
-        int reachedAtIndex, // TODO - Check if needed
-        long timestamp,
-        boolean skipped
+        int fromNodeIndex,
+        int toNodeIndex,
+        long timestamp
 ) {
-    public static ReachedNode create(int nodeIndex, int reachedAtIndex, boolean skipped) {
-        return new ReachedNode(nodeIndex, reachedAtIndex, System.currentTimeMillis(), skipped);
+    @Contract("_, _ -> new")
+    public static @NonNull ReachedNode create(int fromNodeIndex, int toNodeIndex) {
+        return new ReachedNode(fromNodeIndex, toNodeIndex, System.currentTimeMillis());
     }
 }

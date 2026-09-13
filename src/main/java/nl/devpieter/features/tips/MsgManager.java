@@ -3,6 +3,7 @@ package nl.devpieter.features.tips;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.entity.Player;
 import net.minestom.server.sound.SoundEvent;
+import nl.devpieter.PlayLogger;
 import nl.devpieter.features.tips.models.MessageHolder;
 import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
@@ -20,6 +21,8 @@ public class MsgManager {
     private static MsgManager INSTANCE;
 
     private static final Duration MESSAGE_COOLDOWN = Duration.ofSeconds(5);
+
+    private final PlayLogger playLogger = PlayLogger.getInstance();
 
     private final HashMap<UUID, List<MessageHolder>> messages = new HashMap<>();
     private final HashMap<UUID, List<String>> receivedMessages = new HashMap<>();
@@ -42,7 +45,11 @@ public class MsgManager {
 
     public void showMessage(@NotNull Player player, @NotNull String id, @NotNull Component message, boolean sound) {
         removeExpiredMessages(player);
-        if (!canShowMessage(player, id)) return;
+
+        if (!canShowMessage(player, id)) {
+            playLogger.debug(player, true, "Message {} not shown (conditions not met)", id);
+            return;
+        }
 
         List<MessageHolder> messageHolders = messages.computeIfAbsent(player.getUuid(), _ -> new ArrayList<>());
         messageHolders.add(new MessageHolder(id, System.currentTimeMillis()));
@@ -55,11 +62,13 @@ public class MsgManager {
         ));
 
         if (sound) playSoundEffect(player);
+        playLogger.debug(player, true, "Message {} shown (sound: {})", id, sound);
     }
 
     public void resetMessages(@NotNull Player player) {
         receivedMessages.remove(player.getUuid());
         messages.remove(player.getUuid());
+        playLogger.debug(player, true, "Reset messages");
     }
 
     private boolean canShowMessage(@NotNull Player player, @NotNull String messageId) {
