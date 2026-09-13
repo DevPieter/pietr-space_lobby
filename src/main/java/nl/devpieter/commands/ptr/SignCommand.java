@@ -1,10 +1,8 @@
-package nl.devpieter.commands.world;
+package nl.devpieter.commands.ptr;
 
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.entity.Player;
 import nl.devpieter.features.signs.SignManager;
-
-import java.util.UUID;
 
 
 public class SignCommand extends Command {
@@ -13,15 +11,6 @@ public class SignCommand extends Command {
 
     public SignCommand() {
         super("sign");
-
-        setCondition((sender, commandString) -> {
-            if (!(sender instanceof Player player)) return false;
-            return player.getUuid().equals(UUID.fromString("c292f4e0-f990-4592-a067-f5f77c15d408"));
-        });
-
-        setDefaultExecutor((sender, context) -> {
-            sender.sendMessage("Usage: /sign <init|revert|debug>");
-        });
 
         Command init = new Command("init");
         init.setDefaultExecutor((sender, context) -> {

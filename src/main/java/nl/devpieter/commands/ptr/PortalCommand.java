@@ -1,10 +1,8 @@
-package nl.devpieter.commands.world;
+package nl.devpieter.commands.ptr;
 
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.entity.Player;
 import nl.devpieter.features.portals.PortalManager;
-
-import java.util.UUID;
 
 public class PortalCommand extends Command {
 
@@ -12,15 +10,6 @@ public class PortalCommand extends Command {
 
     public PortalCommand() {
         super("portal");
-
-        setCondition((sender, commandString) -> {
-            if (!(sender instanceof Player player)) return false;
-            return player.getUuid().equals(UUID.fromString("c292f4e0-f990-4592-a067-f5f77c15d408"));
-        });
-
-        setDefaultExecutor((sender, context) -> {
-            sender.sendMessage("Usage: /portal <init|revert|debug>");
-        });
 
         Command init = new Command("init");
         init.setDefaultExecutor((sender, context) -> {
