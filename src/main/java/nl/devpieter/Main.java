@@ -53,6 +53,7 @@ import nl.devpieter.features.parkour.listeners.ParkourPlayerSneakListener;
 import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
+import nl.devpieter.features.structures.StructureManager;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.listeners.PlayerConfigurationListener;
 import nl.devpieter.listeners.PlayerDisconnectListener;
@@ -146,6 +147,9 @@ public class Main {
 
         Sees sees = Sees.getSharedInstance();
         sees.subscribe(new MainListener());
+
+        StructureManager structureManager = StructureManager.getInstance();
+        structureManager.init();
 
         WorldManager worldManager = WorldManager.getInstance();
         worldManager.init();
