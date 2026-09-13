@@ -16,6 +16,7 @@ import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.instance.block.BlockManager;
+import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
@@ -53,12 +54,16 @@ import nl.devpieter.features.parkour.listeners.ParkourPlayerSneakListener;
 import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
+import nl.devpieter.features.structures.StructureManager;
+import nl.devpieter.features.structures.StructurePlacer;
+import nl.devpieter.features.structures.models.Structure;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.listeners.PlayerConfigurationListener;
 import nl.devpieter.listeners.PlayerDisconnectListener;
 import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
 import nl.devpieter.models.BlockHolder;
+import nl.devpieter.models.SimpleVec;
 import nl.devpieter.sees.Sees;
 import nl.devpieter.utils.minestom.PlayerUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
@@ -147,6 +152,9 @@ public class Main {
         Sees sees = Sees.getSharedInstance();
         sees.subscribe(new MainListener());
 
+        StructureManager structureManager = StructureManager.getInstance();
+        structureManager.init();
+
         WorldManager worldManager = WorldManager.getInstance();
         worldManager.init();
 
@@ -165,6 +173,32 @@ public class Main {
         eventHandler.addListener(new PortalPlayerMoveListener());
         eventHandler.addListener(new ParkourPlayerMoveListener());
         eventHandler.addListener(new ParkourPlayerSneakListener());
+
+        eventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {
+            if (!(event.getPlayer() instanceof LobbyPlayer lobbyPlayer)) return;
+            lobbyPlayer.addItemToMainInventory(ItemStack.of(Material.WOODEN_HOE));
+        });
+
+        eventHandler.addListener(PlayerBlockInteractEvent.class, event -> {
+            if (!(event.getPlayer() instanceof LobbyPlayer player)) return;
+            if (player.getItemInHand(event.getHand()).material() != Material.WOODEN_HOE) return;
+
+            event.setCancelled(true);
+
+            double x = event.getBlockPosition().x();
+            double y = event.getBlockPosition().y();
+            double z = event.getBlockPosition().z();
+
+            Structure structure = structureManager.getStructure("testing_horse_1");
+            StructurePlacer.placeStructure(
+                    event.getInstance(),
+                    new SimpleVec(x, y + 1, z),
+                    structure,
+                    StructurePlacer.Rotation.ROTATE_0,
+                    StructurePlacer.Mirror.NONE
+            );
+
+        });
 
         // TODO - Temporary parkour listeners
         MinecraftServer.getGlobalEventHandler().addListener(PlayerUseItemEvent.class, event -> {
