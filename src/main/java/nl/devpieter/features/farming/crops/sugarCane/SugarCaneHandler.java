@@ -104,6 +104,6 @@ public class SugarCaneHandler extends FarmBlockHandler {
         Pos topPos = base.asPos().add(0, getAge(holder), 0);
         Block topBlock = holder.instance().getBlock(topPos);
 
-        return topBlock.isAir();
+        return topBlock.air();
     }
 }

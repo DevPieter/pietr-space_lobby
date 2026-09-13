@@ -4,9 +4,8 @@ import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.command.builder.arguments.minecraft.ArgumentUUID;
 import nl.devpieter.entities.LobbyPlayer;
-import nl.devpieter.enums.PlayerTags;
 import nl.devpieter.features.parkour.ParkourReplayManager;
-import nl.devpieter.features.parkour.models.parkourReplay.FinishedPlayerReplay;
+import nl.devpieter.features.parkour.models.replay.FinishedPlayerReplay;
 import nl.devpieter.features.tips.TipManager;
 
 import java.util.UUID;

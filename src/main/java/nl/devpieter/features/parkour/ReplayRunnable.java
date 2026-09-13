@@ -2,8 +2,8 @@ package nl.devpieter.features.parkour;
 
 import net.minestom.server.entity.Player;
 import nl.devpieter.entities.Mannequin;
-import nl.devpieter.features.parkour.models.parkourReplay.FinishedPlayerReplay;
-import nl.devpieter.features.parkour.models.parkourReplay.PlayerReplayFrame;
+import nl.devpieter.features.parkour.models.replay.FinishedPlayerReplay;
+import nl.devpieter.features.parkour.models.replay.PlayerReplayFrame;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;

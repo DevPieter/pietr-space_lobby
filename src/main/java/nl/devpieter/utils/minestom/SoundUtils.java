@@ -2,6 +2,7 @@ package nl.devpieter.utils.minestom;
 
 import net.kyori.adventure.sound.Sound;
 import net.minestom.server.coordinate.Point;
+import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.instance.Instance;
@@ -59,9 +60,7 @@ public class SoundUtils {
         SoundEffectPacket packet = new SoundEffectPacket(
                 soundEvent,
                 sound.source(),
-                (int) point.x(),
-                (int) point.y(),
-                (int) point.z(),
+                new Vec(point.x(), point.y(), point.z()),
                 sound.volume(),
                 sound.pitch(),
                 0L

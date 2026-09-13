@@ -46,7 +46,7 @@ public class SignManager {
     public void init() {
         revertSigns();
 
-        worldManager.getWorlds().forEach(this::scanSigns);
+        worldManager.getLoadedWorlds().forEach(this::scanSigns);
         if (EnvStatics.DEBUG) placeDebugMarkers();
     }
 
@@ -59,7 +59,6 @@ public class SignManager {
         Instance instance = world.instance();
 
         logger.info("Scanning instance {} for marked signs...", id);
-        List<Point> locations = new ArrayList<>();
 
         WorldSettings settings = world.world().settings();
         WorldMarkerSignsSetting markerSettings = settings.markerSigns();
@@ -83,10 +82,11 @@ public class SignManager {
             return;
         }
 
-        locations.addAll(WorldUtils.findBlocks(instance, scanCenter, scanRadius, Block.OAK_SIGN));
-        locations.addAll(WorldUtils.findBlocks(instance, scanCenter, scanRadius, Block.OAK_WALL_SIGN));
-        locations.addAll(WorldUtils.findBlocks(instance, scanCenter, scanRadius, Block.OAK_HANGING_SIGN));
-        locations.addAll(WorldUtils.findBlocks(instance, scanCenter, scanRadius, Block.OAK_WALL_HANGING_SIGN));
+        List<Point> locations = WorldUtils.findBlocks(instance, scanCenter, scanRadius, Block.OAK_SIGN, Block.OAK_WALL_SIGN, Block.OAK_HANGING_SIGN, Block.OAK_WALL_HANGING_SIGN);
+
+//        locations.addAll(WorldUtils.findBlocks(instance, scanCenter, scanRadius, Block.OAK_WALL_SIGN));
+//        locations.addAll(WorldUtils.findBlocks(instance, scanCenter, scanRadius, Block.OAK_HANGING_SIGN));
+//        locations.addAll(WorldUtils.findBlocks(instance, scanCenter, scanRadius, Block.OAK_WALL_HANGING_SIGN));
 
         if (locations.isEmpty()) {
             logger.info("No signs found in the instance {}.", id);
