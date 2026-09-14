@@ -1,6 +1,7 @@
 package nl.devpieter.features.structures.models.nbt;
 
 import net.kyori.adventure.nbt.ListBinaryTag;
+import net.minestom.server.collision.BoundingBox;
 import org.jetbrains.annotations.Nullable;
 
 public record StructureSize(
@@ -8,6 +9,10 @@ public record StructureSize(
         int height,
         int depth
 ) {
+    public BoundingBox asBoundingBox() {
+        return new BoundingBox(width, height, depth);
+    }
+
     public static @Nullable StructureSize fromNbt(ListBinaryTag nbt) {
         if (!isValidNbt(nbt)) return null;
 

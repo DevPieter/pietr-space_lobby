@@ -1,13 +1,13 @@
 package nl.devpieter.features.structures;
 
 import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import nl.devpieter.features.structures.models.Structure;
 import nl.devpieter.features.structures.models.nbt.StructureBlock;
 import nl.devpieter.features.structures.models.nbt.StructurePalette;
-import nl.devpieter.models.SimpleVec;
 
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +45,7 @@ public class StructurePlacer {
      */
     public static void placeStructure(
             Instance instance,
-            SimpleVec position,
+            BlockVec origin,
             Structure structure,
             Rotation rotation,
             Mirror mirror
@@ -60,7 +60,6 @@ public class StructurePlacer {
             }
         }
 
-        Vec origin = position.toVec();
         for (StructureBlock entry : structure.nbt().blocks()) {
             Block block = palette.get(entry.state());
             if (block.id() == Block.STRUCTURE_VOID.id()) continue;

@@ -4,6 +4,7 @@ import net.kyori.adventure.key.Key;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandManager;
+import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.entity.EntityPose;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
@@ -52,6 +53,7 @@ import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerMoveListener;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerSneakListener;
 import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
+import nl.devpieter.features.signs.SignManager;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
 import nl.devpieter.features.structures.StructureManager;
@@ -185,19 +187,21 @@ public class Main {
 
             event.setCancelled(true);
 
-            double x = event.getBlockPosition().x();
-            double y = event.getBlockPosition().y();
-            double z = event.getBlockPosition().z();
+            int x = event.getBlockPosition().blockX();
+            int y = event.getBlockPosition().blockY();
+            int z = event.getBlockPosition().blockZ();
 
             Structure structure = structureManager.getStructure("testing_horse_1");
             StructurePlacer.placeStructure(
                     event.getInstance(),
-                    new SimpleVec(x, y + 1, z),
+                    new BlockVec(x, y + 1, z),
                     structure,
                     StructurePlacer.Rotation.ROTATE_0,
                     StructurePlacer.Mirror.NONE
             );
 
+            SignManager signManager = SignManager.getInstance();
+            signManager.scanSigns(event.getInstance(), new BlockVec(x, y + 1, z), structure.nbt().size().asBoundingBox());
         });
 
         // TODO - Temporary parkour listeners
