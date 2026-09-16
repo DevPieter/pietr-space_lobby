@@ -2,6 +2,7 @@ package nl.devpieter.utils.minestom;
 
 import net.kyori.adventure.text.Component;
 import net.minestom.server.collision.BoundingBox;
+import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
@@ -127,6 +128,47 @@ public class WorldUtils {
                 for (int z = minZ; z <= maxZ; z++) {
                     if (center.distance(x, y, z) > radius) continue;
 
+                    Point pos = new Vec(x, y, z);
+
+                    if (!instance.isChunkLoaded(pos)) {
+                        CompletableFuture<Chunk> future = instance.loadChunk(pos);
+                        future.join();
+                    }
+
+                    Block block = instance.getBlock(pos);
+
+                    for (Block targetBlock : targetBlocks) {
+                        if (!block.compare(targetBlock)) continue;
+
+                        found.add(pos);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return found;
+    }
+
+    public static @NotNull List<Point> findBlocks(Instance instance, BlockVec origin, BoundingBox box, Block... targetBlocks) {
+        return findBlocks(instance, origin, box, List.of(targetBlocks));
+    }
+
+    public static @NotNull List<Point> findBlocks(Instance instance, BlockVec origin, BoundingBox box, List<Block> targetBlocks) {
+        List<Point> found = new ArrayList<>();
+
+        int minX = origin.blockX() + (int) Math.floor(box.relativeStart().x());
+        int maxX = origin.blockX() + (int) Math.ceil(box.relativeEnd().x());
+
+        int minY = Math.max(origin.blockY() + (int) Math.floor(box.relativeStart().y()), -64);
+        int maxY = Math.min(origin.blockY() + (int) Math.ceil(box.relativeEnd().y()), 320);
+
+        int minZ = origin.blockZ() + (int) Math.floor(box.relativeStart().z());
+        int maxZ = origin.blockZ() + (int) Math.ceil(box.relativeEnd().z());
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
                     Point pos = new Vec(x, y, z);
 
                     if (!instance.isChunkLoaded(pos)) {
