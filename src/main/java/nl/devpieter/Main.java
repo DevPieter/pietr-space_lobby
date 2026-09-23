@@ -7,10 +7,8 @@ import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.coordinate.Point;
-import net.minestom.server.entity.EntityPose;
-import net.minestom.server.entity.GameMode;
-import net.minestom.server.entity.Player;
-import net.minestom.server.entity.PlayerHand;
+import net.minestom.server.coordinate.Vec;
+import net.minestom.server.entity.*;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.entity.EntityAttackEvent;
 import net.minestom.server.event.item.PickupItemEvent;
@@ -40,6 +38,7 @@ import nl.devpieter.config.EnvStatics;
 import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.entities.bee.BeeEntity;
 import nl.devpieter.entities.horse.HorseEntity;
+import nl.devpieter.events.MarkedSignBadgeFoundEvent;
 import nl.devpieter.features.cooking.blockHandlers.CampfireBlockHandler;
 import nl.devpieter.features.farming.FarmBlockHandler;
 import nl.devpieter.features.fishing.FishingManager;
@@ -56,7 +55,13 @@ import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerMoveListener;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerSneakListener;
 import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
+import nl.devpieter.features.signs.SignDecoder;
 import nl.devpieter.features.signs.SignManager;
+import nl.devpieter.features.signs.interfaces.ISignDecodable;
+import nl.devpieter.features.signs.models.SignHolder;
+import nl.devpieter.features.signs.partDecoder.IPartDecoder;
+import nl.devpieter.features.signs.partDecoders.PointPartDecoder;
+import nl.devpieter.features.signs.partDecoders.StringPartDecoder;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
 import nl.devpieter.features.structures.StructureManager;
@@ -70,8 +75,9 @@ import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
 import nl.devpieter.models.BlockHolder;
 import nl.devpieter.models.SlotHolder;
-import nl.devpieter.models.SimpleVec;
 import nl.devpieter.sees.Sees;
+import nl.devpieter.sees.annotations.SEventListener;
+import nl.devpieter.sees.listener.SListener;
 import nl.devpieter.utils.minestom.PlayerUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
 import nl.devpieter.utils.minestom.TextUtils;
@@ -82,7 +88,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Main {
@@ -216,24 +221,92 @@ public class Main {
         });
 
         /* =============== HORSE =============== */
-        AtomicInteger counter = new AtomicInteger();
-
         final PlayLogger pLogger = PlayLogger.getInstance();
         final HashMap<UUID, HorseEntity> horseMap = new HashMap<>();
 
         final HashMap<String, Long> missedFenceCooldowns = new HashMap<>();
         final HashMap<String, Long> passedFenceCooldowns = new HashMap<>();
 
-        record HorseBrushFence(
-                int id,
-                Point failPos,
-                BoundingBox failBox,
-                Point passPos,
-                BoundingBox passBox
+        record PosBoxHolder(
+                Point pos,
+                BoundingBox box
         ) {
         }
 
-        final List<HorseBrushFence> horseBrushFences = new ArrayList<>();
+        class HoobDecodable implements ISignDecodable {
+
+            private Point relativePos = Vec.ZERO;
+            private Point size = Vec.ZERO;
+
+            private String type = "";
+
+            public void placeBoundingBox(SignHolder signHolder) {
+                Point originPos = signHolder.block().position().add(relativePos);
+                BoundingBox box = new BoundingBox(size.x(), size.y(), size.z());
+
+                WorldUtils.placeBoundingBox(
+                        signHolder.block().instance(),
+                        originPos,
+                        box
+                );
+            }
+
+            public Point getRelativePos() {
+                return relativePos;
+            }
+
+            public Point getAbsolutePos(SignHolder signHolder) {
+                return signHolder.block().position().add(relativePos);
+            }
+
+            public Point getSize() {
+                return size;
+            }
+
+            public String getType() {
+                return type;
+            }
+
+            @Override
+            public HashMap<Integer, List<IPartDecoder<?>>> getDecoders() {
+                return new HashMap<>() {{
+                    put(1, List.of(
+                            new PointPartDecoder(Vec.ZERO, p -> relativePos = p)
+                    ));
+                    put(2, List.of(
+                            new PointPartDecoder(Vec.ZERO, p -> size = p)
+                    ));
+                    put(3, List.of(
+                            new StringPartDecoder(s -> type = s)
+                    ));
+                }};
+            }
+        }
+
+        final List<PosBoxHolder> successBoxes = new ArrayList<>();
+        final List<PosBoxHolder> failBoxes = new ArrayList<>();
+
+        sees.subscribe(new SListener() {
+
+            @SEventListener
+            public void onMarkedSignBadgeFound(MarkedSignBadgeFoundEvent event) {
+                if (!event.key().equals("<HOOB>")) return;
+
+                for (SignHolder sign : event.signHolders()) {
+                    HoobDecodable decodable = new HoobDecodable();
+
+                    List<String> lines = sign.lines().subList(1, sign.lines().size());
+                    SignDecoder.decodeLines(lines, decodable.getDecoders());
+
+                    decodable.placeBoundingBox(sign);
+
+                    PosBoxHolder holder = new PosBoxHolder(decodable.getAbsolutePos(sign), new BoundingBox(decodable.getSize().x(), decodable.getSize().y(), decodable.getSize().z()));
+
+                    if (decodable.getType().equals("f")) failBoxes.add(holder);
+                    if (decodable.getType().equals("s")) successBoxes.add(holder);
+                }
+            }
+        });
 
         eventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {
             if (!(event.getPlayer() instanceof LobbyPlayer lobbyPlayer)) return;
@@ -259,55 +332,23 @@ public class Main {
                     Block.OAK_FENCE
             );
 
+            Structure structure = structureManager.getStructure("testing_horse_1");
+            SignManager signManager = SignManager.getInstance();
+
             for (Point fencePos : oakFences) {
-
-                int width = 5;
-
                 world.instance().setBlock(fencePos, Block.AIR);
-                for (int x = -width / 2; x <= width / 2; x++) {
-                    WorldUtils.placeFallingBlock(
-                            world.instance(),
-                            fencePos.add(x + 0.5, 0, 0.5),
-                            Block.OAK_LOG
-                    );
 
-                    WorldUtils.placeFallingBlock(
-                            world.instance(),
-                            fencePos.add(x + 0.5, 1, 0.5),
-                            Block.OAK_SLAB
-                    );
-                }
+                BlockVec fenceBlockVec = new BlockVec(fencePos.blockX(), fencePos.blockY(), fencePos.blockZ());
 
-                Point posCenter = fencePos.add(0.5, 0, 0.5);
-
-                BoundingBox failBox = new BoundingBox(width, 1.5, 1);
-                BoundingBox passBox = new BoundingBox(width, 3, 0.2);
-
-                WorldUtils.placeMarker(
+                StructurePlacer.placeStructure(
                         world.instance(),
-                        posCenter.add(0, failBox.height() + 0.5, 0),
-                        TextUtils.miniText("<#586373>Horse Brush Fence")
+                        fenceBlockVec,
+                        structure,
+                        StructurePlacer.Rotation.ROTATE_0,
+                        StructurePlacer.Mirror.NONE
                 );
 
-//                WorldUtils.placeBoundingBox(
-//                        world.instance(),
-//                        posCenter,
-//                        failBox
-//                );
-//
-//                WorldUtils.placeBoundingBox(
-//                        world.instance(),
-//                        posCenter.add(0, failBox.height(), 0),
-//                        passBox
-//                );
-
-                horseBrushFences.add(new HorseBrushFence(
-                        counter.getAndIncrement(),
-                        posCenter,
-                        failBox,
-                        posCenter.add(0, failBox.height(), 0),
-                        passBox
-                ));
+                signManager.scanSigns(world.instance(), fenceBlockVec, structure.nbt().size().asBoundingBox());
             }
         });
 
@@ -317,25 +358,34 @@ public class Main {
             HorseEntity horse = horseMap.get(player.getUuid());
             if (horse == null) return;
 
-            for (HorseBrushFence fence : horseBrushFences) {
+            for (PosBoxHolder holder : failBoxes) {
 
-                String key = player.getUuid() + "_" + fence.id();
+                String key = player.getUuid() + "_" + holder.pos().blockX() + "_" + holder.pos().blockY() + "_" + holder.pos().blockZ();
                 long currentTime = System.currentTimeMillis();
                 long cooldownTime = 3_000;
 
-                if (PlayerUtils.isInsideBox(horse, fence.failPos(), fence.failBox())) {
+                if (isInsideBox(horse, holder.pos(), holder.box())) {
                     if (missedFenceCooldowns.containsKey(key)) {
                         long lastMissedTime = missedFenceCooldowns.get(key);
                         if (currentTime - lastMissedTime < cooldownTime) return;
                     }
+
+                    removeBlocksInBox(horse.getInstance(), holder.pos(), holder.box());
 
                     horse.crash();
                     missedFenceCooldowns.put(key, currentTime);
 
                     pLogger.info(player, true, "You missed the horse brush fence!");
                 }
+            }
 
-                if (PlayerUtils.isInsideBox(horse, fence.passPos(), fence.passBox())) {
+            for (PosBoxHolder holder : successBoxes) {
+
+                String key = player.getUuid() + "_" + holder.pos().blockX() + "_" + holder.pos().blockY() + "_" + holder.pos().blockZ();
+                long currentTime = System.currentTimeMillis();
+                long cooldownTime = 3_000;
+
+                if (isInsideBox(horse, holder.pos(), holder.box())) {
                     if (passedFenceCooldowns.containsKey(key)) {
                         long lastPassedTime = passedFenceCooldowns.get(key);
                         if (currentTime - lastPassedTime < cooldownTime) return;
@@ -536,5 +586,34 @@ public class Main {
         }, TaskSchedule.immediate(), TaskSchedule.millis(100));
 
         scheduler.scheduleTask(task::cancel, TaskSchedule.millis(500), TaskSchedule.stop());
+    }
+
+    private static boolean isInsideBox(Entity entity, Point point, BoundingBox box) {
+        double sizeX = Math.abs(box.relativeEnd().x() - box.relativeStart().x());
+        double sizeY = Math.abs(box.relativeEnd().y() - box.relativeStart().y());
+        double sizeZ = Math.abs(box.relativeEnd().z() - box.relativeStart().z());
+
+        BoundingBox entityBox = entity.getBoundingBox();
+        Point entityMin = entity.getPosition().add(entityBox.relativeStart());
+        Point entityMax = entity.getPosition().add(entityBox.relativeEnd());
+
+        return entityMin.x() < point.x() + sizeX && entityMax.x() > point.x()
+                && entityMin.y() < point.y() + sizeY && entityMax.y() > point.y()
+                && entityMin.z() < point.z() + sizeZ && entityMax.z() > point.z();
+    }
+
+    private static void removeBlocksInBox(Instance instance, Point origin, BoundingBox box) {
+        double sizeX = Math.abs(box.relativeEnd().x() - box.relativeStart().x());
+        double sizeY = Math.abs(box.relativeEnd().y() - box.relativeStart().y());
+        double sizeZ = Math.abs(box.relativeEnd().z() - box.relativeStart().z());
+
+        for (int x = 0; x < sizeX; x++) {
+            for (int y = 0; y < sizeY; y++) {
+                for (int z = 0; z < sizeZ; z++) {
+                    Point blockPos = origin.add(x, y, z);
+                    instance.setBlock(blockPos, Block.AIR);
+                }
+            }
+        }
     }
 }

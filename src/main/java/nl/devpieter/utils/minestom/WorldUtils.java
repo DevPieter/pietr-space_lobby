@@ -27,12 +27,8 @@ public class WorldUtils {
         double sizeY = Math.abs(box.relativeEnd().y() - box.relativeStart().y());
         double sizeZ = Math.abs(box.relativeEnd().z() - box.relativeStart().z());
 
-        double minX = Math.min(box.relativeStart().x(), box.relativeEnd().x());
-        double minY = Math.min(box.relativeStart().y(), box.relativeEnd().y());
-        double minZ = Math.min(box.relativeStart().z(), box.relativeEnd().z());
-
         Entity entity = new Entity(EntityType.BLOCK_DISPLAY);
-        entity.setInstance(instance, origin.add(minX, minY, minZ));
+        entity.setInstance(instance, origin);
 
         entity.editEntityMeta(BlockDisplayMeta.class, meta -> {
             meta.setBlockState(Block.GLASS);
