@@ -20,7 +20,8 @@ repositories {
 }
 
 dependencies {
-    implementation("net.minestom:minestom:2026.08.07-26.2")
+//    implementation("net.minestom:minestom:2026.08.07-26.2")
+    implementation("net.minestom:minestom:2026.09.12-26.2")
     implementation("net.kyori:adventure-text-minimessage:4.24.0")
 
     implementation("org.slf4j:slf4j-simple:2.0.16")

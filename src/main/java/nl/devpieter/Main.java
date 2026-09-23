@@ -4,7 +4,6 @@ import net.kyori.adventure.key.Key;
 import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandManager;
-import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.entity.EntityPose;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
@@ -17,16 +16,12 @@ import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.instance.block.BlockManager;
-import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
-import nl.devpieter.blockHandler.BeehiveBlockHandler;
-import nl.devpieter.blockHandler.DoorBlockHandler;
-import nl.devpieter.blockHandler.HangingSignBlockHandler;
-import nl.devpieter.blockHandler.SignBlockHandler;
+import nl.devpieter.blockHandler.*;
 import nl.devpieter.commands.ReplayCommand;
 import nl.devpieter.commands.TipCommand;
 import nl.devpieter.commands.player.GamemodeCommand;
@@ -53,19 +48,15 @@ import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerMoveListener;
 import nl.devpieter.features.parkour.listeners.ParkourPlayerSneakListener;
 import nl.devpieter.features.portals.listeners.PortalPlayerMoveListener;
-import nl.devpieter.features.signs.SignManager;
 import nl.devpieter.features.sitting.listeners.PlayerBlockInteractListener;
 import nl.devpieter.features.sitting.listeners.PlayerStartSneakingListener;
 import nl.devpieter.features.structures.StructureManager;
-import nl.devpieter.features.structures.StructurePlacer;
-import nl.devpieter.features.structures.models.Structure;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.listeners.PlayerConfigurationListener;
 import nl.devpieter.listeners.PlayerDisconnectListener;
 import nl.devpieter.listeners.PlayerLoadedListener;
 import nl.devpieter.listeners.PlayerMoveListener;
 import nl.devpieter.models.BlockHolder;
-import nl.devpieter.models.SimpleVec;
 import nl.devpieter.sees.Sees;
 import nl.devpieter.utils.minestom.PlayerUtils;
 import nl.devpieter.utils.minestom.SoundUtils;
@@ -76,7 +67,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class Main {
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         Logger logger = MinecraftServer.LOGGER;
         if (EnvStatics.DEBUG) logger.warn("Debug mode is enabled");
 
@@ -98,7 +89,7 @@ public class Main {
         blockManager.registerHandler(Key.key("minecraft", "beehive"), BeehiveBlockHandler::new);
         blockManager.registerHandler(Key.key("minecraft", "sign"), SignBlockHandler::new);
         blockManager.registerHandler(Key.key("minecraft", "hanging_sign"), HangingSignBlockHandler::new);
-//        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:bed"), BedBlockHandler::new);
+        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:bed"), BedBlockHandler::new);
 
         // TODO - A bit hacky, but I don't know a better way yet
         MinecraftServer.getGlobalEventHandler().addListener(PlayerBlockInteractEvent.class, event -> {
@@ -161,7 +152,6 @@ public class Main {
         worldManager.init();
 
         GlobalEventHandler eventHandler = MinecraftServer.getGlobalEventHandler();
-
         eventHandler.addListener(new PlayerConfigurationListener());
         eventHandler.addListener(new PlayerMoveListener());
 
@@ -176,33 +166,10 @@ public class Main {
         eventHandler.addListener(new ParkourPlayerMoveListener());
         eventHandler.addListener(new ParkourPlayerSneakListener());
 
-        eventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {
-            if (!(event.getPlayer() instanceof LobbyPlayer lobbyPlayer)) return;
-            lobbyPlayer.addItemToMainInventory(ItemStack.of(Material.WOODEN_HOE));
-        });
-
-        eventHandler.addListener(PlayerBlockInteractEvent.class, event -> {
-            if (!(event.getPlayer() instanceof LobbyPlayer player)) return;
-            if (player.getItemInHand(event.getHand()).material() != Material.WOODEN_HOE) return;
-
-            event.setCancelled(true);
-
-            int x = event.getBlockPosition().blockX();
-            int y = event.getBlockPosition().blockY();
-            int z = event.getBlockPosition().blockZ();
-
-            Structure structure = structureManager.getStructure("testing_horse_1");
-            StructurePlacer.placeStructure(
-                    event.getInstance(),
-                    new BlockVec(x, y + 1, z),
-                    structure,
-                    StructurePlacer.Rotation.ROTATE_0,
-                    StructurePlacer.Mirror.NONE
-            );
-
-            SignManager signManager = SignManager.getInstance();
-            signManager.scanSigns(event.getInstance(), new BlockVec(x, y + 1, z), structure.nbt().size().asBoundingBox());
-        });
+        if (EnvStatics.DEBUG) {
+            logger.warn("Running in debug mode, starting DevMain");
+            new DevMain().run();
+        }
 
         // TODO - Temporary parkour listeners
         MinecraftServer.getGlobalEventHandler().addListener(PlayerUseItemEvent.class, event -> {
@@ -270,7 +237,8 @@ public class Main {
             event.setCancelled(true);
         });
 
-        MinecraftServer.getGlobalEventHandler().addListener(PlayerTickEvent.class, event -> {
+        // TODO - Temporary swimming pose fix listener
+        eventHandler.addListener(PlayerTickEvent.class, event -> {
             Player player = event.getPlayer();
 
             boolean isSprinting = player.isSprinting();
@@ -288,14 +256,7 @@ public class Main {
             }
         });
 
-//        eventHandler.addListener(PlayerStartSneakingEvent.class, event -> {
-//            Player player = event.getPlayer();
-//
-//            PlayLogger pLogger = PlayLogger.getInstance();
-//            pLogger.debug(player, "Testing 123, {} sneaking event {}", player.getName(), 321);
-//            pLogger.debug(player, true, "Testing 123, {} sneaking event {}", player.getName(), 321);
-//        });
-
+        // TODO - Temporary bee nectar collection listener
         eventHandler.addListener(EntityAttackEvent.class, event -> {
             if (!(event.getEntity() instanceof Player player)) return;
             if (!(event.getTarget() instanceof BeeEntity bee)) return;
@@ -316,8 +277,6 @@ public class Main {
         // Misc
         commandManager.register(new ReplayCommand());
         commandManager.register(new TipCommand());
-//        commandManager.register(new TestCommand());
-//        commandManager.register(new ServerCommand());
 
         MinecraftServer.getConnectionManager().setPlayerProvider(LobbyPlayer::new);
 
@@ -326,6 +285,7 @@ public class Main {
         server.start("0.0.0.0", 25565);
     }
 
+    // TODO - Temporary sound effect for catching fish
     private static void playSoundEffect(Player player) {
         Scheduler scheduler = MinecraftServer.getSchedulerManager();
 
