@@ -1,4 +1,4 @@
-package nl.devpieter.features.parkour.models.parkourReplay;
+package nl.devpieter.features.parkour.models.replay;
 
 import net.minestom.server.network.packet.client.ClientPacket;
 

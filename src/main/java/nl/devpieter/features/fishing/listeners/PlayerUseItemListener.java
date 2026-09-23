@@ -11,6 +11,8 @@ import net.minestom.server.sound.SoundEvent;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.bobber.IBobber;
 import nl.devpieter.features.fishing.rod.IRod;
+import nl.devpieter.features.world.WorldManager;
+import nl.devpieter.features.world.models.LoadedWorld;
 import nl.devpieter.utils.minestom.SoundUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,6 +23,8 @@ import java.util.UUID;
 public class PlayerUseItemListener implements EventListener<@NotNull PlayerUseItemEvent> {
 
     private static final HashMap<UUID, IBobber> bobbers = new HashMap<>();
+
+    private final WorldManager worldManager = WorldManager.getInstance();
 
     @Override
     public @NotNull Class<PlayerUseItemEvent> eventType() {
@@ -33,12 +37,18 @@ public class PlayerUseItemListener implements EventListener<@NotNull PlayerUseIt
         if (event.getHand() != PlayerHand.MAIN) return Result.SUCCESS;
 
         if (event.getItemStack().material() == Material.FISHING_ROD) {
-            if (bobbers.containsKey(player.getUuid())) reelInFishingRod(player);
-            else {
-                ItemStack item = event.getItemStack();
-                IRod rod = FishingManager.getInstance().getRodByItem(item);
-                if (rod != null) castFishingRod(player, rod);
+
+            if (bobbers.containsKey(player.getUuid())) {
+                reelInFishingRod(player);
+                return Result.SUCCESS;
             }
+
+            LoadedWorld loadedWorld = worldManager.getLoadedWorldByInstance(player.getInstance());
+            if (loadedWorld == null || !loadedWorld.features().fishing().enabled()) return Result.SUCCESS;
+
+            ItemStack item = event.getItemStack();
+            IRod rod = FishingManager.getInstance().getRodByItem(item);
+            if (rod != null) castFishingRod(player, rod);
         }
 
         return Result.SUCCESS;

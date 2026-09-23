@@ -5,8 +5,8 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.instance.InstanceContainer;
-import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.config.EnvStatics;
+import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.rod.IRod;
 import nl.devpieter.features.world.WorldManager;
@@ -26,7 +26,7 @@ public class PlayerConfigurationListener implements EventListener<@NotNull Async
 
     @Override
     public @NotNull Result run(@NotNull AsyncPlayerConfigurationEvent event) {
-        LoadedWorld world = worldManager.getLoadedWorldById("main");
+        LoadedWorld world = worldManager.getMainWorld();
         if (world == null) return Result.INVALID;
 
         InstanceContainer container = world.instance();

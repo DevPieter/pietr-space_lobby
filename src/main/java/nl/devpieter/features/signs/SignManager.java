@@ -2,12 +2,15 @@ package nl.devpieter.features.signs;
 
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.collision.BoundingBox;
+import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import nl.devpieter.config.EnvStatics;
+import nl.devpieter.events.MarkedSignBadgeFoundEvent;
 import nl.devpieter.features.signs.models.SignHolder;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.features.world.models.LoadedWorld;
@@ -15,6 +18,7 @@ import nl.devpieter.features.world.models.settings.WorldMarkerSignsSetting;
 import nl.devpieter.features.world.models.settings.WorldSettings;
 import nl.devpieter.models.BlockHolder;
 import nl.devpieter.models.SimpleVec;
+import nl.devpieter.sees.Sees;
 import nl.devpieter.utils.minestom.TextUtils;
 import nl.devpieter.utils.minestom.WorldUtils;
 
@@ -28,6 +32,7 @@ public class SignManager {
     private static final String MARKED_SIGN_PREFIX = "[PTR]";
 
     private final ComponentLogger logger = MinecraftServer.LOGGER;
+    private final Sees sees = Sees.getSharedInstance();
 
     private final WorldManager worldManager = WorldManager.getInstance();
     private final List<Entity> debugMarkers = new ArrayList<>();
@@ -46,7 +51,7 @@ public class SignManager {
     public void init() {
         revertSigns();
 
-        worldManager.getWorlds().forEach(this::scanSigns);
+        worldManager.getLoadedWorlds().forEach(this::scanSigns);
         if (EnvStatics.DEBUG) placeDebugMarkers();
     }
 
@@ -82,17 +87,43 @@ public class SignManager {
             return;
         }
 
-        List<Point> locations = WorldUtils.findBlocks(instance, scanCenter, scanRadius, Block.OAK_SIGN, Block.OAK_WALL_SIGN, Block.OAK_HANGING_SIGN, Block.OAK_WALL_HANGING_SIGN);
-
-//        locations.addAll(WorldUtils.findBlocks(instance, scanCenter, scanRadius, Block.OAK_WALL_SIGN));
-//        locations.addAll(WorldUtils.findBlocks(instance, scanCenter, scanRadius, Block.OAK_HANGING_SIGN));
-//        locations.addAll(WorldUtils.findBlocks(instance, scanCenter, scanRadius, Block.OAK_WALL_HANGING_SIGN));
+        List<Point> locations = WorldUtils.findBlocks(instance, scanCenter, scanRadius,
+                Block.OAK_SIGN,
+                Block.OAK_WALL_SIGN,
+                Block.OAK_HANGING_SIGN,
+                Block.OAK_WALL_HANGING_SIGN
+        );
 
         if (locations.isEmpty()) {
             logger.info("No signs found in the instance {}.", id);
             return;
         }
 
+        int signsFound = handleSigns(instance, locations);
+        logger.info("Found {} marked signs in instance {}.", signsFound, id);
+    }
+
+    public void scanSigns(Instance instance, BlockVec origin, BoundingBox box) {
+        logger.info("Scanning instance for marked signs in the specified area...");
+
+        List<Point> locations = WorldUtils.findBlocks(instance, origin, box,
+                Block.OAK_SIGN,
+                Block.OAK_WALL_SIGN,
+                Block.OAK_HANGING_SIGN,
+                Block.OAK_WALL_HANGING_SIGN
+        );
+
+        if (locations.isEmpty()) {
+            logger.info("No signs found in the specified area.");
+            return;
+        }
+
+        int signsFound = handleSigns(instance, locations);
+        logger.info("Found {} marked signs in the specified area.", signsFound);
+    }
+
+    private int handleSigns(Instance instance, List<Point> locations) {
+        HashMap<String, List<SignHolder>> newSignHolderMap = new HashMap<>();
         int signsFound = 0;
 
         for (Point point : locations) {
@@ -109,12 +140,18 @@ public class SignManager {
             signsFound++;
 
             String cleanedFirstLine = firstLine.substring(MARKED_SIGN_PREFIX.length()).trim();
-            signHolderMap.computeIfAbsent(cleanedFirstLine, k -> new ArrayList<>()).add(signHolder);
+
+            signHolderMap.computeIfAbsent(cleanedFirstLine, _ -> new ArrayList<>()).add(signHolder);
+            newSignHolderMap.computeIfAbsent(cleanedFirstLine, _ -> new ArrayList<>()).add(signHolder);
 
             instance.setBlock(point, Block.AIR);
         }
 
-        logger.info("Found {} marked signs in instance {}.", signsFound, id);
+        for (String key : newSignHolderMap.keySet()) {
+            sees.dispatch(new MarkedSignBadgeFoundEvent(key, newSignHolderMap.get(key)));
+        }
+
+        return signsFound;
     }
 
     public void revertSigns() {
