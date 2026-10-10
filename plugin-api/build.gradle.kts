@@ -36,6 +36,19 @@ java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(25))
     }
+
+    withSourcesJar()
+    withJavadocJar()
+}
+
+tasks.named<Jar>("sourcesJar") {
+    from(project(":common").file("src/main/java"))
+}
+
+tasks.javadoc {
+    source(project(":common").fileTree("src/main/java") {
+        include("**/*.java")
+    })
 }
 
 tasks.jar {
@@ -45,9 +58,9 @@ tasks.jar {
 
 tasks.shadowJar {
     archiveClassifier.set("")
-    destinationDirectory.set(
-        file("C:\\Users\\devpi\\Desktop\\test_server\\Lobby")
-    )
+//    destinationDirectory.set(
+//        file("C:\\Users\\devpi\\Desktop\\test_server\\Lobby")
+//    )
 }
 
 tasks.build {
