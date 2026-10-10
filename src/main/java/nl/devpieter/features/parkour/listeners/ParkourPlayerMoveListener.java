@@ -3,12 +3,12 @@ package nl.devpieter.features.parkour.listeners;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.instance.Instance;
-import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.features.parkour.ParkourManager;
 import nl.devpieter.features.parkour.models.parkour.Parkour;
 import nl.devpieter.features.world.WorldManager;
 import org.jetbrains.annotations.NotNull;
 import space.pietr.lobby.common.features.world.LoadedWorld;
+import space.pietr.lobby.common.player.LobbyPlayer;
 
 public class ParkourPlayerMoveListener implements EventListener<@NotNull PlayerMoveEvent> {
 

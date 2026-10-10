@@ -2,9 +2,8 @@ package nl.devpieter.features.structures;
 
 import net.kyori.adventure.nbt.BinaryTagIO;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
-import net.minestom.server.MinecraftServer;
 import nl.devpieter.Lobby;
-import nl.devpieter.config.EnvStatics;
+import space.pietr.lobby.common.EnvStatics;
 import nl.devpieter.features.structures.models.Structure;
 import nl.devpieter.features.structures.models.nbt.StructureNbt;
 import org.jetbrains.annotations.Nullable;

@@ -5,11 +5,11 @@ import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Player;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.tag.Tag;
-import nl.devpieter.entities.PhysicsItem;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.FishingReferenceHolder;
 import nl.devpieter.features.fishing.bobber.FishingBobber;
 import org.jetbrains.annotations.NotNull;
+import space.pietr.lobby.common.entities.PhysicsItem;
 
 public abstract class Catchable implements ICatchable {
 

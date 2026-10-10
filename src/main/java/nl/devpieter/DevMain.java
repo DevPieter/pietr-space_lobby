@@ -14,7 +14,7 @@ import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
-import nl.devpieter.entities.LobbyPlayer;
+import space.pietr.lobby.common.player.LobbyPlayer;
 
 public class DevMain {
 

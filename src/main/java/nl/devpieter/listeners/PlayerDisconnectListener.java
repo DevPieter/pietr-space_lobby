@@ -2,7 +2,6 @@ package nl.devpieter.listeners;
 
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerDisconnectEvent;
-import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.features.fishing.listeners.PlayerUseItemListener;
 import nl.devpieter.features.parkour.ParkourManager;
 import nl.devpieter.features.parkour.ParkourReplayManager;
@@ -12,6 +11,7 @@ import nl.devpieter.features.sitting.SitManager;
 import nl.devpieter.features.tips.MsgManager;
 import nl.devpieter.features.tips.TipManager;
 import org.jetbrains.annotations.NotNull;
+import space.pietr.lobby.common.player.LobbyPlayer;
 
 public class PlayerDisconnectListener implements EventListener<@NotNull PlayerDisconnectEvent> {
 

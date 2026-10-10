@@ -4,9 +4,9 @@ import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerBlockInteractEvent;
-import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.features.sitting.SitManager;
 import org.jetbrains.annotations.NotNull;
+import space.pietr.lobby.common.player.LobbyPlayer;
 
 public class PlayerBlockInteractListener implements EventListener<@NotNull PlayerBlockInteractEvent> {
 

@@ -1,8 +1,8 @@
 package nl.devpieter;
 
-import nl.devpieter.entities.LobbyPlayer;
-import nl.devpieter.enums.PlayerTags;
+import space.pietr.lobby.common.player.enums.PlayerTags;
 import nl.devpieter.features.tips.MsgManager;
+import space.pietr.lobby.common.player.LobbyPlayer;
 
 public class TagHelper {
 

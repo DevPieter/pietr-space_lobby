@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import nl.devpieter.Lobby;
 import org.jetbrains.annotations.Nullable;
+import space.pietr.lobby.common.EnvStatics;
 import space.pietr.lobby.common.utils.common.FileUtils;
 
 import java.io.File;

@@ -8,7 +8,7 @@ import net.minestom.server.instance.anvil.AnvilLoader;
 import net.minestom.server.registry.RegistryKey;
 import net.minestom.server.world.DimensionType;
 import nl.devpieter.Lobby;
-import nl.devpieter.config.EnvStatics;
+import space.pietr.lobby.common.EnvStatics;
 import nl.devpieter.features.world.gsonAdapters.WorldFeatureSettingsGsonAdapter;
 import nl.devpieter.features.world.gsonAdapters.WorldSettingsGsonAdapter;
 import nl.devpieter.sees.Sees;

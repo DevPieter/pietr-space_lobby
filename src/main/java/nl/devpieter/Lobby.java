@@ -10,7 +10,6 @@ import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.event.GlobalEventHandler;
-import net.minestom.server.event.entity.EntityAttackEvent;
 import net.minestom.server.event.item.PickupItemEvent;
 import net.minestom.server.event.player.*;
 import net.minestom.server.instance.Instance;
@@ -22,7 +21,9 @@ import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
-import nl.devpieter.blockHandler.*;
+import nl.devpieter.blockHandler.DoorBlockHandler;
+import nl.devpieter.blockHandler.HangingSignBlockHandler;
+import nl.devpieter.blockHandler.SignBlockHandler;
 import nl.devpieter.commands.ReplayCommand;
 import nl.devpieter.commands.TipCommand;
 import nl.devpieter.commands.player.GamemodeCommand;
@@ -30,11 +31,7 @@ import nl.devpieter.commands.ptr.PtrCommand;
 import nl.devpieter.commands.world.TimeCommand;
 import nl.devpieter.commands.world.WeatherCommand;
 import nl.devpieter.config.ConfigManager;
-import nl.devpieter.config.EnvStatics;
-import nl.devpieter.entities.LobbyPlayer;
-import nl.devpieter.entities.bee.BeeEntity;
 import nl.devpieter.features.cooking.blockHandlers.CampfireBlockHandler;
-import nl.devpieter.features.creatures.CreatureManager;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.FishingReferenceHolder;
 import nl.devpieter.features.fishing.catchable.ICatchable;
@@ -65,6 +62,8 @@ import nl.devpieter.sees.annotations.SEventListener;
 import nl.devpieter.sees.listener.SListener;
 import org.slf4j.Logger;
 import space.pietr.lobby.api.features.world.events.WorldManagerInitializedEvent;
+import space.pietr.lobby.common.EnvStatics;
+import space.pietr.lobby.common.player.LobbyPlayer;
 import space.pietr.lobby.common.utils.minestom.PlayerUtils;
 import space.pietr.lobby.common.utils.minestom.SoundUtils;
 import space.pietr.lobby.common.utils.minestom.TextUtils;
@@ -93,10 +92,9 @@ public class Lobby implements SListener {
         BlockManager blockManager = MinecraftServer.getBlockManager();
         blockManager.registerHandler(Key.key("minecraft", "campfire"), CampfireBlockHandler::new);
         blockManager.registerHandler(Key.key("minecraft", "jukebox"), JukeboxBlockHandler::new);
-        blockManager.registerHandler(Key.key("minecraft", "beehive"), BeehiveBlockHandler::new);
         blockManager.registerHandler(Key.key("minecraft", "sign"), SignBlockHandler::new);
         blockManager.registerHandler(Key.key("minecraft", "hanging_sign"), HangingSignBlockHandler::new);
-        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:bed"), BedBlockHandler::new);
+//        MinecraftServer.getBlockManager().registerHandler(Key.key("minecraft:bed"), BedBlockHandler::new);
 
         // TODO - A bit hacky, but I don't know a better way yet
         MinecraftServer.getGlobalEventHandler().addListener(PlayerBlockInteractEvent.class, event -> {
@@ -218,29 +216,11 @@ public class Lobby implements SListener {
             }
         });
 
-//        // TODO - Temporary farming replanting listener
 //        MinecraftServer.getGlobalEventHandler().addListener(PlayerStartDiggingEvent.class, event -> {
 //            Player player = event.getPlayer();
 //            if (player.getGameMode() == GameMode.CREATIVE) return;
 //            event.setCancelled(true);
-//
-//            Block block = event.getBlock();
-//            BlockHandler handler = block.handler();
-//            Instance instance = event.getInstance();
-//
-//            if (!(handler instanceof FarmBlockHandler farmHandler)) return;
-//
-//            BlockHolder holder = new BlockHolder(instance, event.getBlockPosition(), block);
-//            if (!farmHandler.canBeHarvested(holder)) return;
-//
-//            farmHandler.replant(holder, event.getPlayer());
 //        });
-
-        MinecraftServer.getGlobalEventHandler().addListener(PlayerStartDiggingEvent.class, event -> {
-            Player player = event.getPlayer();
-            if (player.getGameMode() == GameMode.CREATIVE) return;
-            event.setCancelled(true);
-        });
 
         eventHandler.addListener(PlayerBlockBreakEvent.class, event -> {
             if (event.getPlayer().getGameMode() == GameMode.CREATIVE) return;
@@ -269,14 +249,6 @@ public class Lobby implements SListener {
                     player.setPose(EntityPose.STANDING);
                 }
             }
-        });
-
-        // TODO - Temporary bee nectar collection listener
-        eventHandler.addListener(EntityAttackEvent.class, event -> {
-            if (!(event.getEntity() instanceof Player player)) return;
-            if (!(event.getTarget() instanceof BeeEntity bee)) return;
-
-            bee.collectNectar(player);
         });
 
         CommandManager commandManager = MinecraftServer.getCommandManager();
@@ -313,17 +285,11 @@ public class Lobby implements SListener {
         SignManager signManager = SignManager.getInstance();
         signManager.init();
 
-        CreatureManager creatureManager = CreatureManager.getInstance();
-        creatureManager.init();
-
         ParkourManager parkourManager = ParkourManager.getInstance();
         parkourManager.init();
 
         PortalManager portalManager = PortalManager.getInstance();
         portalManager.init();
-
-//        FarmManager farmManager = FarmManager.getInstance();
-//        farmManager.init();
     }
 
     // TODO - Temporary sound effect for catching fish

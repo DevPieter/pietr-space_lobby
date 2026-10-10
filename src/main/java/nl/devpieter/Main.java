@@ -1,7 +1,7 @@
 package nl.devpieter;
 
 import net.minestom.server.MinecraftServer;
-import nl.devpieter.config.EnvStatics;
+import space.pietr.lobby.common.EnvStatics;
 
 public class Main {
 

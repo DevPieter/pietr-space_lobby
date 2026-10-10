@@ -7,7 +7,7 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
 import nl.devpieter.Lobby;
-import nl.devpieter.config.EnvStatics;
+import space.pietr.lobby.common.EnvStatics;
 import nl.devpieter.features.portals.models.Portal;
 import nl.devpieter.features.portals.models.PortalPointHolder;
 import nl.devpieter.features.signs.SignManager;

@@ -5,13 +5,13 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.instance.InstanceContainer;
-import nl.devpieter.config.EnvStatics;
-import nl.devpieter.entities.LobbyPlayer;
+import space.pietr.lobby.common.EnvStatics;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.rod.IRod;
 import nl.devpieter.features.world.WorldManager;
 import org.jetbrains.annotations.NotNull;
 import space.pietr.lobby.common.features.world.LoadedWorld;
+import space.pietr.lobby.common.player.LobbyPlayer;
 
 import java.util.List;
 

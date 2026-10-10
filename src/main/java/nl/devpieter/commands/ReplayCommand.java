@@ -3,10 +3,10 @@ package nl.devpieter.commands;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.command.builder.arguments.minecraft.ArgumentUUID;
-import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.features.parkour.ParkourReplayManager;
 import nl.devpieter.features.parkour.models.replay.FinishedPlayerReplay;
 import nl.devpieter.features.tips.TipManager;
+import space.pietr.lobby.common.player.LobbyPlayer;
 
 import java.util.UUID;
 

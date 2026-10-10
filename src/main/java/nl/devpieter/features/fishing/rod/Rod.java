@@ -8,7 +8,7 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.tag.Tag;
-import nl.devpieter.config.EnvStatics;
+import space.pietr.lobby.common.EnvStatics;
 import nl.devpieter.features.fishing.bobber.FishingBobber;
 import nl.devpieter.features.fishing.bobber.IBobber;
 import nl.devpieter.features.fishing.models.BobberSettings;

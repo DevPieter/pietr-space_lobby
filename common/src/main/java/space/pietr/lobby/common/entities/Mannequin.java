@@ -1,4 +1,4 @@
-package nl.devpieter.entities;
+package space.pietr.lobby.common.entities;
 
 import net.minestom.server.component.DataComponents;
 import net.minestom.server.entity.EntityCreature;

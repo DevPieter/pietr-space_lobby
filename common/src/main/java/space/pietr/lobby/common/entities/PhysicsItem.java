@@ -1,4 +1,4 @@
-package nl.devpieter.entities;
+package space.pietr.lobby.common.entities;
 
 import net.minestom.server.collision.PhysicsResult;
 import net.minestom.server.collision.PhysicsUtils;

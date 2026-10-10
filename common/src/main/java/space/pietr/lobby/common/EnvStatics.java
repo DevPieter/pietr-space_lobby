@@ -1,4 +1,4 @@
-package nl.devpieter.config;
+package space.pietr.lobby.common;
 
 import space.pietr.lobby.common.utils.common.EnvUtils;
 

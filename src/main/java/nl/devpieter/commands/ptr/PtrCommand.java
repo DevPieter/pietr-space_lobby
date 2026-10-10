@@ -26,10 +26,9 @@ public class PtrCommand extends Command {
         addSubcommands(
                 new WorldCommand(),
                 new SignCommand(),
-                new CreatureCommand(),
-//                new FarmCommand(),
                 new ParkourCommand(),
-                new PortalCommand()
+                new PortalCommand(),
+                new PluginCommand()
         );
 
     }

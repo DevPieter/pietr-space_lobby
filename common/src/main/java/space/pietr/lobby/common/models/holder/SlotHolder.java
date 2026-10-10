@@ -1,4 +1,4 @@
-package nl.devpieter.models;
+package space.pietr.lobby.common.models.holder;
 
 import net.minestom.server.item.ItemStack;
 import org.jetbrains.annotations.NotNull;

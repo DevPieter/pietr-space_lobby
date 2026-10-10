@@ -1,7 +1,7 @@
 package nl.devpieter.plugin;
 
 import nl.devpieter.Lobby;
-import nl.devpieter.config.EnvStatics;
+import space.pietr.lobby.common.EnvStatics;
 import org.slf4j.Logger;
 import space.pietr.lobby.api.ILobbyPluginInitializer;
 import space.pietr.lobby.api.LobbyApi;

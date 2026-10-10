@@ -8,7 +8,7 @@ import net.minestom.server.entity.Entity;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import nl.devpieter.Lobby;
-import nl.devpieter.config.EnvStatics;
+import space.pietr.lobby.common.EnvStatics;
 import nl.devpieter.features.world.WorldManager;
 import nl.devpieter.sees.Sees;
 import space.pietr.lobby.api.features.signs.ISignManager;
@@ -190,6 +190,6 @@ public final class SignManager implements ISignManager {
 
     @Override
     public List<SignHolder> getMatchedSigns(String key) {
-        return List.of();
+        return signHolderMap.getOrDefault(key, new ArrayList<>());
     }
 }

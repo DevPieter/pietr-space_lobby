@@ -1,4 +1,4 @@
-package nl.devpieter.enums;
+package space.pietr.lobby.common.player.enums;
 
 public enum PlayerTags {
 

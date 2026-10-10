@@ -6,7 +6,7 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
-import nl.devpieter.PlayLogger;
+import space.pietr.lobby.common.PlayLogger;
 import nl.devpieter.features.tips.models.TipHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

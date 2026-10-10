@@ -7,8 +7,8 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.tag.Tag;
 import net.minestom.server.utils.Direction;
-import nl.devpieter.entities.LobbyPlayer;
 import org.jetbrains.annotations.NotNull;
+import space.pietr.lobby.common.player.LobbyPlayer;
 import space.pietr.lobby.common.utils.minestom.MineMathUtils;
 
 import java.util.Collection;

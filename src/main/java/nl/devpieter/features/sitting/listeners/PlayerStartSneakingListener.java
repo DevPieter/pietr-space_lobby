@@ -2,9 +2,9 @@ package nl.devpieter.features.sitting.listeners;
 
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerInputEvent;
-import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.features.sitting.SitManager;
 import org.jetbrains.annotations.NotNull;
+import space.pietr.lobby.common.player.LobbyPlayer;
 
 public class PlayerStartSneakingListener implements EventListener<@NotNull PlayerInputEvent> {
 

@@ -1,4 +1,4 @@
-package nl.devpieter.entities;
+package space.pietr.lobby.common.player;
 
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Player;
@@ -6,11 +6,10 @@ import net.minestom.server.inventory.PlayerInventory;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.network.player.GameProfile;
 import net.minestom.server.network.player.PlayerConnection;
-import nl.devpieter.PlayLogger;
-import nl.devpieter.TagHelper;
-import nl.devpieter.enums.PlayerTags;
-import nl.devpieter.models.SlotHolder;
 import org.jetbrains.annotations.NotNull;
+import space.pietr.lobby.common.PlayLogger;
+import space.pietr.lobby.common.models.holder.SlotHolder;
+import space.pietr.lobby.common.player.enums.PlayerTags;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -145,11 +144,11 @@ public class LobbyPlayer extends Player {
         super.leaveBed();
     }
 
-    @Override
-    public void enterBed(Point point) {
-        if (!TagHelper.canLayPlayer(this)) return;
-
-        addTag(PlayerTags.LAYING);
-        super.enterBed(point);
-    }
+//    @Override
+//    public void enterBed(Point point) {
+//        if (!TagHelper.canLayPlayer(this)) return;
+//
+//        addTag(PlayerTags.LAYING);
+//        super.enterBed(point);
+//    }
 }

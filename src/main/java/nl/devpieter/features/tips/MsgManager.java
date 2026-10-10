@@ -3,7 +3,7 @@ package nl.devpieter.features.tips;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.entity.Player;
 import net.minestom.server.sound.SoundEvent;
-import nl.devpieter.PlayLogger;
+import space.pietr.lobby.common.PlayLogger;
 import nl.devpieter.features.tips.models.MessageHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
