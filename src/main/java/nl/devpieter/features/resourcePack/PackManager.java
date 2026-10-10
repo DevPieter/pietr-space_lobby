@@ -8,9 +8,9 @@ import net.minestom.server.entity.Player;
 import nl.devpieter.features.resourcePack.models.PackStatus;
 import nl.devpieter.features.resourcePack.models.ResourcePack;
 import nl.devpieter.features.tips.MsgManager;
-import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import space.pietr.lobby.common.utils.minestom.TextUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;

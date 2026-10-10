@@ -7,17 +7,17 @@ import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.metadata.animal.tameable.CatMeta;
 import net.minestom.server.instance.Instance;
-import nl.devpieter.features.signs.interfaces.ISignSpawnable;
 import nl.devpieter.features.creatures.entities.cuteCat.enums.CuteCatCollar;
 import nl.devpieter.features.creatures.entities.cuteCat.enums.CuteCatVariant;
 import nl.devpieter.features.creatures.entities.cuteCat.partDecoders.CuteCatCollarPartDecoder;
 import nl.devpieter.features.creatures.entities.cuteCat.partDecoders.CuteCatVariantPartDecoder;
-import nl.devpieter.features.signs.models.SignHolder;
-import nl.devpieter.features.signs.partDecoder.IPartDecoder;
-import nl.devpieter.features.signs.partDecoders.BooleanPartDecoder;
-import nl.devpieter.features.signs.partDecoders.PointPartDecoder;
-import nl.devpieter.features.signs.partDecoders.YawPitchPartDecoder;
-import nl.devpieter.models.YawPitch;
+import space.pietr.lobby.common.features.signs.SignHolder;
+import space.pietr.lobby.common.features.signs.interfaces.ISignSpawnable;
+import space.pietr.lobby.common.features.signs.partDecoder.IPartDecoder;
+import space.pietr.lobby.common.features.signs.partDecoders.BooleanPartDecoder;
+import space.pietr.lobby.common.features.signs.partDecoders.PointPartDecoder;
+import space.pietr.lobby.common.features.signs.partDecoders.YawPitchPartDecoder;
+import space.pietr.lobby.common.models.simple.SimpleYawPitch;
 
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +32,7 @@ public class CuteCatSpawnable implements ISignSpawnable {
     private boolean isBaby = false;
 
     private Point offset = Vec.ZERO;
-    private YawPitch rotation = YawPitch.ZERO;
+    private SimpleYawPitch rotation = SimpleYawPitch.ZERO;
 
     @Override
     public String getIdentifier() {
@@ -72,7 +72,7 @@ public class CuteCatSpawnable implements ISignSpawnable {
                     new PointPartDecoder(Pos.ZERO, p -> offset = p)
             ));
             put(4, List.of(
-                    new YawPitchPartDecoder(YawPitch.ZERO, yp -> rotation = yp)
+                    new YawPitchPartDecoder(SimpleYawPitch.ZERO, yp -> rotation = yp)
             ));
         }};
     }

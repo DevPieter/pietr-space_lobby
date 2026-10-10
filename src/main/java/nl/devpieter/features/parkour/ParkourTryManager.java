@@ -20,8 +20,8 @@ import nl.devpieter.features.parkour.models.ParkourLeaderboardEntry;
 import nl.devpieter.features.parkour.models.parkour.Parkour;
 import nl.devpieter.features.parkour.models.parkourTry.ParkourTry;
 import nl.devpieter.features.parkour.requests.CreateParkourTryRequest;
-import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.Nullable;
+import space.pietr.lobby.common.utils.minestom.TextUtils;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -39,7 +39,7 @@ public class ParkourTryManager {
     private final Scheduler scheduler = MinecraftServer.getSchedulerManager();
 
     private final Gson gson = new Gson();
-        private final URI uri = URI.create(configManager.getString("api_base_url") + "/api/mc/lobby/parkour/try");
+    private final URI uri = URI.create(configManager.getString("api_base_url") + "/api/mc/lobby/parkour/try");
 //    private final URI uri = URI.create("http://localhost:5246/api/parkour/test");
 
     private final List<ParkourTry> queuedParkourTries = new ArrayList<>();

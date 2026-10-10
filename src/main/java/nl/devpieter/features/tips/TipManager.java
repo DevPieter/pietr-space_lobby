@@ -8,10 +8,10 @@ import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
 import nl.devpieter.PlayLogger;
 import nl.devpieter.features.tips.models.TipHolder;
-import nl.devpieter.utils.minestom.SoundUtils;
-import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import space.pietr.lobby.common.utils.minestom.SoundUtils;
+import space.pietr.lobby.common.utils.minestom.TextUtils;
 
 import java.time.Duration;
 import java.util.ArrayList;

@@ -20,7 +20,8 @@ repositories {
 }
 
 dependencies {
-    implementation(files("C:\\Users\\devpi\\Desktop\\test_server\\Lobby\\PluginApi-1.0.0.jar"))
+    implementation(project(":common"))
+    implementation(project(":plugin-api"))
 
 //    implementation("net.minestom:minestom:2026.08.07-26.2")
     implementation("net.minestom:minestom:2026.09.12-26.2")

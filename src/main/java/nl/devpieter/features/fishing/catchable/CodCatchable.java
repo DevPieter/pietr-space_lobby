@@ -6,7 +6,7 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import nl.devpieter.features.fishing.bobber.FishingBobber;
 import nl.devpieter.features.fishing.rod.IRod;
-import nl.devpieter.utils.minestom.TextUtils;
+import space.pietr.lobby.common.utils.minestom.TextUtils;
 
 import java.util.UUID;
 

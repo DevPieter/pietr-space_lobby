@@ -7,10 +7,10 @@ import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.command.builder.suggestion.SuggestionEntry;
 import net.minestom.server.entity.Player;
 import nl.devpieter.features.world.WorldManager;
-import nl.devpieter.features.world.models.LoadedWorld;
-import nl.devpieter.features.world.models.settings.WorldSettings;
-import nl.devpieter.utils.minestom.PlayerUtils;
-import nl.devpieter.utils.minestom.TextUtils;
+import space.pietr.lobby.common.features.world.LoadedWorld;
+import space.pietr.lobby.common.features.world.settings.WorldSettings;
+import space.pietr.lobby.common.utils.minestom.PlayerUtils;
+import space.pietr.lobby.common.utils.minestom.TextUtils;
 
 public class WorldCommand extends Command {
 

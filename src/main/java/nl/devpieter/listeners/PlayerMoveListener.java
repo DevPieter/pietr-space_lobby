@@ -9,13 +9,13 @@ import nl.devpieter.features.parkour.ParkourManager;
 import nl.devpieter.features.parkour.enums.ParkourFailReason;
 import nl.devpieter.features.resourcePack.PackManager;
 import nl.devpieter.features.world.WorldManager;
-import nl.devpieter.features.world.models.LoadedWorld;
-import nl.devpieter.models.SimpleRange;
-import nl.devpieter.features.world.models.settings.WorldBoundsSetting;
-import nl.devpieter.utils.minestom.PlayerUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
+import space.pietr.lobby.common.features.world.LoadedWorld;
+import space.pietr.lobby.common.features.world.settings.WorldBoundsSetting;
+import space.pietr.lobby.common.models.simple.SimpleRange;
+import space.pietr.lobby.common.utils.minestom.PlayerUtils;
 
 public class PlayerMoveListener implements EventListener<@NotNull PlayerMoveEvent> {
 

@@ -1,7 +1,7 @@
 package nl.devpieter.features.parkour.models.setting;
 
-import nl.devpieter.models.SimplePoint;
 import org.jspecify.annotations.Nullable;
+import space.pietr.lobby.common.models.simple.SimplePos;
 
 import java.util.UUID;
 
@@ -11,7 +11,7 @@ public class PlayerParkourSettings {
     private final UUID playerUuid;
 
     private boolean useCustomRespawn;
-    private @Nullable SimplePoint customRespawnPoint;
+    private @Nullable SimplePos customRespawnPoint;
 
     public PlayerParkourSettings(String parkourId, UUID playerUuid) {
         this.parkourId = parkourId;

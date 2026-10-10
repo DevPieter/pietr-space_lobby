@@ -7,7 +7,7 @@ import net.minestom.server.command.builder.arguments.ArgumentString;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.entity.Player;
 import nl.devpieter.features.tips.TipManager;
-import nl.devpieter.utils.minestom.TextUtils;
+import space.pietr.lobby.common.utils.minestom.TextUtils;
 
 public class TipCommand extends Command {
 

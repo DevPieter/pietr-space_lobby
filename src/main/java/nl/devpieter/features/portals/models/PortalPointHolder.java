@@ -1,6 +1,6 @@
 package nl.devpieter.features.portals.models;
 
-import nl.devpieter.models.PointHolder;
+import space.pietr.lobby.common.models.holder.IPointHolder;
 
-public record PortalPointHolder(String identifier, PointHolder point) {
+public record PortalPointHolder(String identifier, IPointHolder point) {
 }

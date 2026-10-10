@@ -18,11 +18,11 @@ import net.minestom.server.particle.Particle;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.thread.Acquirable;
 import nl.devpieter.entities.PhysicsItem;
-import nl.devpieter.utils.common.RandomUtils;
-import nl.devpieter.utils.minestom.ParticleUtils;
-import nl.devpieter.utils.minestom.SoundUtils;
-import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
+import space.pietr.lobby.common.utils.common.RandomUtils;
+import space.pietr.lobby.common.utils.minestom.ParticleUtils;
+import space.pietr.lobby.common.utils.minestom.SoundUtils;
+import space.pietr.lobby.common.utils.minestom.TextUtils;
 
 import java.util.HashMap;
 import java.util.List;

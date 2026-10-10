@@ -10,8 +10,8 @@ import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.rod.IRod;
 import nl.devpieter.features.world.WorldManager;
-import nl.devpieter.features.world.models.LoadedWorld;
 import org.jetbrains.annotations.NotNull;
+import space.pietr.lobby.common.features.world.LoadedWorld;
 
 import java.util.List;
 

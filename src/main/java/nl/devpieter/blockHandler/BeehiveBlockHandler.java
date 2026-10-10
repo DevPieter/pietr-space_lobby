@@ -15,11 +15,11 @@ import net.minestom.server.thread.Acquirable;
 import net.minestom.server.timer.TaskSchedule;
 import net.minestom.server.utils.Direction;
 import nl.devpieter.entities.bee.BeeEntity;
-import nl.devpieter.utils.minestom.MineMathUtils;
-import nl.devpieter.utils.minestom.ParticleUtils;
-import nl.devpieter.utils.minestom.SoundUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
+import space.pietr.lobby.common.utils.minestom.MineMathUtils;
+import space.pietr.lobby.common.utils.minestom.ParticleUtils;
+import space.pietr.lobby.common.utils.minestom.SoundUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;

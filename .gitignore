@@ -4,6 +4,8 @@
 # Gradle build files
 /.gradle/
 /build/
+/plugin-api/.gradle/
+/plugin-api/build/
 /out/
 
 versions/**/.gradle/

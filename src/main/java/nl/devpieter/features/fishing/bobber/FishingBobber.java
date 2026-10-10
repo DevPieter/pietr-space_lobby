@@ -22,10 +22,10 @@ import nl.devpieter.features.fishing.catchable.ICatchable;
 import nl.devpieter.features.fishing.enums.BobberState;
 import nl.devpieter.features.fishing.models.BobberSettings;
 import nl.devpieter.features.fishing.rod.IRod;
-import nl.devpieter.utils.common.MathUtils;
-import nl.devpieter.utils.minestom.ParticleUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import space.pietr.lobby.common.utils.common.MathUtils;
+import space.pietr.lobby.common.utils.minestom.ParticleUtils;
 
 import java.util.Random;
 

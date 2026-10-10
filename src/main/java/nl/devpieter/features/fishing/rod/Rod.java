@@ -12,9 +12,9 @@ import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.fishing.bobber.FishingBobber;
 import nl.devpieter.features.fishing.bobber.IBobber;
 import nl.devpieter.features.fishing.models.BobberSettings;
-import nl.devpieter.utils.common.MathUtils;
-import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
+import space.pietr.lobby.common.utils.common.MathUtils;
+import space.pietr.lobby.common.utils.minestom.TextUtils;
 
 import java.util.ArrayList;
 import java.util.List;

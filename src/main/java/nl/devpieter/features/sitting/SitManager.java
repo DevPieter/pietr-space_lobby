@@ -11,9 +11,9 @@ import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.enums.PlayerTags;
 import nl.devpieter.features.tips.MsgManager;
 import nl.devpieter.features.world.WorldManager;
-import nl.devpieter.features.world.models.LoadedWorld;
-import nl.devpieter.utils.minestom.PlayerUtils;
 import org.jetbrains.annotations.NotNull;
+import space.pietr.lobby.common.features.world.LoadedWorld;
+import space.pietr.lobby.common.utils.minestom.PlayerUtils;
 
 import java.util.HashMap;
 import java.util.List;

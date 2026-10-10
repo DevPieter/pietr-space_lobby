@@ -6,8 +6,8 @@ import net.minestom.server.event.player.PlayerInputEvent;
 import net.minestom.server.instance.Instance;
 import nl.devpieter.features.parkour.ParkourManager;
 import nl.devpieter.features.world.WorldManager;
-import nl.devpieter.features.world.models.LoadedWorld;
 import org.jetbrains.annotations.NotNull;
+import space.pietr.lobby.common.features.world.LoadedWorld;
 
 public class ParkourPlayerSneakListener implements EventListener<@NotNull PlayerInputEvent> {
 

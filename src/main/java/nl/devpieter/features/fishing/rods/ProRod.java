@@ -3,7 +3,7 @@ package nl.devpieter.features.fishing.rods;
 import net.kyori.adventure.text.Component;
 import nl.devpieter.features.fishing.models.BobberSettings;
 import nl.devpieter.features.fishing.rod.Rod;
-import nl.devpieter.utils.minestom.TextUtils;
+import space.pietr.lobby.common.utils.minestom.TextUtils;
 
 import java.util.UUID;
 

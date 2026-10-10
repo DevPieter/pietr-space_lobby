@@ -5,10 +5,10 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.sound.SoundEvent;
 import nl.devpieter.PlayLogger;
 import nl.devpieter.features.tips.models.MessageHolder;
-import nl.devpieter.utils.minestom.SoundUtils;
-import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import space.pietr.lobby.common.utils.minestom.SoundUtils;
+import space.pietr.lobby.common.utils.minestom.TextUtils;
 
 import java.time.Duration;
 import java.util.ArrayList;

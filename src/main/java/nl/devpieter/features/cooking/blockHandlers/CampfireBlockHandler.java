@@ -21,8 +21,8 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.tag.Tag;
 import nl.devpieter.features.cooking.models.CampfireItem;
-import nl.devpieter.models.BlockHolder;
 import org.jetbrains.annotations.NotNull;
+import space.pietr.lobby.common.models.holder.block.IBlockHolder;
 
 import java.util.*;
 
@@ -61,7 +61,7 @@ public class CampfireBlockHandler implements BlockHandler {
         String lit = interaction.getBlock().getProperty("lit");
         if (lit == null || lit.equals("false")) return false;
 
-        BlockHolder campfireHolder = new BlockHolder(
+        IBlockHolder campfireHolder = new IBlockHolder(
                 interaction.getInstance(),
                 interaction.getBlockPosition(),
                 interaction.getBlock()
@@ -141,14 +141,14 @@ public class CampfireBlockHandler implements BlockHandler {
             }
         }
 
-        updateCampfire(new BlockHolder(
+        updateCampfire(new IBlockHolder(
                 tick.getInstance(),
                 tick.getBlockPosition(),
                 tick.getBlock()
         ));
     }
 
-    private void updateCampfire(BlockHolder blockHolder) {
+    private void updateCampfire(IBlockHolder blockHolder) {
         List<BinaryTag> items = new ArrayList<>();
 
         int[] cookingTimesArray = new int[MAX_SLOTS];

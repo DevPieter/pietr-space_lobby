@@ -1,6 +1,6 @@
 package nl.devpieter.config;
 
-import nl.devpieter.utils.common.EnvUtils;
+import space.pietr.lobby.common.utils.common.EnvUtils;
 
 public class EnvStatics {
 

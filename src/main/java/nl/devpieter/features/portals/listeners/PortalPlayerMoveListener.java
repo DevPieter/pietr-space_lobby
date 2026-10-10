@@ -9,9 +9,9 @@ import nl.devpieter.features.parkour.enums.ParkourCancelReason;
 import nl.devpieter.features.portals.PortalManager;
 import nl.devpieter.features.portals.models.Portal;
 import nl.devpieter.features.world.WorldManager;
-import nl.devpieter.features.world.models.LoadedWorld;
-import nl.devpieter.utils.minestom.PlayerUtils;
 import org.jetbrains.annotations.NotNull;
+import space.pietr.lobby.common.features.world.LoadedWorld;
+import space.pietr.lobby.common.utils.minestom.PlayerUtils;
 
 public class PortalPlayerMoveListener implements EventListener<@NotNull PlayerMoveEvent> {
 

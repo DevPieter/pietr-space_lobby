@@ -40,19 +40,19 @@ import nl.devpieter.features.parkour.models.parkourTry.FailedNode;
 import nl.devpieter.features.parkour.models.parkourTry.ParkourTry;
 import nl.devpieter.features.parkour.models.parkourTry.ReachedNode;
 import nl.devpieter.features.parkour.models.parkourTry.SkippedNode;
-import nl.devpieter.features.signs.SignDecoder;
 import nl.devpieter.features.signs.SignManager;
-import nl.devpieter.features.signs.models.SignHolder;
 import nl.devpieter.features.tips.MsgManager;
 import nl.devpieter.features.tips.TipManager;
 import nl.devpieter.features.world.WorldManager;
-import nl.devpieter.features.world.models.LoadedWorld;
-import nl.devpieter.models.GlowingBlockHolder;
 import nl.devpieter.models.SlotHolder;
-import nl.devpieter.utils.minestom.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
+import space.pietr.lobby.common.features.signs.SignDecoder;
+import space.pietr.lobby.common.features.signs.SignHolder;
+import space.pietr.lobby.common.features.world.LoadedWorld;
+import space.pietr.lobby.common.models.holder.entity.EntityIdPosHolder;
+import space.pietr.lobby.common.utils.minestom.*;
 
 import java.net.URI;
 import java.net.http.HttpResponse;
@@ -91,7 +91,7 @@ public class ParkourManager {
 
     private final HashMap<UUID, ParkourTry> players = new HashMap<>();
     private final HashMap<UUID, ParkourReturnHolder> returnHolders = new HashMap<>();
-    private final HashMap<UUID, GlowingBlockHolder> glowingHolders = new HashMap<>();
+    private final HashMap<UUID, EntityIdPosHolder> glowingHolders = new HashMap<>();
 
     private ParkourManager() {
     }
@@ -877,13 +877,13 @@ public class ParkourManager {
         player.sendActionBar(TextUtils.miniText("<yellow>Checkpoint reached!"));
         player.playSound(Sound.sound(SoundEvent.ENTITY_EXPERIENCE_ORB_PICKUP, Sound.Source.MASTER, 1.0f, 0.8f));
 
-        GlowingBlockHolder holder = glowingHolders.remove(player.getUuid());
+        EntityIdPosHolder holder = glowingHolders.remove(player.getUuid());
         if (holder != null) PacketUtils.revertToOriginalBlock(player, holder);
 
         Pos nextCheckpoint = getNextCheckpoint(player);
         if (nextCheckpoint == null) return;
 
-        GlowingBlockHolder newHolder = PacketUtils.replaceWithGlowing(player, nextCheckpoint);
+        EntityIdPosHolder newHolder = PacketUtils.replaceWithGlowing(player, nextCheckpoint);
         glowingHolders.put(player.getUuid(), newHolder);
 
         PacketUtils.updateWaypoint(player, parkourId, nextCheckpoint);
@@ -901,7 +901,7 @@ public class ParkourManager {
         players.remove(player.getUuid());
 
         // Revert glowing block and waypoint
-        GlowingBlockHolder holder = glowingHolders.remove(player.getUuid());
+        EntityIdPosHolder holder = glowingHolders.remove(player.getUuid());
         if (holder != null) PacketUtils.revertToOriginalBlock(player, holder);
 
         PacketUtils.removeWaypoint(player, parkourTry.parkourId());

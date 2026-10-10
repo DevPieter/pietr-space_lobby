@@ -8,15 +8,15 @@ import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.creatures.entities.cuteCat.CuteCatSpawnable;
 import nl.devpieter.features.creatures.entities.cuteFox.CuteFoxSpawnable;
 import nl.devpieter.features.creatures.models.CreaturePointHolder;
-import nl.devpieter.features.signs.SignDecoder;
 import nl.devpieter.features.signs.SignManager;
-import nl.devpieter.features.signs.interfaces.ISignSpawnable;
-import nl.devpieter.features.signs.models.SignHolder;
-import nl.devpieter.models.PointHolder;
-import nl.devpieter.utils.minestom.TextUtils;
-import nl.devpieter.utils.minestom.WorldUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import space.pietr.lobby.common.features.signs.SignDecoder;
+import space.pietr.lobby.common.features.signs.SignHolder;
+import space.pietr.lobby.common.features.signs.interfaces.ISignSpawnable;
+import space.pietr.lobby.common.models.holder.IPointHolder;
+import space.pietr.lobby.common.utils.minestom.TextUtils;
+import space.pietr.lobby.common.utils.minestom.WorldUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +68,7 @@ public class CreatureManager {
             loadedCreatures.add(entity);
 
             creatureLocations.add(new CreaturePointHolder(
-                    spawnable.getIdentifier(), PointHolder.of(sign.block())
+                    spawnable.getIdentifier(), IPointHolder.of(sign.block())
             ));
         }
     }

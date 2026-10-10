@@ -4,9 +4,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.minestom.server.entity.Player;
 import nl.devpieter.config.EnvStatics;
-import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
+import space.pietr.lobby.common.utils.minestom.TextUtils;
 
 public class PlayLogger {
 

@@ -1,7 +1,6 @@
 package nl.devpieter.features.portals;
 
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
@@ -11,14 +10,14 @@ import nl.devpieter.Lobby;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.portals.models.Portal;
 import nl.devpieter.features.portals.models.PortalPointHolder;
-import nl.devpieter.features.signs.SignDecoder;
 import nl.devpieter.features.signs.SignManager;
-import nl.devpieter.features.signs.models.SignHolder;
-import nl.devpieter.models.PointHolder;
-import nl.devpieter.utils.minestom.TextUtils;
-import nl.devpieter.utils.minestom.WorldUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import space.pietr.lobby.common.features.signs.SignDecoder;
+import space.pietr.lobby.common.features.signs.SignHolder;
+import space.pietr.lobby.common.models.holder.IPointHolder;
+import space.pietr.lobby.common.utils.minestom.TextUtils;
+import space.pietr.lobby.common.utils.minestom.WorldUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,7 +63,7 @@ public class PortalManager {
             portals.add(portal);
 
             portalLocations.add(new PortalPointHolder(
-                    portal.destinationWorld().id(), PointHolder.of(sign.block())
+                    portal.destinationWorld().id(), IPointHolder.of(sign.block())
             ));
         }
     }

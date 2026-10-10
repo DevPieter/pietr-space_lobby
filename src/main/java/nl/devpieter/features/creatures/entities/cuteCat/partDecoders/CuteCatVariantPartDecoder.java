@@ -1,7 +1,7 @@
 package nl.devpieter.features.creatures.entities.cuteCat.partDecoders;
 
 import nl.devpieter.features.creatures.entities.cuteCat.enums.CuteCatVariant;
-import nl.devpieter.features.signs.partDecoder.PartDecoder;
+import space.pietr.lobby.common.features.signs.partDecoder.PartDecoder;
 
 import java.util.function.Consumer;
 

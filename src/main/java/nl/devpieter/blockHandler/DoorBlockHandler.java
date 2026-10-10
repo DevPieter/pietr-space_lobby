@@ -12,10 +12,10 @@ import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
-import nl.devpieter.utils.common.RandomUtils;
-import nl.devpieter.utils.minestom.SoundUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import space.pietr.lobby.common.utils.common.RandomUtils;
+import space.pietr.lobby.common.utils.minestom.SoundUtils;
 
 import java.time.Duration;
 

@@ -9,21 +9,22 @@ import net.minestom.server.registry.RegistryKey;
 import net.minestom.server.world.DimensionType;
 import nl.devpieter.Lobby;
 import nl.devpieter.config.EnvStatics;
-import nl.devpieter.events.WorldManagerInitializedEvent;
-import nl.devpieter.features.world.enums.LoadedWorldType;
-import nl.devpieter.features.world.models.LoadedWorld;
-import nl.devpieter.features.world.models.World;
-import nl.devpieter.features.world.models.settings.WorldSettings;
-import nl.devpieter.features.world.models.settings.WorldTimeSetting;
-import nl.devpieter.features.world.models.settings.WorldWeatherSetting;
-import nl.devpieter.features.world.models.settings.features.WorldFeatureSettings;
-import nl.devpieter.features.world.setting.gsonAdapters.WorldFeatureSettingsGsonAdapter;
-import nl.devpieter.features.world.setting.gsonAdapters.WorldSettingsGsonAdapter;
-import nl.devpieter.models.tuples.Pair;
+import nl.devpieter.features.world.gsonAdapters.WorldFeatureSettingsGsonAdapter;
+import nl.devpieter.features.world.gsonAdapters.WorldSettingsGsonAdapter;
 import nl.devpieter.sees.Sees;
-import nl.devpieter.utils.minestom.PlayerUtils;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
+import space.pietr.lobby.api.features.world.IWorldManager;
+import space.pietr.lobby.api.features.world.events.WorldManagerInitializedEvent;
+import space.pietr.lobby.common.features.world.LoadedWorld;
+import space.pietr.lobby.common.features.world.World;
+import space.pietr.lobby.common.features.world.enums.LoadedWorldType;
+import space.pietr.lobby.common.features.world.settings.WorldSettings;
+import space.pietr.lobby.common.features.world.settings.WorldTimeSetting;
+import space.pietr.lobby.common.features.world.settings.WorldWeatherSetting;
+import space.pietr.lobby.common.features.world.settings.features.WorldFeatureSettings;
+import space.pietr.lobby.common.models.tuple.Pair;
+import space.pietr.lobby.common.utils.minestom.PlayerUtils;
 
 import java.io.File;
 import java.io.FileReader;
@@ -33,9 +34,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class WorldManager {
+public final class WorldManager implements IWorldManager {
 
-    private static WorldManager INSTANCE;
+    private static final WorldManager INSTANCE = new WorldManager();
 
     private final Logger logger = Lobby.getLogger(this.getClass());
     private final Gson gson = new GsonBuilder()
@@ -57,7 +58,6 @@ public class WorldManager {
     }
 
     public static WorldManager getInstance() {
-        if (INSTANCE == null) INSTANCE = new WorldManager();
         return INSTANCE;
     }
 

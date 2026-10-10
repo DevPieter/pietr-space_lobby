@@ -1,9 +1,9 @@
 package nl.devpieter.features.parkour.decodables;
 
 import nl.devpieter.features.parkour.models.parkour.ParkourLeaderboardNode;
-import nl.devpieter.features.signs.interfaces.ISignDecodable;
-import nl.devpieter.features.signs.models.SignHolder;
-import nl.devpieter.features.signs.partDecoder.IPartDecoder;
+import space.pietr.lobby.common.features.signs.SignHolder;
+import space.pietr.lobby.common.features.signs.interfaces.ISignDecodable;
+import space.pietr.lobby.common.features.signs.partDecoder.IPartDecoder;
 
 import java.util.HashMap;
 import java.util.List;

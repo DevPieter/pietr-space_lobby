@@ -5,16 +5,16 @@ import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import nl.devpieter.features.portals.models.Portal;
-import nl.devpieter.features.signs.interfaces.ISignDecodable;
-import nl.devpieter.features.signs.models.SignHolder;
-import nl.devpieter.features.signs.partDecoder.IPartDecoder;
-import nl.devpieter.features.signs.partDecoders.BoundingBoxPartDecoder;
-import nl.devpieter.features.signs.partDecoders.PointPartDecoder;
-import nl.devpieter.features.signs.partDecoders.StringPartDecoder;
-import nl.devpieter.features.signs.partDecoders.YawPitchPartDecoder;
 import nl.devpieter.features.world.WorldManager;
-import nl.devpieter.features.world.models.World;
-import nl.devpieter.models.YawPitch;
+import space.pietr.lobby.common.features.signs.SignHolder;
+import space.pietr.lobby.common.features.signs.interfaces.ISignDecodable;
+import space.pietr.lobby.common.features.signs.partDecoder.IPartDecoder;
+import space.pietr.lobby.common.features.signs.partDecoders.BoundingBoxPartDecoder;
+import space.pietr.lobby.common.features.signs.partDecoders.PointPartDecoder;
+import space.pietr.lobby.common.features.signs.partDecoders.StringPartDecoder;
+import space.pietr.lobby.common.features.signs.partDecoders.YawPitchPartDecoder;
+import space.pietr.lobby.common.features.world.World;
+import space.pietr.lobby.common.models.simple.SimpleYawPitch;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +25,7 @@ public class PortalDecodable implements ISignDecodable {
 
     private World destinationWorld;
     private Point destinationPoint = Vec.ZERO;
-    private YawPitch destinationRotation = YawPitch.ZERO;
+    private SimpleYawPitch destinationRotation = SimpleYawPitch.ZERO;
 
     private Point originOffset = Vec.ZERO;
     private BoundingBox boundingBox = new BoundingBox(Vec.ZERO, Vec.ZERO);
@@ -56,7 +56,7 @@ public class PortalDecodable implements ISignDecodable {
                     new PointPartDecoder(Vec.ZERO, p -> destinationPoint = p)
             ));
             put(3, List.of(
-                    new YawPitchPartDecoder(YawPitch.ZERO, r -> destinationRotation = r)
+                    new YawPitchPartDecoder(SimpleYawPitch.ZERO, r -> destinationRotation = r)
             ));
             put(4, List.of(
                     new PointPartDecoder(Vec.ZERO, p -> originOffset = p)

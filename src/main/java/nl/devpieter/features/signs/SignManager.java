@@ -1,35 +1,35 @@
 package nl.devpieter.features.signs;
 
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.BlockVec;
-import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import nl.devpieter.Lobby;
 import nl.devpieter.config.EnvStatics;
-import nl.devpieter.events.MarkedSignBadgeFoundEvent;
-import nl.devpieter.features.signs.models.SignHolder;
 import nl.devpieter.features.world.WorldManager;
-import nl.devpieter.features.world.models.LoadedWorld;
-import nl.devpieter.features.world.models.settings.WorldMarkerSignsSetting;
-import nl.devpieter.features.world.models.settings.WorldSettings;
-import nl.devpieter.models.BlockHolder;
-import nl.devpieter.models.SimpleVec;
 import nl.devpieter.sees.Sees;
-import nl.devpieter.utils.minestom.TextUtils;
-import nl.devpieter.utils.minestom.WorldUtils;
+import space.pietr.lobby.api.features.signs.ISignManager;
+import space.pietr.lobby.api.features.signs.events.MarkedSignBatchFoundEvent;
+import space.pietr.lobby.common.features.signs.SignHelper;
+import space.pietr.lobby.common.features.signs.SignHolder;
+import space.pietr.lobby.common.features.world.LoadedWorld;
+import space.pietr.lobby.common.features.world.settings.WorldMarkerSignsSetting;
+import space.pietr.lobby.common.features.world.settings.WorldSettings;
+import space.pietr.lobby.common.models.holder.block.IBlockHolder;
+import space.pietr.lobby.common.models.simple.SimpleVec;
+import space.pietr.lobby.common.utils.minestom.TextUtils;
+import space.pietr.lobby.common.utils.minestom.WorldUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class SignManager {
+public final class SignManager implements ISignManager {
 
-    private static SignManager INSTANCE;
+    private static final SignManager INSTANCE = new SignManager();
     private static final String MARKED_SIGN_PREFIX = "[PTR]";
 
     private final ComponentLogger logger = Lobby.getLogger(this.getClass());
@@ -45,7 +45,6 @@ public class SignManager {
     }
 
     public static SignManager getInstance() {
-        if (INSTANCE == null) INSTANCE = new SignManager();
         return INSTANCE;
     }
 
@@ -54,10 +53,6 @@ public class SignManager {
 
         worldManager.getLoadedWorlds().forEach(this::scanSigns);
         if (EnvStatics.DEBUG) placeDebugMarkers();
-    }
-
-    public List<SignHolder> getMatchedSigns(String key) {
-        return signHolderMap.getOrDefault(key, new ArrayList<>());
     }
 
     private void scanSigns(LoadedWorld world) {
@@ -88,7 +83,7 @@ public class SignManager {
             return;
         }
 
-        List<Point> locations = WorldUtils.findBlocks(instance, scanCenter, scanRadius,
+        List<BlockVec> locations = WorldUtils.findBlocks(instance, scanCenter, scanRadius,
                 Block.OAK_SIGN,
                 Block.OAK_WALL_SIGN,
                 Block.OAK_HANGING_SIGN,
@@ -104,10 +99,11 @@ public class SignManager {
         logger.info("Found {} marked signs in instance {}.", signsFound, id);
     }
 
+    @Override
     public void scanSigns(Instance instance, BlockVec origin, BoundingBox box) {
         logger.info("Scanning instance for marked signs in the specified area...");
 
-        List<Point> locations = WorldUtils.findBlocks(instance, origin, box,
+        List<BlockVec> locations = WorldUtils.findBlocks(instance, origin, box,
                 Block.OAK_SIGN,
                 Block.OAK_WALL_SIGN,
                 Block.OAK_HANGING_SIGN,
@@ -123,13 +119,13 @@ public class SignManager {
         logger.info("Found {} marked signs in the specified area.", signsFound);
     }
 
-    private int handleSigns(Instance instance, List<Point> locations) {
+    private int handleSigns(Instance instance, List<BlockVec> locations) {
         HashMap<String, List<SignHolder>> newSignHolderMap = new HashMap<>();
         int signsFound = 0;
 
-        for (Point point : locations) {
-            Block block = instance.getBlock(point);
-            BlockHolder blockHolder = new BlockHolder(instance, point, block);
+        for (BlockVec blockVec : locations) {
+            Block block = instance.getBlock(blockVec);
+            IBlockHolder blockHolder = new IBlockHolder(instance, blockVec, block);
 
             SignHolder signHolder = SignHelper.readSign(blockHolder);
             if (signHolder == null) continue;
@@ -145,11 +141,11 @@ public class SignManager {
             signHolderMap.computeIfAbsent(cleanedFirstLine, _ -> new ArrayList<>()).add(signHolder);
             newSignHolderMap.computeIfAbsent(cleanedFirstLine, _ -> new ArrayList<>()).add(signHolder);
 
-            instance.setBlock(point, Block.AIR);
+            instance.setBlock(blockVec, Block.AIR);
         }
 
         for (String key : newSignHolderMap.keySet()) {
-            sees.dispatch(new MarkedSignBadgeFoundEvent(key, newSignHolderMap.get(key)));
+            sees.dispatch(new MarkedSignBatchFoundEvent(key, newSignHolderMap.get(key)));
         }
 
         return signsFound;
@@ -176,7 +172,7 @@ public class SignManager {
         clearDebugMarkers();
 
         for (SignHolder signHolder : signHolders) {
-            BlockHolder block = signHolder.block();
+            IBlockHolder block = signHolder.block();
 
             String cleanedFirstLine = signHolder.lines().getFirst().substring(MARKED_SIGN_PREFIX.length()).trim();
 
@@ -190,5 +186,10 @@ public class SignManager {
     public void clearDebugMarkers() {
         for (Entity marker : debugMarkers) marker.remove();
         debugMarkers.clear();
+    }
+
+    @Override
+    public List<SignHolder> getMatchedSigns(String key) {
+        return List.of();
     }
 }

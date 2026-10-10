@@ -4,7 +4,7 @@ import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.instance.Instance;
-import nl.devpieter.models.YawPitch;
+import space.pietr.lobby.common.models.simple.SimpleYawPitch;
 
 public record ParkourNode(
         int index,
@@ -12,7 +12,7 @@ public record ParkourNode(
 
         Instance instance,
         Point point,
-        YawPitch yawPitch,
+        SimpleYawPitch yawPitch,
         BoundingBox boundingBox
 ) {
 

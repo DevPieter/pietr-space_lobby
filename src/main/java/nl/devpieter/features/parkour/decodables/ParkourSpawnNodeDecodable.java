@@ -1,18 +1,18 @@
 package nl.devpieter.features.parkour.decodables;
 
 import nl.devpieter.features.parkour.models.parkour.ParkourSpawnNode;
-import nl.devpieter.features.signs.interfaces.ISignDecodable;
-import nl.devpieter.features.signs.models.SignHolder;
-import nl.devpieter.features.signs.partDecoder.IPartDecoder;
-import nl.devpieter.features.signs.partDecoders.YawPitchPartDecoder;
-import nl.devpieter.models.YawPitch;
+import space.pietr.lobby.common.features.signs.SignHolder;
+import space.pietr.lobby.common.features.signs.interfaces.ISignDecodable;
+import space.pietr.lobby.common.features.signs.partDecoder.IPartDecoder;
+import space.pietr.lobby.common.features.signs.partDecoders.YawPitchPartDecoder;
+import space.pietr.lobby.common.models.simple.SimpleYawPitch;
 
 import java.util.HashMap;
 import java.util.List;
 
 public class ParkourSpawnNodeDecodable implements ISignDecodable {
 
-    private YawPitch rotation = YawPitch.ZERO;
+    private SimpleYawPitch rotation = SimpleYawPitch.ZERO;
 
     public ParkourSpawnNode getNode(SignHolder signHolder) {
         return new ParkourSpawnNode(signHolder.block().instance(), signHolder.block().position(), rotation);
@@ -22,7 +22,7 @@ public class ParkourSpawnNodeDecodable implements ISignDecodable {
     public HashMap<Integer, List<IPartDecoder<?>>> getDecoders() {
         return new HashMap<>() {{
             put(2, List.of(
-                    new YawPitchPartDecoder(YawPitch.ZERO, r -> rotation = r)
+                    new YawPitchPartDecoder(SimpleYawPitch.ZERO, r -> rotation = r)
             ));
         }};
     }

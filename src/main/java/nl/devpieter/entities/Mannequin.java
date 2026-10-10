@@ -6,7 +6,7 @@ import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.metadata.avatar.MannequinMeta;
 import net.minestom.server.network.player.ResolvableProfile;
-import nl.devpieter.utils.minestom.TextUtils;
+import space.pietr.lobby.common.utils.minestom.TextUtils;
 
 public class Mannequin extends EntityCreature {
 

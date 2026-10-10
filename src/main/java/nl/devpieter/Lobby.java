@@ -33,7 +33,6 @@ import nl.devpieter.config.ConfigManager;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.entities.bee.BeeEntity;
-import nl.devpieter.events.WorldManagerInitializedEvent;
 import nl.devpieter.features.cooking.blockHandlers.CampfireBlockHandler;
 import nl.devpieter.features.creatures.CreatureManager;
 import nl.devpieter.features.fishing.FishingManager;
@@ -64,10 +63,11 @@ import nl.devpieter.plugin.PluginManager;
 import nl.devpieter.sees.Sees;
 import nl.devpieter.sees.annotations.SEventListener;
 import nl.devpieter.sees.listener.SListener;
-import nl.devpieter.utils.minestom.PlayerUtils;
-import nl.devpieter.utils.minestom.SoundUtils;
-import nl.devpieter.utils.minestom.TextUtils;
 import org.slf4j.Logger;
+import space.pietr.lobby.api.features.world.events.WorldManagerInitializedEvent;
+import space.pietr.lobby.common.utils.minestom.PlayerUtils;
+import space.pietr.lobby.common.utils.minestom.SoundUtils;
+import space.pietr.lobby.common.utils.minestom.TextUtils;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -149,7 +149,13 @@ public class Lobby implements SListener {
             playSoundEffect(player);
         });
 
-        PluginManager.getInstance().init();
+        var pluginManager = PluginManager.getInstance();
+        pluginManager.init();
+
+        PluginManager.getInstance().apiAvailable(new LobbyApiImpl(
+                SignManager.getInstance(),
+                WorldManager.getInstance()
+        ));
 
         Sees sees = Sees.getSharedInstance();
         sees.subscribe(this);

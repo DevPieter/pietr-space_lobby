@@ -20,10 +20,10 @@ import nl.devpieter.features.jukebox.models.JukeboxState;
 import nl.devpieter.features.jukebox.models.Song;
 import nl.devpieter.features.resourcePack.PackManager;
 import nl.devpieter.features.resourcePack.models.ResourcePack;
-import nl.devpieter.models.PointHolder;
-import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import space.pietr.lobby.common.models.holder.IPointHolder;
+import space.pietr.lobby.common.utils.minestom.TextUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,7 +35,7 @@ public class JukeboxBlockHandler implements BlockHandler {
     private final PackManager packManager = PackManager.getInstance();
 
     private final List<Artist> artists = new ArrayList<>();
-    private final HashMap<PointHolder, JukeboxState> states = new HashMap<>();
+    private final HashMap<IPointHolder, JukeboxState> states = new HashMap<>();
 
     // TODO - Replace with a better system
     private long lastInventoryClickTime = 0;
@@ -128,7 +128,7 @@ public class JukeboxBlockHandler implements BlockHandler {
         Instance instance = tick.getInstance();
         Point point = tick.getBlockPosition();
 
-        PointHolder holder = new PointHolder(instance, point);
+        IPointHolder holder = new IPointHolder(instance, point);
 
         JukeboxState state = getState(holder, false);
         if (state != null) state.tick(holder);
@@ -188,7 +188,7 @@ public class JukeboxBlockHandler implements BlockHandler {
             int slot = event.getSlot();
 
             if (slot == 22) {
-                PointHolder pointHolder = new PointHolder(
+                IPointHolder pointHolder = new IPointHolder(
                         interaction.getInstance(),
                         interaction.getBlockPosition()
                 );
@@ -284,7 +284,7 @@ public class JukeboxBlockHandler implements BlockHandler {
             int slot = event.getSlot();
             if (slot < 0 || slot >= artistSongs.size()) return;
 
-            PointHolder pointHolder = new PointHolder(
+            IPointHolder pointHolder = new IPointHolder(
                     interaction.getInstance(),
                     interaction.getBlockPosition()
             );
@@ -305,7 +305,7 @@ public class JukeboxBlockHandler implements BlockHandler {
         return inventory;
     }
 
-    private @Nullable JukeboxState getState(PointHolder pointHolder, boolean createIfAbsent) {
+    private @Nullable JukeboxState getState(IPointHolder pointHolder, boolean createIfAbsent) {
         if (createIfAbsent) return states.computeIfAbsent(pointHolder, _ -> new JukeboxState(pointHolder));
         else return states.get(pointHolder);
     }

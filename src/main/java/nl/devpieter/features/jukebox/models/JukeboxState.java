@@ -8,10 +8,10 @@ import net.minestom.server.entity.metadata.display.AbstractDisplayMeta;
 import net.minestom.server.entity.metadata.display.TextDisplayMeta;
 import net.minestom.server.particle.Particle;
 import net.minestom.server.thread.Acquirable;
-import nl.devpieter.models.PointHolder;
-import nl.devpieter.utils.minestom.ParticleUtils;
-import nl.devpieter.utils.minestom.TextUtils;
 import org.jetbrains.annotations.NotNull;
+import space.pietr.lobby.common.models.holder.IPointHolder;
+import space.pietr.lobby.common.utils.minestom.ParticleUtils;
+import space.pietr.lobby.common.utils.minestom.TextUtils;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -28,7 +28,7 @@ public class JukeboxState {
     private long lastDisplayTimeMs = 0;
     private long lastParticleTickMs = 0;
 
-    public JukeboxState(PointHolder pointHolder) {
+    public JukeboxState(IPointHolder pointHolder) {
         Entity entity = new Entity(EntityType.TEXT_DISPLAY);
         entity.setInstance(pointHolder.instance(), pointHolder.position().add(0.5, 1.5, 0.5));
 
@@ -69,7 +69,7 @@ public class JukeboxState {
         return songQueue.poll();
     }
 
-    public void play(@NotNull PointHolder pointHolder, @NotNull Song song, BiConsumer<Boolean, Boolean> callback) {
+    public void play(@NotNull IPointHolder pointHolder, @NotNull Song song, BiConsumer<Boolean, Boolean> callback) {
         if (isPlaying()) {
 
             // TODO - Remove or change limit?
@@ -92,7 +92,7 @@ public class JukeboxState {
         callback.accept(true, false);
     }
 
-    public void stop(@NotNull PointHolder pointHolder, Consumer<Boolean> callback) {
+    public void stop(@NotNull IPointHolder pointHolder, Consumer<Boolean> callback) {
         if (!isPlaying()) {
             songQueue.clear();
             callback.accept(false);
@@ -107,7 +107,7 @@ public class JukeboxState {
         callback.accept(true);
     }
 
-    public void tick(PointHolder pointHolder) {
+    public void tick(IPointHolder pointHolder) {
         tickDisplay();
 
         if (currentSong == null) return;
@@ -161,7 +161,7 @@ public class JukeboxState {
         });
     }
 
-    private void tickParticles(PointHolder pointHolder) {
+    private void tickParticles(IPointHolder pointHolder) {
         long currentTimeMs = System.currentTimeMillis();
         if (currentTimeMs - lastParticleTickMs < 700) return;
         lastParticleTickMs = currentTimeMs;

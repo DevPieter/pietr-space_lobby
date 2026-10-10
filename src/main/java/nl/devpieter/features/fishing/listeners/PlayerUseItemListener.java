@@ -12,9 +12,9 @@ import nl.devpieter.features.fishing.FishingManager;
 import nl.devpieter.features.fishing.bobber.IBobber;
 import nl.devpieter.features.fishing.rod.IRod;
 import nl.devpieter.features.world.WorldManager;
-import nl.devpieter.features.world.models.LoadedWorld;
-import nl.devpieter.utils.minestom.SoundUtils;
 import org.jetbrains.annotations.NotNull;
+import space.pietr.lobby.common.features.world.LoadedWorld;
+import space.pietr.lobby.common.utils.minestom.SoundUtils;
 
 import java.util.HashMap;
 import java.util.Random;

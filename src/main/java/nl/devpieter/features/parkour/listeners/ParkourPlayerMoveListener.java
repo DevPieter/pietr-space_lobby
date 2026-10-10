@@ -7,8 +7,8 @@ import nl.devpieter.entities.LobbyPlayer;
 import nl.devpieter.features.parkour.ParkourManager;
 import nl.devpieter.features.parkour.models.parkour.Parkour;
 import nl.devpieter.features.world.WorldManager;
-import nl.devpieter.features.world.models.LoadedWorld;
 import org.jetbrains.annotations.NotNull;
+import space.pietr.lobby.common.features.world.LoadedWorld;
 
 public class ParkourPlayerMoveListener implements EventListener<@NotNull PlayerMoveEvent> {
 
