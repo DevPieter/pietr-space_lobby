@@ -7,6 +7,7 @@ import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
+import nl.devpieter.Lobby;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.portals.models.Portal;
 import nl.devpieter.features.portals.models.PortalPointHolder;
@@ -31,7 +32,7 @@ public class PortalManager {
 
     private final HashMap<UUID, Long> portalCooldowns = new HashMap<>();
 
-    private final ComponentLogger logger = MinecraftServer.LOGGER;
+    private final ComponentLogger logger = Lobby.getLogger(this.getClass());
     private final SignManager signManager = SignManager.getInstance();
 
     private final List<Entity> debugMarkers = new ArrayList<>();

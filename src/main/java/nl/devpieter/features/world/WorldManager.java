@@ -7,6 +7,7 @@ import net.minestom.server.instance.*;
 import net.minestom.server.instance.anvil.AnvilLoader;
 import net.minestom.server.registry.RegistryKey;
 import net.minestom.server.world.DimensionType;
+import nl.devpieter.Lobby;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.events.WorldManagerInitializedEvent;
 import nl.devpieter.features.world.enums.LoadedWorldType;
@@ -36,7 +37,7 @@ public class WorldManager {
 
     private static WorldManager INSTANCE;
 
-    private final Logger logger = MinecraftServer.LOGGER;
+    private final Logger logger = Lobby.getLogger(this.getClass());
     private final Gson gson = new GsonBuilder()
             .registerTypeAdapter(WorldSettings.class, new WorldSettingsGsonAdapter())
             .registerTypeAdapter(WorldFeatureSettings.class, new WorldFeatureSettingsGsonAdapter())

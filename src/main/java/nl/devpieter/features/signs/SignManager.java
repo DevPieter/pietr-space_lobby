@@ -9,6 +9,7 @@ import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
+import nl.devpieter.Lobby;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.events.MarkedSignBadgeFoundEvent;
 import nl.devpieter.features.signs.models.SignHolder;
@@ -31,7 +32,7 @@ public class SignManager {
     private static SignManager INSTANCE;
     private static final String MARKED_SIGN_PREFIX = "[PTR]";
 
-    private final ComponentLogger logger = MinecraftServer.LOGGER;
+    private final ComponentLogger logger = Lobby.getLogger(this.getClass());
     private final Sees sees = Sees.getSharedInstance();
 
     private final WorldManager worldManager = WorldManager.getInstance();

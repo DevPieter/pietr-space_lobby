@@ -1,9 +1,9 @@
 package nl.devpieter.features.creatures;
 
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Entity;
+import nl.devpieter.Lobby;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.creatures.entities.cuteCat.CuteCatSpawnable;
 import nl.devpieter.features.creatures.entities.cuteFox.CuteFoxSpawnable;
@@ -26,7 +26,7 @@ public class CreatureManager {
     private static CreatureManager INSTANCE;
     private static final String SIGN_KEY = "<ENTITY>";
 
-    private final ComponentLogger logger = MinecraftServer.LOGGER;
+    private final ComponentLogger logger = Lobby.getLogger(this.getClass());
     private final SignManager signManager = SignManager.getInstance();
 
     private final List<Entity> debugMarkers = new ArrayList<>();

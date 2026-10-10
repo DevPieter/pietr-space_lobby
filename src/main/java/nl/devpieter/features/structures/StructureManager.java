@@ -3,6 +3,7 @@ package nl.devpieter.features.structures;
 import net.kyori.adventure.nbt.BinaryTagIO;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.minestom.server.MinecraftServer;
+import nl.devpieter.Lobby;
 import nl.devpieter.config.EnvStatics;
 import nl.devpieter.features.structures.models.Structure;
 import nl.devpieter.features.structures.models.nbt.StructureNbt;
@@ -24,7 +25,7 @@ public class StructureManager {
     private static final String STRUCTURE_FILE_EXTENSION = ".nbt";
     private static final String STRUCTURE_NAME_REGEX = "[a-z0-9_-]+";
 
-    private final Logger logger = MinecraftServer.LOGGER;
+    private final Logger logger = Lobby.getLogger(this.getClass());
 
     private final HashMap<String, List<Structure>> structures = new HashMap<>();
 

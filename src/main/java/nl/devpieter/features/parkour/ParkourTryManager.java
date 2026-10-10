@@ -13,6 +13,7 @@ import net.minestom.server.thread.Acquirable;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
+import nl.devpieter.Lobby;
 import nl.devpieter.api.request.AsyncRequest;
 import nl.devpieter.config.ConfigManager;
 import nl.devpieter.features.parkour.models.ParkourLeaderboardEntry;
@@ -32,7 +33,7 @@ public class ParkourTryManager {
 
     private static ParkourTryManager INSTANCE;
 
-    private final ComponentLogger logger = MinecraftServer.LOGGER;
+    private final ComponentLogger logger = Lobby.getLogger(this.getClass());
 
     private final ConfigManager configManager = ConfigManager.getInstance();
     private final Scheduler scheduler = MinecraftServer.getSchedulerManager();

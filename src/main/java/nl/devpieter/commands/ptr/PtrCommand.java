@@ -2,6 +2,8 @@ package nl.devpieter.commands.ptr;
 
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.entity.Player;
+import nl.devpieter.sees.Sees;
+import space.pietr.lobby.api.event.command.PtrCommandInitializingEvent;
 
 import java.util.UUID;
 
@@ -17,13 +19,18 @@ public class PtrCommand extends Command {
 
         setDefaultExecutor((sender, _) -> sender.sendMessage("Meow :3"));
 
+        var sees = Sees.getSharedInstance();
+        var events = sees.dispatchWithResult(new PtrCommandInitializingEvent());
+        for (Command subCommand : events) addSubcommand(subCommand);
+
         addSubcommands(
                 new WorldCommand(),
                 new SignCommand(),
                 new CreatureCommand(),
-                new FarmCommand(),
+//                new FarmCommand(),
                 new ParkourCommand(),
                 new PortalCommand()
         );
+
     }
 }

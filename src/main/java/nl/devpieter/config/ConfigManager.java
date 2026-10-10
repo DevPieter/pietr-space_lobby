@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.minestom.server.MinecraftServer;
+import nl.devpieter.Lobby;
 import nl.devpieter.utils.common.FileUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,7 +20,7 @@ public class ConfigManager {
     private static ConfigManager INSTANCE;
 
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    private final ComponentLogger logger = MinecraftServer.LOGGER;
+    private final ComponentLogger logger = Lobby.getLogger(this.getClass());
 
     private final LinkedHashMap<String, String> defaultConfig = new LinkedHashMap<>();
     private final LinkedHashMap<String, String> staticConfig = new LinkedHashMap<>();

@@ -24,6 +24,7 @@ import net.minestom.server.thread.Acquirable;
 import net.minestom.server.timer.SchedulerManager;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
+import nl.devpieter.Lobby;
 import nl.devpieter.PlayLogger;
 import nl.devpieter.TagHelper;
 import nl.devpieter.api.request.AsyncRequest;
@@ -67,7 +68,7 @@ public class ParkourManager {
     private static final int START_NODE_INDEX = -1;
     private static final int END_NODE_INDEX = -2;
 
-    private final ComponentLogger logger = MinecraftServer.LOGGER;
+    private final ComponentLogger logger = Lobby.getLogger(this.getClass());
     private final PlayLogger playLogger = PlayLogger.getInstance();
 
     private final MsgManager msgManager = MsgManager.getInstance();
